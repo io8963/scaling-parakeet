@@ -160,7 +160,8 @@ def build_site():
     print(f"Generated {len(final_parsed_posts)} post pages.")
     
     # 4b. 生成首页
-    generator.generate_index_html(final_parsed_posts)
+    # ！！！修复：将 generate_index_html 更改为正确的 generate_index_page ！！！
+    generator.generate_index_page(final_parsed_posts)
     
     # 4c. 生成归档页
     generator.generate_archive_html(final_parsed_posts)
