@@ -65,6 +65,9 @@ STATIC_DIR = 'static'
 # 存放媒体文件（图片、视频等）的目录
 MEDIA_DIR = 'media'
 
+ABOUT_PAGE = 'about.md'
+
+
 # 组合后的输出目录
 POSTS_OUTPUT_DIR = os.path.join(BUILD_DIR, POSTS_DIR_NAME)
 TAGS_OUTPUT_DIR = os.path.join(BUILD_DIR, TAGS_DIR_NAME)
