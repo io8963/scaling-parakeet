@@ -19,7 +19,7 @@ env = Environment(
     lstrip_blocks=True
 )
 
-# --- 辅助函数：路径和 URL ---
+# --- 辅助函数：路径和 URL (核心路径修正) ---
 
 def tag_to_slug(tag_name: str) -> str:
     """将标签名转换为 URL 友好的 slug (小写，空格变'-')。"""
@@ -28,14 +28,13 @@ def tag_to_slug(tag_name: str) -> str:
 def get_site_root_prefix() -> str:
     """
     获取网站在部署环境中的相对子目录路径前缀。
-    用于在模板中拼接内部链接。
     如果 REPO_SUBPATH 为空，则返回空字符串 ''。
-    如果 REPO_SUBPATH 为 'blog'，则返回 '/blog'。
+    如果 REPO_SUBPATH 为 '/blog'，则返回 '/blog'。
     """
     root = config.REPO_SUBPATH.strip()
     if not root or root == '/':
         return ''
-    # 确保它不以 '/' 结尾，但以 '/' 开头
+    # 确保它不以 '/' 结尾，但以 '/' 开头 (例如 '/blog')
     root = root.rstrip('/')
     return root if root.startswith('/') else f'/{root}'
 
@@ -52,6 +51,7 @@ def make_internal_url(path: str) -> str:
         return site_root_prefix if site_root_prefix else '/'
 
     # 结果格式为 /subpath/path 或 /path
+    # 注意：如果 site_root_prefix 为空，这里返回的就是 /path_without_leading_slash
     return f"{site_root_prefix}/{path_without_leading_slash}"
 
 # 辅助函数 - 检查文章是否隐藏
@@ -87,9 +87,9 @@ def copy_media_files():
         print(f"SUCCESS: Copied media files from {source_dir} to {target_dir}.")
 
 
-# --- 页面生成函数 ---
+# --- 页面生成函数 (使用 get_site_root_prefix 传入 site_root) ---
 
-# generate_about_page (应用 site_root 修正)
+# generate_about_page 
 def generate_about_page(post: Dict[str, Any]):
     """生成 about.html 页面。"""
     try:
@@ -105,14 +105,16 @@ def generate_about_page(post: Dict[str, Any]):
             site_root=get_site_root_prefix(), 
             canonical_url=config.BASE_URL.rstrip('/') + make_internal_url(link), 
             css_filename=config.CSS_FILENAME,
-            # ... (通用变量保持不变) ...
-            
             content_html=content_with_title,
-            # ...
+            current_year=datetime.now(timezone.utc).year,
+            blog_title=config.BLOG_TITLE,
+            blog_author=config.BLOG_AUTHOR,
+            blog_description=config.BLOG_DESCRIPTION,
+            lang='zh-CN',
+            footer_time_info=f"最后构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
         )
 
         output_path = os.path.join(config.BUILD_DIR, config.ABOUT_OUTPUT_FILE)
-        # ... (文件写入逻辑保持不变) ...
         output_dir = os.path.dirname(output_path)
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -125,31 +127,54 @@ def generate_about_page(post: Dict[str, Any]):
     except Exception as e:
         print(f"Error generating about page: {type(e).__name__}: {e}")
 
-# generate_post_html (应用 site_root 修正)
+# generate_post_html 
 def generate_post_html(post: Dict[str, Any]):
     """为单篇文章生成 HTML 页面"""
     try:
-        template = env.get_template('base.html')
+        template = env.get_template('post.html') # 假设存在 post.html 模板，如果没有则用 base.html
         
-        # ... (JSON-LD Schema 保持不变) ...
+        # 简化 JSON-LD 
+        json_ld_schema = {
+            "@context": "https://schema.org",
+            "@type": "BlogPosting",
+            "headline": post['title'],
+            "datePublished": post['date'].strftime('%Y-%m-%d'),
+            "author": {
+                "@type": "Person",
+                "name": config.BLOG_AUTHOR
+            },
+            "description": post.get('excerpt', config.BLOG_DESCRIPTION),
+            "mainEntityOfPage": {
+                "@type": "WebPage",
+                "@id": config.BASE_URL.rstrip('/') + make_internal_url(post['link'])
+            }
+        }
         
         post_tags_data = post.get('tags', []) 
         
         html_content = template.render(
             page_id='post',
             page_title=post['title'],
-            # 修正：使用正确的相对路径前缀
             site_root=get_site_root_prefix(),
             canonical_url=config.BASE_URL.rstrip('/') + make_internal_url(post['link']),
             css_filename=config.CSS_FILENAME,
-            # ... (通用变量保持不变) ...
             
+            # 通用变量
+            current_year=datetime.now(timezone.utc).year,
+            blog_title=config.BLOG_TITLE,
+            blog_author=config.BLOG_AUTHOR,
+            blog_description=config.BLOG_DESCRIPTION,
+            lang='zh-CN',
+            footer_time_info=f"最后构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            
+            # 文章特定数据
+            post=post,
             content_html=post['content_html'],
-            # ...
+            toc_html=post.get('toc_html', ''),
+            json_ld_schema=json.dumps(json_ld_schema, indent=4, ensure_ascii=False)
         )
 
         output_path = os.path.join(config.BUILD_DIR, post['link'].lstrip('/'))
-        # ... (文件写入逻辑保持不变) ...
         output_dir = os.path.dirname(output_path)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -163,7 +188,7 @@ def generate_post_html(post: Dict[str, Any]):
         print(f"Error generating post '{post.get('title', 'Unknown')}' HTML: {type(e).__name__}: {e}")
 
 
-# generate_index_html (应用 site_root 修正)
+# generate_index_html 
 def generate_index_html(all_posts: List[Dict[str, Any]]):
     """生成首页 index.html"""
     try:
@@ -174,18 +199,24 @@ def generate_index_html(all_posts: List[Dict[str, Any]]):
         html_content = template.render(
             page_id='index',
             page_title=config.BLOG_TITLE,
-            # 修正：使用正确的相对路径前缀
             site_root=get_site_root_prefix(),
             canonical_url=config.BASE_URL.rstrip('/') + make_internal_url('/'),
             css_filename=config.CSS_FILENAME,
-            # ... (通用变量保持不变) ...
             
+            # 通用变量
+            current_year=datetime.now(timezone.utc).year,
+            blog_title=config.BLOG_TITLE,
+            blog_author=config.BLOG_AUTHOR,
+            blog_description=config.BLOG_DESCRIPTION,
+            lang='zh-CN',
+            footer_time_info=f"最后构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            
+            # 首页特定数据
             posts=posts_for_index,
-            # ...
+            max_posts_on_index=config.MAX_POSTS_ON_INDEX,
         )
 
         output_path = os.path.join(config.BUILD_DIR, config.INDEX_FILE)
-        # ... (文件写入逻辑保持不变) ...
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
             
@@ -195,14 +226,13 @@ def generate_index_html(all_posts: List[Dict[str, Any]]):
         print(f"Error generating index.html: {type(e).__name__}: {e}")
 
 
-# generate_archive_html (应用 site_root 修正)
+# generate_archive_html 
 def generate_archive_html(all_posts: List[Dict[str, Any]]):
     """生成归档页 archive.html (显示所有可见文章)"""
     try:
         visible_posts = [p for p in all_posts if not is_post_hidden(p)]
         template = env.get_template('base.html')
         
-        # ... (archive_map 构建保持不变) ...
         archive_map = defaultdict(list)
         for post in visible_posts:
             year = post['date'].year
@@ -216,7 +246,6 @@ def generate_archive_html(all_posts: List[Dict[str, Any]]):
             content_html += f"<h2>{year} ({len(posts)} 篇)</h2>\n<ul class=\"archive-list\">\n"
             sorted_posts = sorted(posts, key=lambda p: p['date'], reverse=True)
             for post in sorted_posts:
-                # 修正：使用 make_internal_url 确保链接正确
                 link = make_internal_url(post['link']) 
                 date_str = post['date'].strftime('%Y-%m-%d')
                 content_html += f"  <li><span class=\"archive-date\">{date_str}</span> - <a href=\"{link}\">{post['title']}</a></li>\n"
@@ -225,18 +254,22 @@ def generate_archive_html(all_posts: List[Dict[str, Any]]):
         html_content = template.render(
             page_id='archive',
             page_title='文章归档',
-            # 修正：使用正确的相对路径前缀
             site_root=get_site_root_prefix(),
             canonical_url=config.BASE_URL.rstrip('/') + make_internal_url(config.ARCHIVE_FILE),
             css_filename=config.CSS_FILENAME,
-            # ... (通用变量保持不变) ...
+            
+            # 通用变量
+            current_year=datetime.now(timezone.utc).year,
+            blog_title=config.BLOG_TITLE,
+            blog_author=config.BLOG_AUTHOR,
+            blog_description=config.BLOG_DESCRIPTION,
+            lang='zh-CN',
+            footer_time_info=f"最后构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             
             content_html=content_html,
-            # ...
         )
 
         output_path = os.path.join(config.BUILD_DIR, config.ARCHIVE_FILE)
-        # ... (文件写入逻辑保持不变) ...
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
             
@@ -246,7 +279,7 @@ def generate_archive_html(all_posts: List[Dict[str, Any]]):
         print(f"Error generating archive.html: {type(e).__name__}: {e}")
 
 
-# generate_tags_list_html (应用 site_root 修正)
+# generate_tags_list_html 
 def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
     """生成所有标签的列表页 tags.html"""
     try:
@@ -258,14 +291,12 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
 
         template = env.get_template('base.html')
         
-        # ... (content_html 构建保持不变) ...
         content_html = "<h1>所有标签</h1>\n"
         content_html += "<ul class=\"tags-cloud-list\">\n"
         sorted_tags = sorted(filtered_tag_map.items(), key=lambda item: len(item[1]), reverse=True)
         
         for tag, posts in sorted_tags:
             tag_slug = tag_to_slug(tag)
-            # 修正：使用 make_internal_url 确保链接正确
             tag_link = make_internal_url(os.path.join(config.TAGS_DIR, f'{tag_slug}.html')) 
             content_html += f"  <li><a href=\"{tag_link}\" class=\"tag-cloud-item\">{tag}</a> ({len(posts)} 篇)</li>\n"
         content_html += "</ul>\n"
@@ -273,18 +304,22 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
         html_content = template.render(
             page_id='tags',
             page_title='所有标签',
-            # 修正：使用正确的相对路径前缀
             site_root=get_site_root_prefix(),
             canonical_url=config.BASE_URL.rstrip('/') + make_internal_url(config.TAGS_LIST_FILE),
             css_filename=config.CSS_FILENAME,
-            # ... (通用变量保持不变) ...
+            
+            # 通用变量
+            current_year=datetime.now(timezone.utc).year,
+            blog_title=config.BLOG_TITLE,
+            blog_author=config.BLOG_AUTHOR,
+            blog_description=config.BLOG_DESCRIPTION,
+            lang='zh-CN',
+            footer_time_info=f"最后构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
             
             content_html=content_html,
-            # ...
         )
 
         output_path = os.path.join(config.BUILD_DIR, config.TAGS_LIST_FILE)
-        # ... (文件写入逻辑保持不变) ...
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
             
@@ -294,13 +329,11 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
         print(f"Error generating tags.html: {type(e).__name__}: {e}")
 
 
-# generate_tag_page (应用 site_root 修正)
+# generate_tag_page 
 def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
     """为单个标签生成页面"""
     try:
         visible_tag_posts = [p for p in all_tag_posts if not is_post_hidden(p)]
-        
-        # ... (调试输出和跳过逻辑保持不变) ...
         
         if not visible_tag_posts:
             print(f"INFO: Skipping tag '{tag}' page generation as all posts are hidden/empty.")
@@ -314,20 +347,25 @@ def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
         html_content = template.render(
             page_id='tag', 
             page_title=f"标签: {tag}",
-            # 修正：使用正确的相对路径前缀
             site_root=get_site_root_prefix(),
             canonical_url=config.BASE_URL.rstrip('/') + make_internal_url(os.path.join(config.TAGS_DIR, output_filename)),
             css_filename=config.CSS_FILENAME,
-            # ... (通用变量保持不变) ...
             
+            # 通用变量
+            current_year=datetime.now(timezone.utc).year,
+            blog_title=config.BLOG_TITLE,
+            blog_author=config.BLOG_AUTHOR,
+            blog_description=config.BLOG_DESCRIPTION,
+            lang='zh-CN',
+            footer_time_info=f"最后构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            
+            # 标签页特定数据
             tag=tag,
             posts=visible_tag_posts, 
-            # ...
         )
 
         output_path = os.path.join(config.TAGS_OUTPUT_DIR, output_filename)
         
-        # ... (文件写入逻辑保持不变) ...
         output_dir = os.path.dirname(output_path)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -340,85 +378,98 @@ def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
     except Exception as e:
         print(f"Error generating tag page for '{tag}': {type(e).__name__}: {e}")
 
-# ... (XML/RSS 生成函数和文件复制函数保持不变) ...
 
+# --- XML/RSS 生成函数 (保持不变) ---
 
 def generate_robots_txt():
     """生成 robots.txt"""
-    content = f"""User-agent: *
+    content = f"""
+User-agent: *
 Allow: /
 Sitemap: {config.BASE_URL.rstrip('/')}{make_internal_url(config.SITEMAP_FILE)}
 """
+    output_path = os.path.join(config.BUILD_DIR, 'robots.txt')
     try:
-        output_path = os.path.join(config.BUILD_DIR, 'robots.txt')
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(content)
-        print("SUCCESS: Generated robots.txt.")
+            f.write(content.strip())
+        print(f"SUCCESS: Generated robots.txt.")
     except Exception as e:
         print(f"Error generating robots.txt: {e}")
 
-# generate_sitemap (保持不变)
-def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
-    """生成 sitemap.xml。"""
-    # ... (代码省略) ...
+def generate_sitemap(parsed_posts: List[Dict[str, Any]]):
+    """生成 sitemap.xml"""
     base_url_normalized = config.BASE_URL.rstrip('/')
+    
     urls = []
-    # 首页
+    
+    # 1. 首页和归档页
     urls.append(f"""
     <url>
         <loc>{base_url_normalized}{make_internal_url('/')}</loc>
+        <lastmod>{datetime.now().strftime('%Y-%m-%d')}</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>""")
-    # 归档页
     urls.append(f"""
     <url>
         <loc>{base_url_normalized}{make_internal_url(config.ARCHIVE_FILE)}</loc>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>""")
-    # 标签列表页
     urls.append(f"""
     <url>
         <loc>{base_url_normalized}{make_internal_url(config.TAGS_LIST_FILE)}</loc>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>""")
-    # 文章和特殊页面
+
+    # 2. 文章页
     for post in parsed_posts:
-        link = make_internal_url(post.get('link', '/')) 
-        lastmod_date = post.get('date', datetime.now(timezone.utc)).strftime('%Y-%m-%d')
-        urls.append(f"""
-    <url>
-        <loc>{base_url_normalized}{link}</loc>
-        <lastmod>{lastmod_date}</lastmod>
-        <changefreq>monthly</changefreq>
-        <priority>0.6</priority>
-    </url>""")
-    sitemap_content = f"""<?xml version="1.0" encoding="UTF-8"?>
-<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-{''.join(urls)}
-</urlset>"""
-    return sitemap_content
-
-
-
-# generate_rss (保持不变)
-def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
-    """生成 RSS feed。"""
-    # ... (代码省略) ...
-    items = []
-    base_url_normalized = config.BASE_URL.rstrip('/')
-
-    # 仅取最新的10篇可见文章
-    for post in parsed_posts[:10]:
+        if is_post_hidden(post):
+            continue
+            
         post_link = post.get('link')
         if not post_link:
             continue
-
+            
+        # 确保日期格式正确
+        date_str = post['date'].strftime('%Y-%m-%d')
         link = f"{base_url_normalized}{make_internal_url(post_link)}"
-        pub_date = post['date'].strftime('%a, %d %b %Y %H:%M:%S +0000') 
+        
+        urls.append(f"""
+    <url>
+        <loc>{link}</loc>
+        <lastmod>{date_str}</lastmod>
+        <changefreq>monthly</changefreq>
+        <priority>0.6</priority>
+    </url>""")
 
+    sitemap_content = f"""<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+{ "".join(urls) }
+</urlset>"""
+    
+    return sitemap_content
+
+
+def generate_rss(parsed_posts: List[Dict[str, Any]]):
+    """生成 RSS feed (rss.xml)"""
+    
+    items = []
+    base_url_normalized = config.BASE_URL.rstrip('/')
+    
+    # 仅取最新的10篇
+    visible_posts = [p for p in parsed_posts if not is_post_hidden(p)]
+    
+    for post in visible_posts[:10]:
+        post_link = post.get('link')
+        if not post_link:
+            continue
+            
+        link = f"{base_url_normalized}{make_internal_url(post_link)}"
+        # RFC 822 格式, 必须是 UTC 时间
+        pub_date = datetime.combine(post['date'], datetime.min.time(), tzinfo=timezone.utc).strftime('%a, %d %b %Y %H:%M:%S +0000') 
+        
         items.append(f"""
     <item>
       <title>{post['title']}</title>
@@ -427,10 +478,10 @@ def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
       <guid isPermaLink="true">{link}</guid>
       <description><![CDATA[{post['content_html']}]]></description>
     </item>""")
-
+    
     rss_file_url = make_internal_url(config.RSS_FILE)
     index_url = make_internal_url('/')
-
+    
     rss_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
@@ -439,8 +490,9 @@ def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
     <atom:link href="{base_url_normalized}{rss_file_url}" rel="self" type="application/rss+xml" />
     <description>{config.BLOG_DESCRIPTION}</description>
     <language>zh-cn</language>
-    <lastBuildDate>{datetime.now(timezone.utc).strftime('%a, %d %b %Y %H:%M:%S +0000')}</lastBuildDate>
-{''.join(items)}
+    <pubDate>{datetime.now(timezone.utc).strftime('%a, %d %b %Y %H:%M:%S +0000')}</pubDate>
+{ "".join(items) }
 </channel>
 </rss>"""
+    
     return rss_content
