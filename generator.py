@@ -139,9 +139,10 @@ def generate_post_html(post_data: Dict[str, Any]):
     post_date_str = post_data['date'].astimezone(timezone.utc).strftime('%Y-%m-%d')
     
     now_utc = datetime.now(timezone.utc)
-    time_label = "生成于" if post_data['date'] != now_utc else "发布于" 
-    post_time_utc_str = now_utc.strftime('%Y-%m-%d %H:%M:%S UTC')
-    footer_time_info_str = f"{time_label}: {post_time_utc_str}" 
+    # 优化建议 3: 将标签固定为“构建于”
+    time_label = "构建于" 
+    build_time_utc_str = now_utc.strftime('%Y-%m-%d %H:%M:%S UTC') # 重命名变量
+    footer_time_info_str = f"{time_label}: {build_time_utc_str}" 
     
     regenerate_html_file(
         output_path=output_path,
@@ -153,185 +154,172 @@ def generate_post_html(post_data: Dict[str, Any]):
         blog_title=config.BLOG_TITLE,
         blog_description=config.BLOG_DESCRIPTION,
         blog_author=config.BLOG_AUTHOR,
+        lang=config.LANG,
         main_title_html=main_title_html,
         content_html=post_data['content_html'],
         post_date=post_date_str,
-        post_tags=post_data.get('tags'),
+        post_tags=post_data['tags'],
         footer_time_info=footer_time_info_str,
-        toc_html=post_data.get('toc_html', '') 
+        toc_html=post_data['toc_html']
     )
-
-
+    
 def generate_index_html(parsed_posts: List[Dict[str, Any]]):
-    """生成首页 (index.html)"""
+    """生成首页 HTML 文件"""
     
-    recent_posts = parsed_posts[:config.MAX_POSTS_ON_INDEX]
-
-    # 构造文章列表 HTML
-    posts_list_html = []
-    for post in recent_posts:
-        link = make_internal_url(os.path.join(config.POSTS_DIR, f"{post['slug']}.html"))
-        date_str = post['date'].strftime('%Y-%m-%d')
+    index_posts = parsed_posts[:config.MAX_POSTS_ON_INDEX]
+    
+    content_html_parts = []
+    
+    # 构建文章列表 HTML
+    content_html_parts.append("<ul class='post-list card'>")
+    for post in index_posts:
+        post_url = make_internal_url(os.path.join(config.POSTS_DIR, f"{post['slug']}.html"))
+        post_date_str = post['date'].astimezone(timezone.utc).strftime('%Y-%m-%d')
         
-        tags_html = "".join([
-            f'<a href="{config.SITE_ROOT}/tags/{tag["slug"]}.html" class="tag-badge">{tag["name"]}</a>'
-            for tag in post.get('tags', [])
-        ])
-
-        item = f"""
-            <div class="post-card">
-                <h2 class="post-card-title"><a href="{link}">{post['title']}</a></h2>
-                <div class="post-card-meta">
-                    <span class="meta-date">{date_str}</span>
-                    <div class="meta-tags">{tags_html}</div>
-                </div>
-                <div class="post-card-excerpt">
-                    {post.get('description', '暂无摘要')}
-                </div>
-            </div>
-        """
-        posts_list_html.append(item)
+        # 截取前 150 个字符作为摘要
+        excerpt = post['content_markdown'][:150].split('\n')[0].strip() + '...'
+        
+        content_html_parts.append(f"""
+        <li class='post-item'>
+            <a href="{post_url}" class="post-title">{post['title']}</a>
+            <p class="post-excerpt">{excerpt}</p>
+            <span class="post-date">{post_date_str}</span>
+        </li>
+        """)
+    content_html_parts.append("</ul>")
     
-    output_path = os.path.join(config.BUILD_DIR, config.INDEX_FILE)
-    canonical_url = make_internal_url('/')
-    
-    main_title_html = f"<h1>{config.BLOG_TITLE}</h1>"
-    content_html = "<div class='posts-list'>" + "".join(posts_list_html) + "</div>"
+    # 添加归档链接
+    if len(parsed_posts) > config.MAX_POSTS_ON_INDEX:
+        archive_url = make_internal_url(config.ARCHIVE_FILE)
+        content_html_parts.append(f"""
+        <div class="card" style="text-align: center;">
+            <a href="{archive_url}" class="button-primary">查看所有 {len(parsed_posts)} 篇文章 &raquo;</a>
+        </div>
+        """)
+        
+    content_html = '\n'.join(content_html_parts)
     
     regenerate_html_file(
-        output_path=output_path,
+        output_path=os.path.join(config.BUILD_DIR, config.INDEX_FILE),
         page_id='index',
         page_title=generate_page_title('index'),
-        canonical_url=canonical_url,
+        canonical_url=make_internal_url(config.INDEX_FILE),
         current_year=datetime.now().year,
         site_root=config.SITE_ROOT,
         blog_title=config.BLOG_TITLE,
         blog_description=config.BLOG_DESCRIPTION,
         blog_author=config.BLOG_AUTHOR,
-        main_title_html=main_title_html,
+        lang=config.LANG,
+        main_title_html=f"<h1>{config.BLOG_TITLE}</h1>",
         content_html=content_html,
-        footer_time_info=f"总文章数: {len(parsed_posts)} | " + datetime.now(timezone.utc).strftime('页面生成于 %Y-%m-%d %H:%M:%S UTC'),
+        # 页脚信息
+        footer_time_info=f"总文章数: {len(parsed_posts)}"
     )
-
 
 def generate_archive_html(parsed_posts: List[Dict[str, Any]]):
-    """生成归档页 (archive.html)"""
+    """生成文章归档页 HTML 文件"""
     
-    archive_map = defaultdict(list)
+    content_html_parts = []
+    content_html_parts.append("<ul class='post-list card'>")
+    
     for post in parsed_posts:
-        year = post['date'].year
-        archive_map[year].append(post)
+        post_url = make_internal_url(os.path.join(config.POSTS_DIR, f"{post['slug']}.html"))
+        post_date_str = post['date'].astimezone(timezone.utc).strftime('%Y-%m-%d')
         
-    archive_html = []
-    for year in sorted(archive_map.keys(), reverse=True):
-        year_html = f"<h2>{year}</h2><ul class='archive-list'>"
-        for post in archive_map[year]:
-            link = make_internal_url(os.path.join(config.POSTS_DIR, f"{post['slug']}.html"))
-            date_str = post['date'].strftime('%m-%d')
-            item = f"<li><span class='archive-date'>[{date_str}]</span> <a href='{link}'>{post['title']}</a></li>"
-            year_html += item
-        year_html += "</ul>"
-        archive_html.append(year_html)
-
-    output_path = os.path.join(config.BUILD_DIR, config.ARCHIVE_FILE)
-    canonical_url = make_internal_url(config.ARCHIVE_FILE)
-    
-    main_title_html = "<h1>文章归档</h1>"
-    content_html = "<div class='archive-wrapper'>" + "".join(archive_html) + "</div>"
+        content_html_parts.append(f"""
+        <li class='post-item'>
+            <a href="{post_url}" class="post-title">{post['title']}</a>
+            <span class="post-date">{post_date_str}</span>
+        </li>
+        """)
+        
+    content_html_parts.append("</ul>")
+    content_html = '\n'.join(content_html_parts)
     
     regenerate_html_file(
-        output_path=output_path,
+        output_path=os.path.join(config.BUILD_DIR, config.ARCHIVE_FILE),
         page_id='archive',
         page_title=generate_page_title('archive'),
-        canonical_url=canonical_url,
+        canonical_url=make_internal_url(config.ARCHIVE_FILE),
         current_year=datetime.now().year,
         site_root=config.SITE_ROOT,
         blog_title=config.BLOG_TITLE,
         blog_description=config.BLOG_DESCRIPTION,
         blog_author=config.BLOG_AUTHOR,
-        main_title_html=main_title_html,
+        lang=config.LANG,
+        main_title_html="<h1>文章归档</h1>",
         content_html=content_html,
+        # 页脚信息
+        footer_time_info=f"总文章数: {len(parsed_posts)}"
     )
-
 
 def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
-    """生成标签列表页 (tags.html)"""
+    """生成所有标签的列表页 (tags.html)"""
     
-    tags_list_html = []
-    tag_counts = {slug: len(posts) for slug, posts in tag_map.items()}
+    content_html_parts = []
     
-    for slug in sorted(tag_map.keys()):
-        count = tag_counts[slug]
-        tag_name = tag_map[slug][0]['tags'][0]['name'] if tag_map[slug] else slug
-        link = make_internal_url(os.path.join(config.TAGS_DIR, f"{slug}.html"))
-        item = f"""
-            <li>
-                <a href="{link}" class="tag-link-block">
-                    <span class="tag-name">{tag_name}</span> 
-                    <span class="tag-count">({count} 篇)</span>
-                </a>
-            </li>
-        """
-        tags_list_html.append(item)
-
-    output_path = os.path.join(config.BUILD_DIR, config.TAGS_FILE)
-    canonical_url = make_internal_url(config.TAGS_FILE)
+    # 按标签名排序
+    sorted_tags = sorted(tag_map.keys())
     
-    main_title_html = "<h1>标签列表</h1>"
-    content_html = f"<ul class='tags-cloud-list'>{''.join(tags_list_html)}</ul>"
+    content_html_parts.append("<div class='tags-cloud card'>")
+    
+    for tag_name in sorted_tags:
+        posts = tag_map[tag_name]
+        tag_slug = posts[0]['tags'][0]['slug'] # 从任意一篇文章中取出 slug
+        count = len(posts)
+        tag_url = make_internal_url(os.path.join(config.TAGS_DIR, f"{tag_slug}.html"))
+        
+        # 标签云样式：根据文章数量调整字体大小 (简单示例)
+        font_size = max(1.0, min(2.0, 1.0 + count * 0.1)) # 1.0em 到 2.0em 之间
+        
+        content_html_parts.append(
+            f'<a href="{tag_url}" class="tag-badge" style="font-size: {font_size}em; margin-right: 10px; margin-bottom: 10px;">{tag_name} ({count})</a>'
+        )
+        
+    content_html_parts.append("</div>")
+    content_html = '\n'.join(content_html_parts)
     
     regenerate_html_file(
-        output_path=output_path,
+        output_path=os.path.join(config.BUILD_DIR, config.TAGS_FILE),
         page_id='tags',
         page_title=generate_page_title('tags'),
-        canonical_url=canonical_url,
+        canonical_url=make_internal_url(config.TAGS_FILE),
         current_year=datetime.now().year,
         site_root=config.SITE_ROOT,
         blog_title=config.BLOG_TITLE,
         blog_description=config.BLOG_DESCRIPTION,
         blog_author=config.BLOG_AUTHOR,
-        main_title_html=main_title_html,
+        lang=config.LANG,
+        main_title_html="<h1>所有标签</h1>",
         content_html=content_html,
+        footer_time_info=f"总标签数: {len(tag_map)}"
     )
 
-
-def generate_tag_page(tag_slug: str, posts: List[Dict[str, Any]]):
-    """生成单个标签页面的 HTML"""
+def generate_tag_page(tag_name: str, posts: List[Dict[str, Any]]):
+    """为单个标签生成文章列表页"""
     
-    tag_name = posts[0]['tags'][0]['name'] if posts else tag_slug
+    tag_slug = posts[0]['tags'][0]['slug']
     internal_path = os.path.join(config.TAGS_DIR, f'{tag_slug}.html')
     output_path = os.path.join(config.BUILD_DIR, internal_path)
     canonical_url = make_internal_url(internal_path)
     
-    posts_list_html = []
+    content_html_parts = []
+    content_html_parts.append("<ul class='post-list card'>")
+    
     for post in posts:
-        link = make_internal_url(os.path.join(config.POSTS_DIR, f"{post['slug']}.html"))
-        date_str = post['date'].strftime('%Y-%m-%d')
+        post_url = make_internal_url(os.path.join(config.POSTS_DIR, f"{post['slug']}.html"))
+        post_date_str = post['date'].astimezone(timezone.utc).strftime('%Y-%m-%d')
         
-        tags_html = "".join([
-            f'<a href="{config.SITE_ROOT}/tags/{tag["slug"]}.html" class="tag-badge">{tag["name"]}</a>'
-            for tag in post.get('tags', []) if tag['slug'] != tag_slug
-        ])
-        if tags_html:
-            tags_html = "其他标签: " + tags_html
+        content_html_parts.append(f"""
+        <li class='post-item'>
+            <a href="{post_url}" class="post-title">{post['title']}</a>
+            <span class="post-date">{post_date_str}</span>
+        </li>
+        """)
         
-        item = f"""
-            <div class="post-card">
-                <h2 class="post-card-title"><a href="{link}">{post['title']}</a></h2>
-                <div class="post-card-meta">
-                    <span class="meta-date">{date_str}</span>
-                    <div class="meta-tags">{tags_html}</div>
-                </div>
-                <div class="post-card-excerpt">
-                    {post.get('description', '暂无摘要')}
-                </div>
-            </div>
-        """
-        posts_list_html.append(item)
-
-    main_title_html = f"<h1>标签: {tag_name} ({len(posts)} 篇)</h1>"
-    content_html = "<div class='posts-list'>" + "".join(posts_list_html) + "</div>"
-
+    content_html_parts.append("</ul>")
+    content_html = '\n'.join(content_html_parts)
+    
     regenerate_html_file(
         output_path=output_path,
         page_id='tag-page',
@@ -342,92 +330,85 @@ def generate_tag_page(tag_slug: str, posts: List[Dict[str, Any]]):
         blog_title=config.BLOG_TITLE,
         blog_description=config.BLOG_DESCRIPTION,
         blog_author=config.BLOG_AUTHOR,
-        main_title_html=main_title_html,
+        lang=config.LANG,
+        main_title_html=f"<h1>标签: {tag_name}</h1>",
         content_html=content_html,
+        footer_time_info=f"此标签下有 {len(posts)} 篇文章"
     )
 
-
-def generate_about_html(post_data: Dict[str, Any]):
-    """生成关于页面 (about.html)"""
-    
-    output_path = os.path.join(config.BUILD_DIR, config.ABOUT_FILE)
-    canonical_url = make_internal_url(config.ABOUT_FILE)
-    main_title_html = f"<h1>{post_data['title']}</h1>"
-    
-    regenerate_html_file(
-        output_path=output_path,
-        page_id='about',
-        page_title=generate_page_title('about'),
-        canonical_url=canonical_url,
-        current_year=datetime.now().year,
-        site_root=config.SITE_ROOT,
-        blog_title=config.BLOG_TITLE,
-        blog_description=config.BLOG_DESCRIPTION,
-        blog_author=config.BLOG_AUTHOR,
-        main_title_html=main_title_html,
-        content_html=post_data['content_html'],
-        toc_html=post_data.get('toc_html', '') 
-    )
-
-
-def generate_robots_txt():
-    """生成 robots.txt 文件"""
-    robots_content = f"""# robots.txt
-User-agent: *
+def generate_robots_txt() -> str:
+    """生成 robots.txt 内容"""
+    robots_txt_content = f"""User-agent: *
 Allow: /
-Sitemap: {make_internal_url(config.SITEMAP_FILE)}
+
+Sitemap: {get_site_root()}/sitemap.xml
 """
     try:
         output_path = os.path.join(config.BUILD_DIR, 'robots.txt')
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(robots_content)
-        print(f"SUCCESS: Generated robots.txt.")
+            f.write(robots_txt_content)
+        print("SUCCESS: Generated robots.txt.")
     except Exception as e:
         print(f"Error generating robots.txt: {e}")
+        
+    return robots_txt_content
 
 def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
     """生成 sitemap.xml 内容"""
     
-    urls = []
     base_url_normalized = config.BASE_URL.rstrip('/')
+    
+    urls = []
     
     # 1. 首页
     urls.append(f"""
     <url>
         <loc>{base_url_normalized}{make_internal_url('/')}</loc>
-        <lastmod>{datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S+00:00')}</lastmod>
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>""")
     
-    # 2. 通用页面
-    for page in [config.ARCHIVE_FILE, config.TAGS_FILE, config.ABOUT_FILE]:
+    # 2. 其他静态页 (归档、标签列表、关于)
+    for file_name in [config.ARCHIVE_FILE, config.TAGS_FILE, config.ABOUT_FILE]:
         urls.append(f"""
     <url>
-        <loc>{base_url_normalized}{make_internal_url(page)}</loc>
-        <lastmod>{datetime.now(timezone.utc).strftime('%Y-%m-%dT%H:%M:%S+00:00')}</lastmod>
+        <loc>{base_url_normalized}{make_internal_url(file_name)}</loc>
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>""")
-
-    # 3. 文章详情页
+        
+    # 3. 所有文章页
+    all_tags = set()
     for post in parsed_posts:
-        internal_path = os.path.join(config.POSTS_DIR, f"{post['slug']}.html")
-        loc = f"{base_url_normalized}{make_internal_url(internal_path)}"
-        # 使用文章本身的日期作为 lastmod
-        lastmod = post['date'].strftime('%Y-%m-%dT%H:%M:%S+00:00') 
+        link = make_internal_url(os.path.join(config.POSTS_DIR, f"{post['slug']}.html"))
+        # 使用文章的日期作为最后修改日期
+        last_mod = post['date'].strftime('%Y-%m-%d')
         urls.append(f"""
     <url>
-        <loc>{loc}</loc>
-        <lastmod>{lastmod}</lastmod>
+        <loc>{base_url_normalized}{link}</loc>
+        <lastmod>{last_mod}</lastmod>
         <changefreq>monthly</changefreq>
-        <priority>0.7</priority>
+        <priority>0.6</priority>
     </url>""")
-    
+        # 收集标签
+        for tag_data in post.get('tags', []):
+            all_tags.add(tag_data['slug'])
+            
+    # 4. 所有标签页
+    for tag_slug in all_tags:
+        link = make_internal_url(os.path.join(config.TAGS_DIR, f"{tag_slug}.html"))
+        urls.append(f"""
+    <url>
+        <loc>{base_url_normalized}{link}</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>""")
+        
     sitemap_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-{"".join(urls)}
+    {"\n".join(urls)}
 </urlset>"""
+
     return sitemap_content
 
 def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
@@ -460,13 +441,11 @@ def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
     <link>{base_url_normalized}{index_url}</link>
     <atom:link href="{base_url_normalized}{rss_file_url}" rel="self" type="application/rss+xml" />
     <description>{config.BLOG_DESCRIPTION}</description>
-    <language>zh-Hans</language>
-    <pubDate>{datetime.now(timezone.utc).strftime('%a, %d %b %Y %H:%M:%S +0000')}</pubDate>
+    <language>{config.LANG.replace('-', '').lower()}</language>
     <lastBuildDate>{datetime.now(timezone.utc).strftime('%a, %d %b %Y %H:%M:%S +0000')}</lastBuildDate>
-    <managingEditor>{config.BLOG_AUTHOR}</managingEditor>
-    <webMaster>{config.BLOG_AUTHOR}</webMaster>
-    <generator>Simple Blog Generator</generator>
-{"".join(items)}
+    <generator>Custom Python SSG</generator>
+    {"\n".join(items)}
 </channel>
 </rss>"""
+
     return rss_content
