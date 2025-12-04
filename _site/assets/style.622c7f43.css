@@ -1,0 +1,616 @@
+/* NEW: 全局 Box-Sizing 修复，防止 Padding 导致的溢出问题 */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* C. 主题色定义 */
+:root {
+    --color-primary: #00796b; /* 鲜绿色 */
+    --color-primary-light: #e0f2f1; /* 浅绿色 */
+    --color-link-dark: #80cbc4; /* 暗色模式下的链接颜色 */
+    
+    /* MODIFIED: 核心通用变量定义 - 默认使用浅色值 */
+    --color-text: #333; /* 浅色模式文本 - 作为通用文本色 */
+    --color-background: #f7f7f7; /* 通用背景色，默认浅色 */
+    --color-card: #ffffff; /* 通用卡片背景，默认浅色 */
+    --color-border: #eee; /* 通用边框颜色，默认浅色 */
+    --shadow: 0 2px 5px rgba(0,0,0,0.05); /* 通用阴影，默认浅色 */
+    
+    --color-text-dark: #e0e0e0; /* 深色模式文本 */
+    --color-background-light: #f7f7f7; /* 浅灰底色增强卡片效果 */
+    --color-background-dark: #1a1a1a; /* 深色背景 */
+    --color-card-light: #ffffff; /* 浅色卡片背景 */
+    --color-card-dark: #2b2b2b; /* 深色卡片背景 */
+    --color-border-dark: #444; /* 深色边框 */
+    --shadow-dark: 0 4px 10px rgba(0,0,0,0.3); /* 深色阴影 */
+    --color-blockquote-bg: #f0f0f0; /* 引用背景 */
+    --color-blockquote-border: #ccc;
+    --color-code-bg: #f4f4f4; /* 代码背景 */
+
+    /* NEW: 代码高亮颜色变量 (浅色模式默认) */
+    --code-color-bg: #f6f8fa;
+    --code-color-text: #24292e;
+    --code-color-keyword: #d73a49; /* 关键词 */
+    --code-color-string: #032f62; /* 字符串 */
+    --code-color-comment: #6a737d; /* 注释 */
+    --code-color-operator: #d73a49; /* 运算符 */
+    --code-color-name: #22863a; /* 函数/类名 */
+}
+
+/* 深色模式主题变量覆盖 */
+@media (prefers-color-scheme: dark) {
+    :root {
+        --color-text: var(--color-text-dark);
+        --color-background: var(--color-background-dark);
+        --color-card: var(--color-card-dark);
+        --color-border: var(--color-border-dark);
+        --shadow: var(--shadow-dark);
+        --color-link: var(--color-link-dark);
+        --color-blockquote-bg: #333;
+        --color-blockquote-border: #555;
+        --color-code-bg: #222;
+        --color-text-code: #ddd; /* 深色代码文本 */
+
+        /* NEW: 代码高亮颜色变量 (深色模式覆盖) */
+        --code-color-bg: #272822; /* Monokai-like dark background */
+        --code-color-text: #f8f8f2;
+        --code-color-keyword: #f92672;
+        --code-color-string: #e6db74;
+        --code-color-comment: #75715e;
+        --code-color-operator: #f92672;
+        --code-color-name: #a6e22e;
+    }
+}
+
+/* A. 通用和排版 */
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--color-text);
+    background-color: var(--color-background);
+    margin: 0;
+    padding: 0;
+}
+
+/* 统一链接和按钮的悬停反馈 */
+a, button, .tag-badge {
+    transition: all 0.2s ease-out;
+}
+a:hover {
+    color: var(--color-primary);
+    /* NEW: 统一的轻微上移动效 */
+    transform: translateY(-1px); 
+}
+/* NEW: 增强无障碍性，为可交互元素添加清晰的焦点状态 */
+a:focus, button:focus, .tag-badge:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--color-text);
+    line-height: 1.2;
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
+}
+
+/* B. 布局和结构 */
+.header-inner, .footer-content, .content-layout-wrapper {
+    max-width: 900px; /* 限制内容最大宽度 */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 15px;
+    padding-right: 15px;
+}
+
+/* 头部 Header */
+header {
+    position: sticky; /* 粘性定位 */
+    top: 0;
+    z-index: 100;
+    padding: 15px 0;
+    background-color: rgba(255, 255, 255, 0.85); /* 浅色背景半透明 */
+    /* NEW: 模糊效果 */
+    backdrop-filter: blur(8px); 
+    border-bottom: 1px solid var(--color-border);
+}
+
+.header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.site-title {
+    font-size: 1.5em;
+    font-weight: bold;
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+nav a {
+    margin-left: 20px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+    padding-bottom: 3px;
+    border-bottom: 2px solid transparent; /* 用于悬停/激活效果 */
+}
+
+/* NEW: 导航链接激活状态样式 */
+nav a.active-nav-link {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    font-weight: 700;
+}
+nav a:hover {
+    border-bottom-color: var(--color-primary-light);
+}
+
+/* 深色模式下的 Header 样式调整 */
+@media (prefers-color-scheme: dark) {
+    header {
+        background-color: rgba(26, 26, 26, 0.85); /* 深色背景半透明 */
+        border-bottom-color: var(--color-border-dark);
+    }
+    nav a {
+        color: var(--color-text-dark);
+    }
+    nav a.active-nav-link {
+        color: var(--color-link-dark);
+        border-bottom-color: var(--color-link-dark);
+    }
+}
+
+/* 主内容区域 */
+.page-content {
+    padding-top: 40px;
+    padding-bottom: 80px;
+}
+
+/* 文章布局：主要内容 + 目录 (TOC) */
+.content-layout-wrapper {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start; /* 对齐顶部 */
+}
+
+.post-main-content {
+    flex-grow: 1;
+    min-width: 0; /* 允许在 flex 容器中收缩 */
+}
+
+/* 仅在屏幕宽度大于 900px 时显示 TOC */
+@media (min-width: 901px) {
+    .post-main-content {
+        flex-basis: 70%; /* 主内容占 70% */
+    }
+    .toc-container {
+        flex-basis: 30%; /* 目录占 30% */
+        position: sticky;
+        top: 80px; /* 位于 Header 下方 */
+    }
+}
+
+/* 移动端布局调整 */
+@media (max-width: 900px) {
+    .content-layout-wrapper {
+        flex-direction: column; /* 垂直堆叠 */
+    }
+    .post-main-content {
+        width: 100%;
+    }
+    .toc-container {
+        display: none; /* 移动端默认隐藏目录，通常用 JavaScript 控制显示 */
+    }
+}
+
+/* 页脚 Footer */
+footer {
+    padding: 20px 0;
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-background-light); /* 略浅的背景色 */
+    text-align: center;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 15px; 
+}
+
+.footer-links {
+    margin-top: 10px;
+}
+
+.footer-links a {
+    color: var(--color-primary);
+    text-decoration: none;
+    margin: 0 5px;
+}
+
+.copyright-info, .build-info {
+    margin: 5px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    footer {
+        background-color: var(--color-card-dark);
+        border-top-color: var(--color-border-dark);
+        color: #aaa;
+    }
+    .footer-links a {
+         color: var(--color-link-dark);
+    }
+}
+
+/* C. 组件样式 */
+
+/* 卡片/容器样式 */
+.card {
+    background-color: var(--color-card);
+    padding: 20px;
+    margin-bottom: 20px;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--color-border);
+}
+
+/* 标签样式 (tag-badge) */
+.tag-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    margin: 0 5px 5px 0;
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    border-radius: 4px;
+    font-size: 0.85em;
+    text-decoration: none;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid var(--color-primary); /* 添加边框 */
+    transition: all 0.2s ease;
+}
+
+.tag-badge:hover {
+    background-color: var(--color-primary);
+    color: var(--color-card); /* 悬停时文本变白 */
+    box-shadow: 0 2px 5px rgba(0, 121, 107, 0.3);
+    /* NEW: 统一的轻微上移动效 */
+    transform: translateY(-2px); 
+}
+
+/* 深色模式下的标签 */
+@media (prefers-color-scheme: dark) {
+    .tag-badge {
+        background-color: #333;
+        color: var(--color-link-dark);
+        border-color: var(--color-link-dark);
+    }
+    .tag-badge:hover {
+        background-color: var(--color-link-dark);
+        color: var(--color-background-dark);
+    }
+}
+
+/* 文章头部信息区优化 */
+.post-header-info {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+}
+.post-header-info h1 {
+    margin-top: 0;
+}
+
+/* 文章元数据 */
+.post-meta {
+    font-size: 0.9em;
+    color: #888;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin-top: 10px;
+}
+.meta-tags {
+    display: flex;
+    align-items: center;
+}
+.meta-tags-label {
+    margin-right: 5px;
+    font-weight: bold;
+    color: var(--color-text);
+}
+.tags-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+}
+.tags-list li {
+    margin-right: 5px;
+    display: inline;
+}
+
+/* D. Markdown 内容样式 */
+
+/* 引用块 */
+blockquote {
+    border-left: 5px solid var(--color-primary);
+    background-color: var(--color-blockquote-bg);
+    padding: 10px 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+    color: var(--color-text);
+    font-style: italic;
+}
+
+/* 代码块 */
+pre {
+    /* 移除通用代码背景，由高亮类接管 */
+    /* background-color: var(--color-code-bg); */
+    padding: 15px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.95em;
+    line-height: 1.4;
+    border: 1px solid var(--color-border);
+}
+pre code {
+    /* color: var(--color-text); */
+    /* 移除通用代码文本色，由高亮类接管 */
+}
+@media (prefers-color-scheme: dark) {
+    /* pre code {
+        color: var(--color-text-dark);
+    } */
+}
+
+/* 图片响应式 */
+.post-main-content img {
+    max-width: 100%; 
+    height: auto; 
+    display: block;
+    margin: 20px auto;
+    border-radius: 6px;
+    /* NEW: 为图片添加柔和的边框和阴影 */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border: 1px solid var(--color-border);
+}
+
+@media (prefers-color-scheme: dark) {
+    .post-main-content img {
+        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--color-border-dark);
+    }
+}
+
+/* 表格样式 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 0.9em;
+}
+th, td {
+    padding: 12px 15px;
+    border: 1px solid var(--color-border);
+    text-align: left;
+}
+th {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+/* 斑马线效果 */
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+@media (prefers-color-scheme: dark) {
+    table {
+        border: 1px solid var(--color-border-dark);
+    }
+    th, td {
+        border-color: var(--color-border-dark);
+    }
+    th {
+        background-color: #384d49;
+        color: var(--color-link-dark);
+    }
+    tr:nth-child(even) {
+        background-color: #222;
+    }
+}
+
+/* 目录 (TOC) 样式 */
+.toc-container {
+    padding: 20px;
+    background-color: var(--color-card);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--color-border);
+    font-size: 0.9em;
+}
+.toc-container ul {
+    list-style: none;
+    padding-left: 0;
+}
+.toc-container li {
+    margin-bottom: 5px;
+}
+.toc-container a {
+    color: var(--color-text);
+    text-decoration: none;
+    padding: 2px 0;
+    display: block;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+}
+.toc-container a:hover {
+    color: var(--color-primary);
+    border-left-color: var(--color-primary);
+}
+
+/* TOC 深度指示 */
+.toc-container ul ul {
+    padding-left: 15px;
+}
+
+/* E. 列表页样式 */
+
+.post-list {
+    list-style: none;
+    padding: 0; 
+    margin: 0; 
+}
+.post-item {
+    padding: 15px 20px; 
+    border-bottom: 1px dashed var(--color-border);
+}
+.post-item:last-child {
+    border-bottom: none;
+}
+.post-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--color-text);
+    text-decoration: none;
+    display: block;
+    margin-bottom: 5px;
+}
+.post-title:hover {
+    color: var(--color-primary);
+}
+.post-date, .post-excerpt {
+    font-size: 0.9em;
+    color: #888;
+}
+.post-excerpt {
+    margin-bottom: 5px;
+}
+
+/* Tags Cloud 样式 */
+.tags-cloud {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px; /* 标签之间的间距 */
+    padding-top: 20px;
+}
+
+
+/* F. 按钮样式 (已有的) */
+
+.button-base {
+    display: inline-block;
+    padding: 10px 18px;
+    border: 1px solid;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    text-decoration: none !important;
+    white-space: nowrap;
+    line-height: 1.2;
+}
+
+/* Primary Button Style (主操作按钮) */
+.button-primary {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 5px rgba(0, 121, 107, 0.3);
+}
+.button-primary:hover {
+    background-color: #004d40;
+    color: white;
+    border-color: #004d40;
+    box-shadow: 0 4px 10px rgba(0, 121, 107, 0.5);
+    /* NEW: 统一的悬停动效 */
+    transform: translateY(-2px);
+}
+
+/* Secondary Button Style (次要操作按钮) */
+.button-secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+.button-secondary:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    /* NEW: 统一的悬停动效 */
+    transform: translateY(-2px);
+}
+
+/* Dark Mode Button Adaptation */
+@media (prefers-color-scheme: dark) {
+    .button-secondary {
+        color: var(--color-link-dark);
+        border-color: var(--color-link-dark);
+    }
+    .button-secondary:hover {
+        background-color: rgba(128, 203, 196, 0.1); /* 使用 link-dark 的透明版本 */
+        color: var(--color-link-dark);
+    }
+}
+
+/* G. NEW: 代码高亮主题 (Pygments / Github 风格) */
+
+/* 浅色高亮主题 */
+.highlight {
+    background: var(--code-color-bg);
+    color: var(--code-color-text);
+    padding: 15px; /* 确保与 pre 的 padding 一致，或覆盖 pre 的样式 */
+    display: block;
+    line-height: 1.45;
+    overflow-x: auto;
+}
+
+.highlight .k { color: var(--code-color-keyword); } /* Keyword */
+.highlight .s { color: var(--code-color-string); } /* String */
+.highlight .c { color: var(--code-color-comment); } /* Comment */
+.highlight .o { color: var(--code-color-operator); } /* Operator */
+.highlight .nf { color: var(--code-color-name); } /* Name.Function */
+.highlight .nc { color: var(--code-color-name); } /* Name.Class */
+.highlight .nt { color: #22863a; } /* Name.Tag (e.g., HTML tags) */
+.highlight .err { color: #b31d28; } /* Error */
+.highlight .vg { color: #e36209; } /* Name.Variable.Global */
+.highlight .m { color: #005cc5; } /* Literal.Number */
+.highlight .p { color: #24292e; } /* Punctuation */
+
+/* 深色高亮主题覆盖 */
+@media (prefers-color-scheme: dark) {
+    .highlight {
+        background: var(--code-color-bg);
+        color: var(--code-color-text);
+    }
+    /* 使用深色模式的 Monokai 风格颜色变量 */
+    .highlight .k { color: var(--code-color-keyword); }
+    .highlight .s { color: var(--code-color-string); }
+    .highlight .c { color: var(--code-color-comment); }
+    .highlight .o { color: var(--code-color-operator); }
+    .highlight .nf { color: var(--code-color-name); }
+    .highlight .nc { color: var(--code-color-name); }
+    .highlight .nt { color: #7f8c8d; } 
+    .highlight .err { color: #ff0000; }
+    .highlight .vg { color: #ae81ff; }
+    .highlight .m { color: #ae81ff; } 
+    .highlight .p { color: var(--code-color-text); }
+}
+
+/* 行号和额外的代码块样式 */
+.highlight pre { 
+    /* 移除 pre 的边框和背景，由 .highlight 容器接管 */
+    border: none;
+    margin: 0;
+    padding: 0;
+}
