@@ -26,6 +26,15 @@ jobs:
       with:
         python-version: '3.x' 
         
+    # 优化建议 6: 启用 Pip 缓存以加速 CI/CD
+    - name: Cache Python dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.cache/pip
+        key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
+        restore-keys: |
+          ${{ runner.os }}-pip-
+        
     - name: Install Python Dependencies
       # 3. 关键修复：安装所需的 Python 库，包括 Jinja2
       run: |
@@ -42,15 +51,8 @@ jobs:
       
     - name: Commit generated files to Git
       # 6. 核心步骤：将生成的静态文件提交回 Git 仓库
-      # ⚠️ 注意：file_pattern 已移除，Action 将自动提交所有新增和修改的文件
       uses: stefanzweifel/git-auto-commit-action@v5
       with:
-        commit_message: "Auto: Generate static blog files"
-        # 排除 source files, 仅提交生成的文件和修改的 requirements/workflow 文件
-        files_to_ignore: |
-          markdown/*.md
-          *.py
-          config.py
-          parser.py
-          generator.py
-          templates/*
+        commit_message: "Build: Automated build via GitHub Actions"
+        # 优化建议 7: 限制只提交构建目录下的文件
+        path: _site
