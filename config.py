@@ -24,24 +24,27 @@ CODE_HIGHLIGHT_CLASS = 'highlight'
 # 默认的 Markdown 扩展列表
 MARKDOWN_EXTENSIONS = [
     'extra', 
-    'fenced_code', 
-    'codehilite', 
+    'fenced_code',  # ！！！关键修复：必须显式启用此扩展才能识别 ``` 代码块
+    'codehilite',   # 启用代码高亮
     'toc', 
     'admonition', 
+    'nl2br',        # 可选：将换行符视为 <br>
+    'tables',       # 确保表格扩展启用
 ]
+
 # ！！！关键修复：Markdown 扩展配置 ！！！
 MARKDOWN_EXTENSION_CONFIGS = {
     'markdown.extensions.toc': {
         'baselevel': 2, # TOC 从 h2 开始生成
         'anchorlink': True, # 启用锚点链接
-        # slugify 函数将在 parser.py 中动态添加，因为它依赖于 parser.py 内部函数
+        # slugify 函数将在 parser.py 中动态添加
     },
     'markdown.extensions.codehilite': {
-        # 允许代码块复制功能
-        'linenums': False,
-        'css_class': CODE_HIGHLIGHT_CLASS, # 使用 config 中的类名
-        'use_pygments': True, # 确保使用 Pygments
-        'noclasses': True, # 强制内联样式，如果需要外置样式，设置为 False
+        'linenums': False,             # 是否显示行号，建议 False 保持简洁
+        'css_class': CODE_HIGHLIGHT_CLASS, # 使用 'highlight' 类名
+        'use_pygments': True,          # 使用 Pygments 库进行高亮
+        'noclasses': True,             # True=使用内联样式(兼容性好), False=需要额外的 pygments.css
+        'guess_lang': True,            # 自动猜测语言
     }
 }
 # --- Markdown 配置结束 ---
@@ -76,9 +79,7 @@ STATIC_OUTPUT_DIR = os.path.join(BUILD_DIR, STATIC_DIR)
 # 特殊文件名称
 SITEMAP_FILE = 'sitemap.xml'
 RSS_FILE = 'rss.xml'
-# NEW FIX: 归档页面的文件名
 ARCHIVE_FILE = 'archive.html' 
-# NEW FIX: 标签列表页面的文件名 (tags.html)
 TAGS_LIST_FILE = 'tags.html' 
 
 # --- 目录配置结束 ---
