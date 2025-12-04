@@ -6,7 +6,6 @@ import glob
 import hashlib # NEW: 导入 hashlib 用于计算文件哈希
 from typing import List, Dict, Any
 from collections import defaultdict
-from datetime import datetime # FIX: 导入 datetime
 
 # 导入分离后的模块
 import config
@@ -51,6 +50,7 @@ def build_site():
                     os.remove(item_path)
     
     # 确保 posts 和 tags 的输出目录存在
+    # 关键修正区：添加日志和错误检查，确保目录创建成功 
     try:
         os.makedirs(config.POSTS_OUTPUT_DIR, exist_ok=True)
         os.makedirs(config.TAGS_OUTPUT_DIR, exist_ok=True)
@@ -64,6 +64,7 @@ def build_site():
         print(f"FATAL ERROR: Failed to create output directories. Check filesystem permissions.")
         print(f"Error details: {e}")
         return # 目录创建失败，停止后续构建
+    # 修正区结束 
 
     # 1b. 处理静态文件 (包括 CSS 和其他静态资源)
     # 确保 assets 目录存在
@@ -98,6 +99,7 @@ def build_site():
     print("--- 2. 查找和解析 Markdown 文件 ---")
     
     # 查找所有 .md 文件，优先从 config.MARKDOWN_DIR 查找，如果不存在，则从根目录查找
+    # FIX: 将 config.MD_DIR 更改为 config.MARKDOWN_DIR
     md_files = glob.glob(os.path.join(config.MARKDOWN_DIR, '*.md'))
     if not md_files:
         md_files = glob.glob('*.md')
@@ -126,15 +128,6 @@ def build_site():
             'content_html': content_html,
             'toc_html': toc_html,
         }
-        
-        # ！！！ 关键修复：添加格式化的日期字段供模板使用 ！！！
-        # 确保 post['date'] 是一个 datetime 或 date 对象
-        try:
-            post['date_formatted'] = post['date'].strftime('%Y 年 %m 月 %d 日')
-        except AttributeError:
-             # 如果不是 datetime 对象（例如，如果它是 date 对象），直接使用 isoformat() 或默认值
-             post['date_formatted'] = post['date'].isoformat() if hasattr(post['date'], 'isoformat') else str(post['date'])
-
         
         # 2c. 构造文章链接
         # 链接格式: posts/{slug}.html
@@ -167,8 +160,7 @@ def build_site():
     print(f"Generated {len(final_parsed_posts)} post pages.")
     
     # 4b. 生成首页
-    # 修复：将 generate_index_html 更改为正确的 generate_index_page 
-    generator.generate_index_page(final_parsed_posts)
+    generator.generate_index_html(final_parsed_posts)
     
     # 4c. 生成归档页
     generator.generate_archive_html(final_parsed_posts)
