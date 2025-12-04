@@ -255,25 +255,47 @@ main {
 }
 
 /* K. 文章元数据 (Post Meta) */
-/* ... (样式保持不变) ... */
 .post-meta {
+    /* MODIFIED: 移除 flex-wrap: wrap，让 flex-direction: column 在小屏幕上生效 */
     display: flex;
-    flex-wrap: wrap;
+    flex-wrap: wrap; 
     align-items: center;
     font-size: 0.9rem;
-    color: #777;
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px dashed var(--color-main-border);
+    color: #777; /* 通用浅灰色 */
+    margin-bottom: 25px; /* 增加与内容的间距 */
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--color-main-border);
 }
+
+/* NEW: 元数据内部容器，用于容纳日期和标签 */
+.meta-container {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap; /* 确保在小屏幕上日期和标签可以换行 */
+    gap: 20px; /* 日期和标签之间的间距 */
+}
+
+/* 统一日期和标签的基准颜色，在暗色模式下单独调整 */
 .meta-date {
-    margin-right: 20px;
+    margin-right: 0; /* 移除原来的右边距，使用 gap 控制 */
     font-weight: 500;
+    color: #999; /* 比 #777 更柔和 */
+    display: flex; /* 确保日期和图标对齐 */
+    align-items: center;
 }
+
+/* NEW: 标签容器优化 */
 .meta-tags {
     display: flex;
     align-items: center;
+    gap: 5px;
 }
+
+.meta-tags-label {
+    font-weight: 500;
+    color: #777; /* 比标签文字稍暗 */
+}
+
 .tags-list {
     list-style: none;
     padding: 0;
@@ -301,8 +323,35 @@ main {
     text-decoration: none;
 }
 
+/* NEW: 响应式调整 */
+@media (max-width: 600px) {
+    .post-meta {
+        /* 在窄屏上将日期和标签垂直排列 */
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .meta-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    .meta-tags {
+        /* 移除分隔线 */
+        border-left: none;
+        padding-left: 0;
+    }
+}
+
+/* 暗色模式下颜色调整 */
 @media (prefers-color-scheme: dark) {
     .post-meta {
+        color: #aaa;
+    }
+    .meta-date {
+        color: #888;
+    }
+    .meta-tags-label {
         color: #aaa;
     }
     .tag-badge {
