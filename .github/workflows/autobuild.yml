@@ -5,7 +5,10 @@ on:
   push:
     branches:
       - main
-    # 任何文件更改（包括新增的 Markdown 文件）都会触发此工作流
+      - '*' # 触发所有其他分支 (测试/预览环境)
+  pull_request:
+    branches:
+      - main
 
 jobs:
   build:
