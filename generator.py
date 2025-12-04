@@ -1,11 +1,11 @@
 # generator.py
 
 import os
-import shutil # NEW: 用于文件复制
-import glob   # NEW: 用于文件查找
+import shutil 
+import glob   
 from datetime import datetime, timezone
 from collections import defaultdict
-from typing import List, Dict, Any, Tuple # 导入 Tuple
+from typing import List, Dict, Any, Tuple 
 from jinja2 import Environment, FileSystemLoader
 import json 
 
@@ -205,7 +205,6 @@ def generate_index_html(all_posts: List[Dict[str, Any]]):
     """生成首页 index.html"""
     try:
         # 过滤掉被隐藏的文章
-        # NOTE: autobuild.py 应该已经传入了 visible_posts，这里是双重保险
         visible_posts = [p for p in all_posts if not is_post_hidden(p)] 
         
         # 选取首页文章
@@ -262,7 +261,7 @@ def generate_archive_html(all_posts: List[Dict[str, Any]]):
         # 按年份降序排序
         sorted_archive = sorted(archive_map.items(), key=lambda x: x[0], reverse=True)
             
-        # 渲染归档页内容
+        # 渲染归档页内容 (手动构建 content_html)
         content_html = ""
         for year, posts in sorted_archive:
             content_html += f"<h2>{year} ({len(posts)} 篇)</h2>\n<ul>\n"
@@ -319,8 +318,9 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
 
         template = env.get_template('base.html')
         
-        # 生成标签列表的 HTML
-        content_html = "<ul>\n"
+        # 生成标签列表的 HTML (手动构建 content_html)
+        content_html = "<h1>所有标签</h1>\n"
+        content_html += "<ul>\n"
         # 按文章数量降序排列标签
         sorted_tags = sorted(filtered_tag_map.items(), key=lambda item: len(item[1]), reverse=True)
         
@@ -361,11 +361,11 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
         print(f"Error generating tags.html: {type(e).__name__}: {e}")
 
 
-# MODIFIED: generate_tag_page (每个标签页只显示可见文章)
+# FIXED: generate_tag_page (现在手动生成列表 HTML 并赋值给 content_html)
 def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
     """为单个标签生成页面"""
     try:
-        # 过滤掉被隐藏的文章
+        # 1. 过滤掉被隐藏的文章
         visible_tag_posts = [p for p in all_tag_posts if not is_post_hidden(p)]
         
         if not visible_tag_posts:
@@ -377,6 +377,19 @@ def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
         tag_slug = tag_to_slug(tag)
         output_filename = f'{tag_slug}.html'
         
+        # 2. 手动生成标签页的文章列表 HTML
+        content_html = f"<h1>标签: {tag} ({len(visible_tag_posts)} 篇)</h1>\n"
+        content_html += "<ul class=\"post-list-for-tag\">\n" 
+        
+        # 帖子应该已经按日期排序
+        for post in visible_tag_posts:
+            link = make_internal_url(post['link'])
+            date_str = post['date'].strftime('%Y-%m-%d')
+            # 使用一个与归档页相似的简单列表项格式
+            content_html += f"  <li><span class=\"archive-date\">{date_str}</span> - <a href=\"{link}\">{post['title']}</a></li>\n"
+        content_html += "</ul>\n"
+        
+        # 3. 渲染模板
         html_content = template.render(
             page_id='tag',
             page_title=f"标签: {tag}",
@@ -393,9 +406,9 @@ def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
             
             # 列表特定变量
             tag=tag,
-            posts=visible_tag_posts, # 只传递可见文章
-            max_posts_on_index=len(visible_tag_posts) + 1, # 确保全部显示
-            content_html="",
+            posts=[], # 清空 posts，确保模板不会错误地尝试渲染
+            max_posts_on_index=0, 
+            content_html=content_html, # <--- 关键：将生成的列表 HTML 注入到这里
             lang='zh-CN',
         )
 
