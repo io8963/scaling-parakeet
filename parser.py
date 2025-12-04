@@ -101,15 +101,12 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     # --- Markdown 渲染 ---
     
     # 1. 准备配置
-    # ！！！关键修复：这里需要适配 config.py 中的键名
     extension_configs = config.MARKDOWN_EXTENSION_CONFIGS.copy()
     
     # 动态注入 slugify 函数
-    # 我们优先检查短名称 'toc' (因为现在的 config.py 用的是这个)
     if 'toc' in extension_configs:
         extension_configs['toc']['slugify'] = my_custom_slugify
     elif 'markdown.extensions.toc' in extension_configs:
-        # 兼容旧的长名称，以防万一
         extension_configs['markdown.extensions.toc']['slugify'] = my_custom_slugify
     
     md = markdown.Markdown(
@@ -120,6 +117,15 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     
     # 2. 转换
     content_html = md.convert(content_markdown)
+    
+    # -------------------------------------------------------------------------
+    # UI 增强：表格包裹器 (Table Wrapper)
+    # 直接给 table 加上 wrapper div，这是实现移动端完美滚动的最佳实践，
+    # 比纯 CSS 的 display: block on table 效果更好（保留了表格的自适应布局特性）。
+    # -------------------------------------------------------------------------
+    if '<table>' in content_html:
+        content_html = content_html.replace('<table>', '<div class="table-wrapper"><table>')
+        content_html = content_html.replace('</table>', '</table></div>')
     
     # 3. 获取目录
     toc_html = md.toc if hasattr(md, 'toc') else ""
