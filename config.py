@@ -3,7 +3,7 @@
 import os
 
 # --- 站点配置 ---
-BASE_URL = "https://web0863.pages.dev/"
+BASE_URL = "https://scaling-parakeet-138.pages.dev/"
 # ！！！关键修改：请将 "/your-repo-name" 替换为您实际的子目录路径或 GitHub 仓库名
 REPO_SUBPATH = "" 
 
