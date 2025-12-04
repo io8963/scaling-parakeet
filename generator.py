@@ -252,6 +252,39 @@ def generate_archive_html(parsed_posts: List[Dict[str, Any]]):
         # 页脚信息
         footer_time_info=f"总文章数: {len(parsed_posts)}"
     )
+    
+# 新增函数：生成关于页面 (about.html)
+def generate_about_html(post_data: Dict[str, Any]):
+    """生成关于页面 (about.html) 的 HTML 文件"""
+    
+    internal_path = config.ABOUT_FILE
+    output_path = os.path.join(config.BUILD_DIR, internal_path)
+    canonical_url = make_internal_url(internal_path)
+    
+    # 假设 about_post 包含 title 和 content_html
+    main_title = post_data.get('title', '关于我') 
+    main_title_html = f"<h1>{main_title}</h1>"
+    
+    # 页脚信息 (可以留空或自定义)
+    footer_time_info_str = "保持简单，专注于内容"
+    
+    regenerate_html_file(
+        output_path=output_path,
+        page_id='about',
+        page_title=generate_page_title('about'),
+        canonical_url=canonical_url,
+        current_year=datetime.now().year,
+        site_root=config.SITE_ROOT,
+        blog_title=config.BLOG_TITLE,
+        blog_description=config.BLOG_DESCRIPTION,
+        blog_author=config.BLOG_AUTHOR,
+        lang=config.LANG,
+        main_title_html=main_title_html,
+        content_html=post_data['content_html'],
+        footer_time_info=footer_time_info_str,
+        # 关于页面通常没有 TOC
+        toc_html=''
+    )
 
 def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
     """生成所有标签的列表页 (tags.html)"""
