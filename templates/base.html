@@ -37,17 +37,21 @@
                     {%- if page_id == 'post' -%}
                         <h1>{{post.title}}</h1>
                         <div class="post-meta">
-                            <span class="meta-date">发布于 {{post_date}}</span>
-                            {% if post_tags %}
-                                <div class="meta-tags">
-                                    <span class="meta-tags-label">标签:</span> 
-                                    <ul class="tags-list">
-                                    {% for tag in post_tags %}
-                                        <li><a href="{{site_root}}/tags/{{tag.slug}}.html" class="tag-badge">{{tag.name}}</a></li>
-                                    {% endfor %}
-                                    </ul>
-                                </div>
-                            {% endif %}
+                            <div class="meta-container">
+                                <span class="meta-date">
+                                    🗓 发布于 {{post_date}}
+                                </span>
+                                {% if post_tags %}
+                                    <div class="meta-tags">
+                                        <span class="meta-tags-label">标签:</span> 
+                                        <ul class="tags-list">
+                                        {% for tag in post_tags %}
+                                            <li><a href="{{site_root}}/tags/{{tag.slug}}.html" class="tag-badge">{{tag.name}}</a></li>
+                                        {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div>
                         </div>
                     {%- endif -%}
                 </div>
