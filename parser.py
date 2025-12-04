@@ -6,6 +6,7 @@ import yaml
 import markdown
 from datetime import datetime, timezone, date
 from typing import Dict, Any, Tuple
+import config # NEW: Import config to access extensions list
 
 # MODIFIED: 简化 imports，依赖全部写在 generator.py 或 autobuild.py 中
 # from config import * # 避免循环引用，配置在主文件中加载
@@ -37,30 +38,26 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
         content_markdown = content[len(match.group(0)):]
         try:
             metadata = yaml.safe_load(yaml_data) or {}
-        except yaml.YAMLError as e:
-            print(f"Error parsing YAML in {md_file_path}: {e}")
+        except yaml.YAMLError as exc:
+            print(f"Error parsing YAML frontmatter in {md_file_path}: {exc}")
             metadata = {}
     else:
-        # 没有 Frontmatter，整个文件是内容
-        metadata = {}
+        # 整个文件都是内容
         content_markdown = content
-
+        metadata = {}
+        
+    # 优化建议 5: 使用 config 中定义的 Markdown 扩展列表
+    md = markdown.Markdown(
+        extensions=config.MARKDOWN_EXTENSIONS 
+    )
+    
     # 转换 Markdown 到 HTML
-    md = markdown.Markdown(extensions=[
-        'fenced_code',      # 代码块
-        'codehilite',       # 代码高亮
-        'tables',           # 表格
-        'meta',             # 提取元数据 (虽然我们自己处理了)
-        'toc'               # 目录
-    ])
     content_html = md.convert(content_markdown)
-    # 关键修正：获取 TOC HTML
-    toc_html = md.toc 
+    toc_html = md.toc # TOC 扩展自动生成的目录 HTML
 
-
-    # 处理日期：确保 date 字段是 datetime 对象
-    if 'date' in metadata and isinstance(metadata['date'], date):
-        # 如果是 date 对象，转换为 datetime
+    # 处理 date 字段
+    if 'date' in metadata and isinstance(metadata['date'], date) and not isinstance(metadata['date'], datetime):
+        # 将 date 对象转换为 UTC 时区的 datetime
         metadata['date'] = datetime.combine(metadata['date'], datetime.min.time(), tzinfo=timezone.utc)
     elif 'date' not in metadata:
         # MODIFIED START: 如果没有 date 字段，使用文件的最后修改时间 (mtime) 作为默认值
@@ -88,11 +85,8 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
             tags_list = []
             
         metadata['tags'] = [
-            {'name': t, 'slug': tag_to_slug(t)} 
+            {'name': t, 'slug': tag_to_slug(t)}
             for t in tags_list
         ]
-    else:
-        metadata['tags'] = []
         
-    # 返回所有提取到的数据，包括新增的 toc_html
     return metadata, content_markdown, content_html, toc_html
