@@ -1,3 +1,5 @@
+--- START OF FILE scaling-parakeet-main/templates/base.html ---
+
 <!DOCTYPE html>
 <html lang="{{lang}}">
 <head>
@@ -53,6 +55,18 @@
                                 {% endif %}
                             </div>
                         </div>
+
+                        {# --- [新增] 移动端专属可折叠目录 --- #}
+                        {% if toc_html %}
+                        <details class="mobile-toc">
+                            <summary>📑 文章目录 (点击展开)</summary>
+                            <div class="mobile-toc-content">
+                                {{ toc_html | safe }}
+                            </div>
+                        </details>
+                        {% endif %}
+                        {# ----------------------------------- #}
+
                     {%- endif -%}
                 </div>
                 
@@ -99,7 +113,9 @@
                     {%- endif -%}
 
                 {%- else -%}
-                    {{content_html | safe}}
+                    <div class="post-content">
+                        {{content_html | safe}}
+                    </div>
                 {%- endif -%}
                 
             </div>
