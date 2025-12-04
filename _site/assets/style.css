@@ -21,552 +21,293 @@
     --color-background-dark: #1a1a1a; /* 深色背景 */
     --color-card-light: #ffffff; /* 浅色卡片背景 */
     --color-card-dark: #2b2b2b; /* 深色卡片背景 */
-    --color-border-light: #eee;
-    --color-border-dark: #444;
-    --shadow-light: 0 2px 5px rgba(0,0,0,0.05); /* 柔和阴影 - 减小 */
-    --shadow-hover: 0 4px 10px rgba(0,0,0,0.1); /* 提升阴影 - 减小 */
-    --shadow-dark: 0 2px 5px rgba(0,0,0,0.3); /* 暗色柔和阴影 */
-    --shadow-dark-hover: 0 4px 10px rgba(0,0,0,0.5); /* 暗色提升阴影 */
-    --color-nav-active-bg-light: var(--color-primary); /* 导航活动背景 */
-    --color-nav-active-text-light: white; /* 导航活动文本 */
-    --color-nav-active-bg-dark: var(--color-link-dark);
-    --color-nav-active-text-dark: var(--color-card-dark);
-    /* NEW READABILITY 2.1: Blockquote Backgrounds */
-    --color-quote-light: rgba(0, 121, 107, 0.04); /* 4% primary tint */
-    --color-quote-dark: rgba(128, 203, 196, 0.1) ; /* 10% dark link tint */
-    /* NEW: 表格斑马线颜色 */
-    --color-table-stripe-light: #fcfcfc;
-    --color-table-stripe-dark: #3a3a3a;
-    
-    /* NEW FIX: 固定元素颜色变量 (Default: Light Mode) */
-    --color-code-background: #f5f5f5; /* 代码块背景 */
-    --color-inline-code-background: #eee; /* 行内代码背景 */
-    --color-inline-code-text: #cc542e; /* 行内代码文字 */
-    --color-scrollbar-thumb: #ccc; /* 滚动条滑块 */
-
-    /* NEW UX SUGGESTION 2: 引用块文字颜色变量 */
-    --color-quote-text-light: #4c4c4c;
-    /* 修正建议 1: 确保深色模式下引用块文字颜色有定义和值 */ 
-    --color-quote-text-dark: #b0b0b0; /* 调暗以提高深色背景对比度 */
-    
-    /* NEW UX SUGGESTION 4: TOC 激活背景色 */
-    --color-toc-active-bg-light: var(--color-primary-light);
-    --color-toc-active-bg-dark: #3a3a3a;
-
-    /* NEW UX SUGGESTION 5: 文章头部信息区背景色 */
-    --color-header-info-bg-light: var(--color-background-light);
-    --color-header-info-bg-dark: #222222;
-
-    /* NEW UX SUGGESTION 6: 标签徽章颜色 */
-    --color-tag-bg-light: #f0f0f0;
-    --color-tag-text-light: #555;
-    --color-tag-bg-dark: #444;
-    --color-tag-text-dark: #ccc;
-
-    /* NEW UX SUGGESTION 2.2: Callout/Tip Colors (Light Mode) */
-    --color-tip-bg-light: #e8f5e9; /* Light Green */
-    --color-tip-text-light: #2e7d32; /* Dark Green */
-    --color-warning-bg-light: #fff8e1; /* Light Yellow */
-    --color-warning-text-light: #f57f17; /* Dark Yellow */
-    --color-danger-bg-light: #ffebee; /* Light Red */
-    --color-danger-text-light: #c62828; /* Dark Red */
-    --color-callout-border-light: #ccc;
-    
-    /* NEW UX SUGGESTION 2.2: Callout/Tip Colors (Dark Mode) */
-    --color-tip-bg-dark: #223623;
-    --color-tip-text-dark: #a5d6a7;
-    --color-warning-bg-dark: #403a22;
-    --color-warning-text-dark: #ffd54f;
-    --color-danger-bg-dark: #3b2020;
-    --color-danger-text-dark: #e57373;
+    --color-border-dark: #444; /* 深色边框 */
+    --shadow-dark: 0 4px 10px rgba(0,0,0,0.3); /* 深色阴影 */
+    --color-blockquote-bg: #f0f0f0; /* 引用背景 */
+    --color-blockquote-border: #ccc;
+    --color-code-bg: #f4f4f4; /* 代码背景 */
 }
 
-/* D. 自动深色模式切换：使用 prefers-color-scheme (NEW FIX) */
+/* 深色模式主题变量覆盖 */
 @media (prefers-color-scheme: dark) {
     :root {
-        /* 核心主题色切换：将深色值赋给通用变量 */
-        --color-text: var(--color-text-dark); 
-        --color-background: var(--color-background-dark); 
-        --color-card: var(--color-card-dark); 
-        --color-border: var(--color-border-dark); 
-        --shadow: var(--shadow-dark); 
-        --shadow-hover: var(--shadow-dark-hover); 
-        
-        /* 特殊元素颜色切换 */
-        --color-quote: var(--color-quote-dark); 
-        
-        /* NEW FIX: 定义深色模式下的固定元素颜色 */
-        --color-code-background: #2b2b2b; 
-        --color-inline-code-background: #3a3a3a; 
-        --color-inline-code-text: var(--color-link-dark); 
-        --color-scrollbar-thumb: #555; 
-        
-        /* 优化点 2: 移除冗余赋值，避免变量混淆 */
-        /* --color-quote-text-light: var(--color-quote-text-dark); */ 
-
-        /* NEW UX SUGGESTION 4: TOC 激活背景色 */
-        --color-toc-active-bg-light: var(--color-toc-active-bg-dark);
-        
-        /* NEW UX SUGGESTION 5: 文章头部信息区背景色 */
-        --color-header-info-bg-light: var(--color-header-info-bg-dark);
-
-        /* NEW UX SUGGESTION 6: 标签徽章颜色 */
-        --color-tag-bg-light: var(--color-tag-bg-dark);
-        --color-tag-text-light: var(--color-tag-text-dark);
-
-        /* NEW UX SUGGESTION 2.2: Callout/Tip Colors Switch */
-        --color-tip-bg-light: var(--color-tip-bg-dark);
-        --color-tip-text-light: var(--color-tip-text-dark);
-        --color-warning-bg-light: var(--color-warning-bg-dark);
-        --color-warning-text-light: var(--color-warning-text-dark);
-        --color-danger-bg-light: var(--color-danger-bg-dark);
-        --color-danger-text-light: var(--color-danger-text-dark);
-        --color-callout-border-light: var(--color-border-dark);
-    }
-    
-    /* MODIFIED: 头部导航栏深色模式适配和模糊效果 (解决问题 2 和 8) */
-    header {
-        /* 优化建议 1: 启用背景模糊 */
-        -webkit-backdrop-filter: blur(8px); 
-        backdrop-filter: blur(8px);
-        /* 深色模式下的背景和边框 */
-        background-color: rgba(43, 43, 43, 0.95); /* 使用略透明的卡片背景 */
-        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
-        /* 头部圆角已在 base header 中定义 */
-    }
-    nav a {
-        color: var(--color-text-dark); 
-    }
-    nav a:hover, nav a.active-nav-link {
-        background-color: var(--color-link-dark);
-        color: var(--color-card-dark); 
-        box-shadow: 0 2px 5px rgba(128, 203, 196, 0.3); /* 暗色阴影效果 */
-    }
-    nav a.active-nav-link {
-        /* 确保激活态悬停时不改变颜色 */
-        background-color: var(--color-link-dark);
-    }
-    
-    /* MODIFIED: 确保 body 使用变量 */
-    body {
-        background-color: var(--color-background);
-        color: var(--color-text);
-    }
-    
-    /* NEW FIX: 确保链接和引用块在深色模式下的颜色调整 */
-    a:link, a:visited { 
-        color: var(--color-link-dark); /* 非文章内容链接使用 link-dark */
-    }
-    a:hover {
-        color: var(--color-primary); 
-        text-decoration: underline;
-    }
-
-    /* 文章内链接颜色 */
-    .post-content a:link, .post-content a:visited {
-        color: var(--color-link-dark); /* 文章内链接使用 link-dark */
-        border-bottom: 1px dotted var(--color-link-dark); 
-    }
-    .post-content a:hover {
-        color: var(--color-primary); /* 悬停使用 primary */
-        border-bottom: 1px solid var(--color-primary); 
-    }
-    
-    /* 引用块的文字颜色切换 */
-    blockquote {
-        /* 优化点 2: 使用深色模式下设置的引用块文字颜色 */
-        color: var(--color-quote-text-dark); 
-    }
-
-    /* 修正建议 2: 为深色模式下的图片添加柔和边框和阴影 */
-    .post-content img {
-        border: 1px solid var(--color-border-dark);
-        background-color: var(--color-card-dark);
-        box-shadow: 0 1px 4px rgba(0,0,0,0.4);
-    }
-    .post-content img:hover {
-        box-shadow: 0 4px 15px rgba(0,0,0,0.6); 
-    }
-    
-    /* NEW FIX: 优化水平分割线在深色模式下的显示 */
-    .post-content hr {
-        border-top: 1px solid var(--color-border-dark); 
-        border-bottom: 1px solid var(--color-card-dark); 
-    }
-    
-    /* NEW ADVANCED READABILITY 5: 强调内容美化 (Dark Mode) */
-    .post-content strong {
-        color: var(--color-link-dark); 
-    }
-    .post-content em {
-        color: #ffb74d; /* 浅橙色，高对比度 */
-    }
-    
-    /* NEW: 表格深色模式适配 */
-    .post-content tr:nth-child(even) {
-        background-color: var(--color-table-stripe-dark); 
-    }
-    .post-content th {
-        background-color: var(--color-background-dark);
-        color: var(--color-link-dark);
-    }
-    
-    /* NEW: 深色模式下页脚构建信息颜色 */
-    .build-info span {
-        color: #777; 
-    }
-    
-    /* NEW UX SUGGESTION 3: 确保图片说明在深色模式下的颜色 */
-    .post-content figcaption {
-        color: #aaa;
-    }
-    
-    /* NEW: 深色模式下的标签徽章颜色和阴影 */
-    .tag-badge {
-        background-color: var(--color-tag-bg-dark);
-        color: var(--color-tag-text-dark);
-        box-shadow: inset 0 1px 3px rgba(0,0,0,0.5); /* 柔和内嵌阴影 */
-    }
-    .tag-badge:hover {
-        background-color: var(--color-primary);
-        color: white;
-        transform: translateY(-1px); /* 轻微上浮 */
-        box-shadow: 0 2px 5px rgba(0, 121, 107, 0.5); /* 外阴影 */
-    }
-    
-    /* NEW: 文章头部信息区深色模式 */
-    .post-header-info {
-        background-color: var(--color-header-info-bg-dark);
-        box-shadow: var(--shadow-dark); 
+        --color-text: var(--color-text-dark);
+        --color-background: var(--color-background-dark);
+        --color-card: var(--color-card-dark);
+        --color-border: var(--color-border-dark);
+        --shadow: var(--shadow-dark);
+        --color-link: var(--color-link-dark);
+        --color-blockquote-bg: #333;
+        --color-blockquote-border: #555;
+        --color-code-bg: #222;
+        --color-text-code: #ddd; /* 深色代码文本 */
     }
 }
-/* E. 全局排版和布局 */
+
+/* A. 通用和排版 */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    line-height: 1.7;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.6;
+    color: var(--color-text);
+    background-color: var(--color-background);
     margin: 0;
     padding: 0;
-    background-color: var(--color-background);
-    color: var(--color-text);
-    transition: background-color 0.3s, color 0.3s;
 }
 
-/* NEW COMPONENT STYLES: Header/Navigation Optimization */
-header {
-    position: sticky;
-    top: 0;
-    z-index: 1000;
-    width: 100%;
-    /* 优化建议 1: 启用背景模糊 */
-    background-color: rgba(255, 255, 255, 0.95); /* Semi-transparent white */
-    -webkit-backdrop-filter: blur(8px); 
-    backdrop-filter: blur(8px);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-    border-bottom: 1px solid var(--color-border); 
-    border-radius: 0 0 10px 10px; /* 轻微圆角 */
-}
-header .header-inner {
-    max-width: 1100px;
-    margin: 0 auto;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 15px 20px;
-}
-.site-title {
-    font-size: 1.5em;
-    font-weight: 700;
-    color: var(--color-text);
-    text-decoration: none;
-    white-space: nowrap;
-}
-nav a {
-    text-decoration: none;
-    color: var(--color-text);
-    font-size: 1.05em;
-    font-weight: 500;
-    margin-left: 20px;
-    padding: 6px 10px;
-    border-radius: 6px;
-    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
-}
-nav a:hover {
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-}
-nav a.active-nav-link {
-    background-color: var(--color-nav-active-bg-light);
-    color: var(--color-nav-active-text-light);
-    box-shadow: 0 2px 5px rgba(0, 121, 107, 0.3); /* 提升阴影 */
-}
-nav a.active-nav-link:hover {
-    background-color: var(--color-nav-active-bg-light); /* 悬停时保持颜色 */
-    color: var(--color-nav-active-text-light);
-}
-
-/* F. 布局和容器 */
-main {
-    max-width: 1100px;
-    margin: 20px auto;
-    padding: 0 20px;
-}
-.content-layout-wrapper {
-    display: flex;
-    justify-content: space-between;
-    gap: 30px;
-}
-.post-main-content {
-    flex-grow: 1;
-    min-width: 0; /* 允许 flex item 收缩 */
-    max-width: 100%;
-}
-.card {
-    background-color: var(--color-card);
-    border: 1px solid var(--color-border);
-    border-radius: 8px;
-    padding: 20px;
-    margin-bottom: 20px;
-    box-shadow: var(--shadow);
-    transition: box-shadow 0.3s;
-}
-.card:hover {
-    box-shadow: var(--shadow-hover);
-}
-
-/* G. 链接样式 */
-a:link, a:visited {
-    color: var(--color-primary);
-    text-decoration: none;
-    transition: color 0.2s;
+/* 统一链接和按钮的悬停反馈 */
+a, button, .tag-badge {
+    transition: all 0.2s ease-out;
 }
 a:hover {
-    color: #004d40; /* 较深的 Primary 色 */
-    text-decoration: underline;
-}
-
-/* H. 标题样式 */
-.post-main-content h1, 
-.post-main-content h2, 
-.post-main-content h3, 
-.post-main-content h4, 
-.post-main-content h5, 
-.post-main-content h6 {
-    color: var(--color-text);
-    margin-top: 1.5em;
-    margin-bottom: 0.5em;
-    padding-top: 5px; /* 顶部留白 */
-    line-height: 1.3;
-}
-.post-main-content h1 {
-    font-size: 2.2em;
-    border-bottom: 2px solid var(--color-primary-light);
-    padding-bottom: 5px;
-}
-.post-main-content h2 {
-    font-size: 1.8em;
-    border-bottom: 1px solid var(--color-border);
-    padding-bottom: 4px;
-}
-.post-main-content h3 {
-    font-size: 1.4em;
-}
-
-/* I. 列表和段落 */
-.post-main-content p {
-    margin-bottom: 1.2em;
-}
-.post-main-content ul, 
-.post-main-content ol {
-    padding-left: 25px;
-    margin-bottom: 1.2em;
-}
-.post-main-content li {
-    margin-bottom: 0.5em;
-}
-
-/* J. 文章内容内的链接样式 (更高优先级) */
-.post-content a:link, .post-content a:visited {
     color: var(--color-primary);
-    /* 增加下划线，但使用虚线，提高可读性 */
-    border-bottom: 1px dotted var(--color-primary); 
-    transition: border-color 0.2s, color 0.2s;
+    /* NEW: 统一的轻微上移动效 */
+    transform: translateY(-1px); 
 }
-.post-content a:hover {
-    color: #004d40;
-    border-bottom: 1px solid #004d40; 
-}
-
-/* K. 引用块 (Blockquote) */
-.post-content blockquote {
-    background-color: var(--color-quote-light);
-    border-left: 4px solid var(--color-primary);
-    padding: 15px 20px;
-    margin: 20px 0;
-    color: var(--color-quote-text-light);
-    font-style: italic;
-    border-radius: 0 4px 4px 0;
-}
-.post-content blockquote p {
-    margin: 0;
+/* NEW: 增强无障碍性，为可交互元素添加清晰的焦点状态 */
+a:focus, button:focus, .tag-badge:focus {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
 }
 
-/* L. 代码块和行内代码 */
-.post-content pre {
-    background-color: var(--color-code-background);
-    padding: 15px;
-    border-radius: 6px;
-    overflow-x: auto;
-    border: 1px solid var(--color-border);
-    margin: 20px 0;
-}
-.post-content pre code {
-    background: none !important;
+h1, h2, h3, h4, h5, h6 {
     color: var(--color-text);
-    padding: 0;
-    font-size: 0.9em;
-    line-height: 1.5;
-    display: block; /* 确保代码块占据整行 */
-}
-.post-content code {
-    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
-}
-.post-content p code, 
-.post-content li code {
-    background-color: var(--color-inline-code-background);
-    color: var(--color-inline-code-text);
-    padding: 3px 6px;
-    border-radius: 4px;
-    white-space: nowrap;
+    line-height: 1.2;
+    margin-top: 1.5em;
+    margin-bottom: 0.8em;
 }
 
-/* M. 图像 */
-.post-content img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 20px auto;
-    border-radius: 8px;
-    box-shadow: var(--shadow);
-    transition: box-shadow 0.3s, transform 0.2s;
-    border: 1px solid var(--color-border);
-    background-color: var(--color-card);
-}
-.post-content img:hover {
-    box-shadow: var(--shadow-hover);
-}
-.post-content figure {
-    margin: 20px 0;
-    padding: 0;
-    text-align: center;
-}
-.post-content figcaption {
-    font-size: 0.9em;
-    color: #888;
-    margin-top: 8px;
-    transition: color 0.3s;
+/* B. 布局和结构 */
+.header-inner, .footer-content, .content-layout-wrapper {
+    max-width: 900px; /* 限制内容最大宽度 */
+    margin-left: auto;
+    margin-right: auto;
+    padding-left: 15px;
+    padding-right: 15px;
 }
 
-/* N. 分割线 */
-.post-content hr {
-    border: none;
-    border-top: 1px solid var(--color-border); 
-    margin: 40px 0;
-}
-
-/* O. 表格样式 */
-.post-content table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: 20px 0;
-    font-size: 0.95em;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    overflow: hidden; /* 确保圆角生效 */
-}
-.post-content th, 
-.post-content td {
-    padding: 12px 15px;
-    border: 1px solid var(--color-border);
-    text-align: left;
-}
-.post-content th {
-    background-color: var(--color-background-light);
-    font-weight: 600;
-    color: var(--color-text);
-}
-/* 斑马线效果 */
-.post-content tr:nth-child(even) {
-    background-color: var(--color-table-stripe-light);
-}
-
-/* P. 文章列表和归档页样式 */
-.post-list {
-    list-style: none;
-    padding: 0;
-}
-.post-item {
+/* 头部 Header */
+header {
+    position: sticky; /* 粘性定位 */
+    top: 0;
+    z-index: 100;
     padding: 15px 0;
+    background-color: rgba(255, 255, 255, 0.85); /* 浅色背景半透明 */
+    /* NEW: 模糊效果 */
+    backdrop-filter: blur(8px); 
     border-bottom: 1px solid var(--color-border);
 }
-.post-item:last-child {
-    border-bottom: none;
+
+.header-inner {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
 }
-.post-item a.post-title {
-    font-size: 1.3em;
-    font-weight: 600;
-    color: var(--color-text);
-    display: block;
-    margin-bottom: 5px;
-}
-.post-item a.post-title:hover {
+
+.site-title {
+    font-size: 1.5em;
+    font-weight: bold;
     color: var(--color-primary);
     text-decoration: none;
 }
-.post-item .post-excerpt {
-    color: #666;
-    font-size: 0.95em;
-    margin-bottom: 5px;
-}
-.post-item .post-date {
-    font-size: 0.85em;
-    color: #999;
+
+nav a {
+    margin-left: 20px;
+    color: var(--color-text);
+    text-decoration: none;
+    font-weight: 500;
+    padding-bottom: 3px;
+    border-bottom: 2px solid transparent; /* 用于悬停/激活效果 */
 }
 
-/* Q. 文章详情页头部信息 */
-.post-header-info {
-    background-color: var(--color-header-info-bg-light);
-    padding: 20px 25px;
+/* NEW: 导航链接激活状态样式 */
+nav a.active-nav-link {
+    color: var(--color-primary);
+    border-bottom-color: var(--color-primary);
+    font-weight: 700;
+}
+nav a:hover {
+    border-bottom-color: var(--color-primary-light);
+}
+
+/* 深色模式下的 Header 样式调整 */
+@media (prefers-color-scheme: dark) {
+    header {
+        background-color: rgba(26, 26, 26, 0.85); /* 深色背景半透明 */
+        border-bottom-color: var(--color-border-dark);
+    }
+    nav a {
+        color: var(--color-text-dark);
+    }
+    nav a.active-nav-link {
+        color: var(--color-link-dark);
+        border-bottom-color: var(--color-link-dark);
+    }
+}
+
+/* 主内容区域 */
+.page-content {
+    padding-top: 40px;
+    padding-bottom: 80px;
+}
+
+/* 文章布局：主要内容 + 目录 (TOC) */
+.content-layout-wrapper {
+    display: flex;
+    gap: 30px;
+    align-items: flex-start; /* 对齐顶部 */
+}
+
+.post-main-content {
+    flex-grow: 1;
+    min-width: 0; /* 允许在 flex 容器中收缩 */
+}
+
+/* 仅在屏幕宽度大于 900px 时显示 TOC */
+@media (min-width: 901px) {
+    .post-main-content {
+        flex-basis: 70%; /* 主内容占 70% */
+    }
+    .toc-container {
+        flex-basis: 30%; /* 目录占 30% */
+        position: sticky;
+        top: 80px; /* 位于 Header 下方 */
+    }
+}
+
+/* 移动端布局调整 */
+@media (max-width: 900px) {
+    .content-layout-wrapper {
+        flex-direction: column; /* 垂直堆叠 */
+    }
+    .post-main-content {
+        width: 100%;
+    }
+    .toc-container {
+        display: none; /* 移动端默认隐藏目录，通常用 JavaScript 控制显示 */
+    }
+}
+
+/* 页脚 Footer */
+footer {
+    padding: 20px 0;
+    border-top: 1px solid var(--color-border);
+    background-color: var(--color-background-light); /* 略浅的背景色 */
+    text-align: center;
+    font-size: 0.9em;
+    color: #666;
+}
+
+.footer-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 10px 15px; 
+}
+
+.footer-links {
+    margin-top: 10px;
+}
+
+.footer-links a {
+    color: var(--color-primary);
+    text-decoration: none;
+    margin: 0 5px;
+}
+
+.copyright-info, .build-info {
+    margin: 5px 0;
+}
+
+@media (prefers-color-scheme: dark) {
+    footer {
+        background-color: var(--color-card-dark);
+        border-top-color: var(--color-border-dark);
+        color: #aaa;
+    }
+    .footer-links a {
+         color: var(--color-link-dark);
+    }
+}
+
+/* C. 组件样式 */
+
+/* 卡片/容器样式 */
+.card {
+    background-color: var(--color-card);
+    padding: 20px;
+    margin-bottom: 20px;
     border-radius: 8px;
-    margin-bottom: 30px;
     box-shadow: var(--shadow);
-    transition: background-color 0.3s, box-shadow 0.3s;
+    border: 1px solid var(--color-border);
+}
+
+/* 标签样式 (tag-badge) */
+.tag-badge {
+    display: inline-block;
+    padding: 4px 10px;
+    margin: 0 5px 5px 0;
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    border-radius: 4px;
+    font-size: 0.85em;
+    text-decoration: none;
+    font-weight: 500;
+    white-space: nowrap;
+    border: 1px solid var(--color-primary); /* 添加边框 */
+    transition: all 0.2s ease;
+}
+
+.tag-badge:hover {
+    background-color: var(--color-primary);
+    color: var(--color-card); /* 悬停时文本变白 */
+    box-shadow: 0 2px 5px rgba(0, 121, 107, 0.3);
+    /* NEW: 统一的轻微上移动效 */
+    transform: translateY(-2px); 
+}
+
+/* 深色模式下的标签 */
+@media (prefers-color-scheme: dark) {
+    .tag-badge {
+        background-color: #333;
+        color: var(--color-link-dark);
+        border-color: var(--color-link-dark);
+    }
+    .tag-badge:hover {
+        background-color: var(--color-link-dark);
+        color: var(--color-background-dark);
+    }
+}
+
+/* 文章头部信息区优化 */
+.post-header-info {
+    margin-bottom: 30px;
+    padding: 20px;
+    background-color: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
 }
 .post-header-info h1 {
-    border-bottom: none;
     margin-top: 0;
-    padding-bottom: 0;
-    font-size: 2.2em;
 }
+
+/* 文章元数据 */
 .post-meta {
+    font-size: 0.9em;
+    color: #888;
     display: flex;
     flex-wrap: wrap;
-    align-items: center;
     gap: 15px;
-    font-size: 0.9em;
-    color: #777;
-}
-.meta-date {
-    white-space: nowrap;
+    margin-top: 10px;
 }
 .meta-tags {
     display: flex;
     align-items: center;
-    gap: 8px;
 }
 .meta-tags-label {
-    font-weight: 500;
-    color: #555;
+    margin-right: 5px;
+    font-weight: bold;
+    color: var(--color-text);
 }
 .tags-list {
     list-style: none;
@@ -574,157 +315,229 @@ a:hover {
     margin: 0;
     display: flex;
     flex-wrap: wrap;
-    gap: 8px;
 }
-/* NEW: 标签徽章样式 */
-.tag-badge {
-    display: inline-block;
-    padding: 4px 10px;
-    border-radius: 12px;
-    background-color: var(--color-tag-bg-light);
-    color: var(--color-tag-text-light);
-    font-size: 0.85em;
-    font-weight: 500;
-    text-decoration: none;
-    transition: all 0.2s ease;
-}
-.tag-badge:hover {
-    background-color: var(--color-primary);
-    color: white;
-    text-decoration: none;
-    transform: translateY(-1px); 
-    box-shadow: 0 2px 5px rgba(0, 121, 107, 0.3);
+.tags-list li {
+    margin-right: 5px;
+    display: inline;
 }
 
-/* R. 目录 (TOC) 侧边栏 */
-.toc {
-    width: 280px;
-    position: sticky;
-    top: 80px; /* 放在 Header 下面 */
-    align-self: flex-start; /* 粘性定位的关键 */
-    padding: 20px;
-    border-left: 1px solid var(--color-border);
-    max-height: calc(100vh - 100px); /* 限制高度，防止溢出 */
-    overflow-y: auto; /* 允许滚动 */
+/* D. Markdown 内容样式 */
+
+/* 引用块 */
+blockquote {
+    border-left: 5px solid var(--color-primary);
+    background-color: var(--color-blockquote-bg);
+    padding: 10px 20px;
+    margin: 20px 0;
+    border-radius: 4px;
+    color: var(--color-text);
+    font-style: italic;
 }
-.toc-title {
-    font-size: 1.2em;
-    font-weight: 700;
-    margin-bottom: 15px;
+
+/* 代码块 */
+pre {
+    background-color: var(--color-code-bg);
+    padding: 15px;
+    border-radius: 6px;
+    overflow-x: auto;
+    font-size: 0.95em;
+    line-height: 1.4;
+    border: 1px solid var(--color-border);
+}
+pre code {
     color: var(--color-text);
 }
-.toc ul {
+@media (prefers-color-scheme: dark) {
+    pre code {
+        color: var(--color-text-dark);
+    }
+}
+
+/* 图片响应式 */
+.post-main-content img {
+    max-width: 100%; 
+    height: auto; 
+    display: block;
+    margin: 20px auto;
+    border-radius: 6px;
+    /* NEW: 为图片添加柔和的边框和阴影 */
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+    border: 1px solid var(--color-border);
+}
+
+@media (prefers-color-scheme: dark) {
+    .post-main-content img {
+        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.1);
+        border: 1px solid var(--color-border-dark);
+    }
+}
+
+/* 表格样式 */
+table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 0.9em;
+}
+th, td {
+    padding: 12px 15px;
+    border: 1px solid var(--color-border);
+    text-align: left;
+}
+th {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+}
+/* 斑马线效果 */
+tr:nth-child(even) {
+    background-color: #f9f9f9;
+}
+
+@media (prefers-color-scheme: dark) {
+    table {
+        border: 1px solid var(--color-border-dark);
+    }
+    th, td {
+        border-color: var(--color-border-dark);
+    }
+    th {
+        background-color: #384d49;
+        color: var(--color-link-dark);
+    }
+    tr:nth-child(even) {
+        background-color: #222;
+    }
+}
+
+/* 目录 (TOC) 样式 */
+.toc-container {
+    padding: 20px;
+    background-color: var(--color-card);
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--color-border);
+    font-size: 0.9em;
+}
+.toc-container ul {
+    list-style: none;
+    padding-left: 0;
+}
+.toc-container li {
+    margin-bottom: 5px;
+}
+.toc-container a {
+    color: var(--color-text);
+    text-decoration: none;
+    padding: 2px 0;
+    display: block;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+}
+.toc-container a:hover {
+    color: var(--color-primary);
+    border-left-color: var(--color-primary);
+}
+
+/* TOC 深度指示 */
+.toc-container ul ul {
+    padding-left: 15px;
+}
+
+/* E. 列表页样式 */
+
+.post-list {
     list-style: none;
     padding: 0;
-    margin: 0;
-    line-height: 1.5;
 }
-.toc ul li {
-    margin: 0;
+.post-item {
+    padding: 15px 0;
+    border-bottom: 1px dashed var(--color-border);
 }
-.toc a {
+.post-item:last-child {
+    border-bottom: none;
+}
+.post-title {
+    font-size: 1.2em;
+    font-weight: 600;
+    color: var(--color-text);
+    text-decoration: none;
     display: block;
-    padding: 5px 0;
-    color: #666;
+    margin-bottom: 5px;
+}
+.post-title:hover {
+    color: var(--color-primary);
+}
+.post-date, .post-excerpt {
     font-size: 0.9em;
-    text-decoration: none;
-    transition: color 0.2s, background-color 0.2s;
-    border-radius: 4px;
+    color: #888;
 }
-.toc ul ul {
-    padding-left: 15px; /* 子级缩进 */
-}
-.toc a:hover {
-    color: var(--color-primary);
-    background-color: var(--color-primary-light);
-    text-decoration: none;
-}
-.toc a.active {
-    font-weight: 700;
-    color: var(--color-primary);
-    background-color: var(--color-toc-active-bg-light);
+.post-excerpt {
+    margin-bottom: 5px;
 }
 
-/* S. 页脚样式 */
-footer {
-    border-top: 1px solid var(--color-border);
-    padding: 20px 20px;
-    margin-top: 40px;
-    background-color: var(--color-background);
-    transition: background-color 0.3s;
-}
-.footer-content {
-    max-width: 1100px;
-    margin: 0 auto;
+/* Tags Cloud 样式 */
+.tags-cloud {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
     flex-wrap: wrap;
-    font-size: 0.85em;
-    color: #999;
-}
-.footer-content p {
-    margin: 5px 0;
-}
-.copyright-info a,
-.build-info a {
-    color: var(--color-primary);
-    text-decoration: none;
-}
-.build-info span {
-    color: #aaa;
-    transition: color 0.3s;
-}
-.build-info a:hover,
-.copyright-info a:hover {
-    text-decoration: underline;
+    gap: 8px; /* 标签之间的间距 */
+    padding-top: 20px;
 }
 
-/* T. 响应式调整 */
-@media (max-width: 900px) {
-    /* 侧边栏消失 */
-    .toc {
-        display: none;
-    }
-    .content-layout-wrapper {
-        flex-direction: column;
-    }
+
+/* F. 按钮样式 (已有的) */
+
+.button-base {
+    display: inline-block;
+    padding: 10px 18px;
+    border: 1px solid;
+    border-radius: 8px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: all 0.2s ease;
+    text-decoration: none !important;
+    white-space: nowrap;
+    line-height: 1.2;
 }
-@media (max-width: 768px) {
-    /* 导航栏堆叠 */
-    header .header-inner {
-        flex-direction: column;
-        align-items: flex-start;
+
+/* Primary Button Style (主操作按钮) */
+.button-primary {
+    background-color: var(--color-primary);
+    color: white;
+    border-color: var(--color-primary);
+    box-shadow: 0 2px 5px rgba(0, 121, 107, 0.3);
+}
+.button-primary:hover {
+    background-color: #004d40;
+    color: white;
+    border-color: #004d40;
+    box-shadow: 0 4px 10px rgba(0, 121, 107, 0.5);
+    /* NEW: 统一的悬停动效 */
+    transform: translateY(-2px);
+}
+
+/* Secondary Button Style (次要操作按钮) */
+.button-secondary {
+    background-color: transparent;
+    color: var(--color-primary);
+    border-color: var(--color-primary);
+}
+.button-secondary:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    /* NEW: 统一的悬停动效 */
+    transform: translateY(-2px);
+}
+
+/* Dark Mode Button Adaptation */
+@media (prefers-color-scheme: dark) {
+    .button-secondary {
+        color: var(--color-link-dark);
+        border-color: var(--color-link-dark);
     }
-    .site-title {
-        margin-bottom: 10px;
-    }
-    nav {
-        width: 100%;
-        display: flex;
-        justify-content: space-around;
-        gap: 0;
-    }
-    nav a {
-        margin: 0;
-        flex-grow: 1;
-        text-align: center;
-    }
-    main {
-        margin: 10px auto;
-        padding: 0 15px;
-    }
-    .footer-content {
-        flex-direction: column;
-        align-items: center;
-    }
-    .footer-content p {
-        text-align: center;
-    }
-    /* 详情页 meta 信息也堆叠 */
-    .post-meta {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
+    .button-secondary:hover {
+        background-color: rgba(128, 203, 196, 0.1); /* 使用 link-dark 的透明版本 */
+        color: var(--color-link-dark);
     }
 }
