@@ -419,6 +419,7 @@ footer {
     text-decoration: none; /* 移除链接的默认下划线 */
     color: inherit; /* 继承父级文字颜色 */
     cursor: pointer;
+    overflow: hidden; /* 关键修复 1: 防止内部内容溢出卡片 */
 }
 
 /* 悬停效果：向上浮动并添加阴影 */
@@ -453,6 +454,17 @@ footer {
     line-height: 1.6;
     margin-bottom: 12px;
 }
+
+/* 关键修复 2: 确保卡片内的富文本内容不会撑大卡片 */
+.post-list-item .post-excerpt img {
+    max-width: 100%;
+}
+.post-list-item .post-excerpt pre {
+    overflow-x: auto; /* 确保代码块可以滚动 */
+    margin-left: 0;
+    margin-right: 0;
+}
+
 
 /* 4. 元数据容器 (日期/标签) 优化 */
 .post-list-item .post-meta-list {
