@@ -2,12 +2,12 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
     <title>Data Li 的个人网站</title>
-    <link>https://web0863.pages.devhttps://web0863.pages.dev/</link>
-    <atom:link href="https://web0863.pages.devhttps://web0863.pages.dev/rss.xml" rel="self" type="application/rss+xml" />
+    <link>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/</link>
+    <atom:link href="https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/rss.xml" rel="self" type="application/rss+xml" />
     <description>专注于数据科学、极简主义与纯粹的 Web 技术。</description>
     <language>zh-Hans</language>
-    <pubDate>Thu, 04 Dec 2025 07:06:00 +0000</pubDate>
-    <lastBuildDate>Thu, 04 Dec 2025 07:06:00 +0000</lastBuildDate>
+    <pubDate>Thu, 04 Dec 2025 07:10:25 +0000</pubDate>
+    <lastBuildDate>Thu, 04 Dec 2025 07:10:25 +0000</lastBuildDate>
     <managingEditor>Data Li</managingEditor>
     <webMaster>Data Li</webMaster>
     <generator>Simple Blog Generator</generator>

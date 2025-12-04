@@ -1,4 +1,4 @@
 # robots.txt
 User-agent: *
 Allow: /
-Sitemap: https://web0863.pages.dev/sitemap.xml
+Sitemap: https://scaling-parakeet-138.pages.dev/sitemap.xml
