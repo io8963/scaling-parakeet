@@ -6,7 +6,7 @@
     <atom:link href="https://scaling-parakeet-138.pages.dev/rss.xml" rel="self" type="application/rss+xml" />
     <description>专注于数据科学、极简主义与纯粹的 Web 技术。</description>
     <language>zh-cn</language>
-    <pubDate>Thu, 04 Dec 2025 13:58:44 +0000</pubDate>
+    <pubDate>Thu, 04 Dec 2025 14:09:48 +0000</pubDate>
 
     <item>
       <title>网站 UI/UX 和维护问题清单</title>
@@ -49,7 +49,7 @@
 <h5 id="h5-">H5 - 小标题</h5>
 <h6 id="h6-">H6 - 最小标题</h6>
 <hr>
-<p>这是一条水平分隔线（Horizontal Rule），用于分隔内容区域。</p>
+<p>这是一条水平分隔线，用于分隔内容区域。</p>
 <h3 id="lists">列表 (Lists)</h3>
 <p><strong>无序列表：</strong></p>
 <ul>
