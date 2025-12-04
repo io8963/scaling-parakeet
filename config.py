@@ -39,24 +39,26 @@ TAGS_OUTPUT_DIR = os.path.join(BUILD_DIR, TAGS_DIR)
 STATIC_DIR = 'static'
 # 静态文件构建输出路径
 STATIC_OUTPUT_DIR = os.path.join(BUILD_DIR, STATIC_DIR)
-# 媒体文件目录
-MEDIA_DIR = 'media'
-MEDIA_OUTPUT_DIR = os.path.join(BUILD_DIR, MEDIA_DIR)
 
-# 输出文件名
-INDEX_FILE = 'index.html'
-ARCHIVE_FILE = 'archive.html'
-TAGS_FILE = 'tags.html'
-ABOUT_FILE = 'about.html'
+# 特殊文件
+ROBOTS_FILE = 'robots.txt'
 SITEMAP_FILE = 'sitemap.xml'
 RSS_FILE = 'rss.xml'
-# 语言设置
-LANG = 'zh-Hans'
 
-# --- Markdown 解析配置 ---
-MARKDOWN_EXTENSIONS = [
-    'extra',
-    'codehilite', # 启用代码高亮
-    'toc', # 启用目录生成
-    'fenced_code', # 启用三个反引号的代码块
-]
+# --- Markdown 扩展配置 ---
+
+# 使用字典配置来确保 TOC (目录) 和 Pygments (代码高亮) 正常工作
+MARKDOWN_EXTENSION_CONFIGS = {
+    # 配置 Pygments
+    'codehilite': {
+        'css_class': CODE_HIGHLIGHT_CLASS,
+        'linenums': False, # 不显示行号
+        'guess_lang': True,
+        'use_pygments': True,
+    },
+    # 配置 TOC (目录)
+    'toc': {
+        'baselevel': 2,       # 从 H2 (##) 开始生成目录
+        'permalink': True,    # 为标题生成永久链接锚点
+    },
+}
