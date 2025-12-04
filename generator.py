@@ -229,7 +229,7 @@ def generate_index_html(all_posts: List[Dict[str, Any]]):
             # 列表特定变量
             posts=posts_for_index,
             max_posts_on_index=config.MAX_POSTS_ON_INDEX,
-            content_html="",
+            content_html="", # 首页通过 posts 渲染列表
             lang='zh-CN',
         )
 
@@ -262,7 +262,7 @@ def generate_archive_html(all_posts: List[Dict[str, Any]]):
         sorted_archive = sorted(archive_map.items(), key=lambda x: x[0], reverse=True)
             
         # 渲染归档页内容 (手动构建 content_html)
-        content_html = ""
+        content_html = "<h1>文章归档</h1>\n"
         for year, posts in sorted_archive:
             content_html += f"<h2>{year} ({len(posts)} 篇)</h2>\n<ul>\n"
             # 确保帖子在该年份内按日期降序排列
@@ -288,7 +288,7 @@ def generate_archive_html(all_posts: List[Dict[str, Any]]):
             json_ld_schema=None,
             
             # 列表特定变量
-            content_html=content_html,
+            content_html=content_html, # 归档页通过 content_html 渲染列表
             posts=[], 
             max_posts_on_index=0,
             lang='zh-CN',
@@ -345,7 +345,7 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
             json_ld_schema=None,
             
             # 列表特定变量
-            content_html=content_html,
+            content_html=content_html, # 标签列表页通过 content_html 渲染列表
             posts=[], 
             max_posts_on_index=0,
             lang='zh-CN',
@@ -361,7 +361,7 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
         print(f"Error generating tags.html: {type(e).__name__}: {e}")
 
 
-# FIXED: generate_tag_page (现在手动生成列表 HTML 并赋值给 content_html)
+# FIXED: generate_tag_page (现在将列表赋值给 posts，并假设 base.html 已修改以渲染 tag 页面的 posts 变量)
 def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
     """为单个标签生成页面"""
     try:
@@ -377,21 +377,11 @@ def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
         tag_slug = tag_to_slug(tag)
         output_filename = f'{tag_slug}.html'
         
-        # 2. 手动生成标签页的文章列表 HTML
-        content_html = f"<h1>标签: {tag} ({len(visible_tag_posts)} 篇)</h1>\n"
-        content_html += "<ul class=\"post-list-for-tag\">\n" 
-        
-        # 帖子应该已经按日期排序
-        for post in visible_tag_posts:
-            link = make_internal_url(post['link'])
-            date_str = post['date'].strftime('%Y-%m-%d')
-            # 使用一个与归档页相似的简单列表项格式
-            content_html += f"  <li><span class=\"archive-date\">{date_str}</span> - <a href=\"{link}\">{post['title']}</a></li>\n"
-        content_html += "</ul>\n"
-        
-        # 3. 渲染模板
+        # 2. 渲染模板
+        # 关键修复：将列表传递给 posts 变量，并假设 base.html 会像首页一样渲染它。
+        # 这样可以利用 base.html 中复杂的列表项渲染逻辑。
         html_content = template.render(
-            page_id='tag',
+            page_id='tag', # <--- 确保 page_id 是 'tag'
             page_title=f"标签: {tag}",
             # 通用变量
             blog_title=config.BLOG_TITLE,
@@ -406,9 +396,9 @@ def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
             
             # 列表特定变量
             tag=tag,
-            posts=[], # 清空 posts，确保模板不会错误地尝试渲染
-            max_posts_on_index=0, 
-            content_html=content_html, # <--- 关键：将生成的列表 HTML 注入到这里
+            posts=visible_tag_posts, # <--- 关键：传递可见文章列表
+            max_posts_on_index=len(visible_tag_posts) + 1, # 确保全部显示
+            content_html="", # <--- 关键：content_html 置空，让模板使用 posts 渲染
             lang='zh-CN',
         )
 
