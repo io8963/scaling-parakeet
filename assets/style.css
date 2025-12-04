@@ -1,43 +1,51 @@
---- START OF FILE scaling-parakeet-main/assets/style.css ---
 
-/* NEW: 全局 Box-Sizing 修复，防止 Padding 导致的溢出问题 */
+/* =========================================
+   A. 全局重置与 Box-Sizing
+   ========================================= */
 *, *::before, *::after {
     box-sizing: border-box;
 }
 
-/* C. 主题色定义 */
+/* =========================================
+   C. 主题变量定义 (Variables)
+   ========================================= */
 :root {
-    --color-primary: #00796b; /* 鲜绿色 */
-    --color-primary-light: #e0f2f1; /* 浅绿色 */
+    --color-primary: #00796b; /* 品牌主色：鲜绿色 */
+    --color-primary-light: #e0f2f1; /* 浅绿色背景 */
     --color-link-dark: #80cbc4; /* 暗色模式下的链接颜色 */
     
-    /* MODIFIED: 核心通用变量定义 - 默认使用浅色值 */
-    --color-text: #333; /* 浅色模式文本 - 作为通用文本色 */
-    --color-background: #f7f7f7; /* 通用背景色，默认浅色 */
-    --color-card: #ffffff; /* 通用卡片背景，默认浅色 */
-    --color-border: #eee; /* 通用边框颜色，默认浅色 */
+    /* 核心通用变量 - 亮色模式默认值 */
+    --color-text: #333; 
+    --color-background: #f7f7f7; 
+    --color-card: #ffffff; 
+    --color-border: #eee; 
     
-    --color-text-dark: #e0e0e0; /* 深色模式文本 */
-    --color-background-light: #f7f7f7; /* 浅灰底色增强卡片效果 */
-    --color-background-dark: #1a1a1a; /* 深色背景 */
-    --color-card-light: #ffffff; /* 浅色卡片背景 */
-    --color-card-dark: #2b2b2b; /* 深色卡片背景 */
+    /* 深色模式变量池 */
+    --color-text-dark: #e0e0e0; 
+    --color-background-light: #f7f7f7; 
+    --color-background-dark: #1a1a1a; 
+    --color-card-light: #ffffff; 
+    --color-card-dark: #2b2b2b; 
     --color-border-light: #eee;
     --color-border-dark: #444;
 
-    /* Admonition (提示块) 颜色 */
+    /* Markdown 扩展元素颜色 */
+    --color-code-bg: #f5f5f5;
+    --color-code-bg-dark: #282c34;
     --color-admonition-note: #00796b;
     --color-admonition-warn: #fbc02d;
     --color-admonition-danger: #d32f2f;
 
-    /* MODIFIED: 统一的文本、背景和边框变量，用于亮/暗模式切换 */
+    /* 动态映射变量 (随模式切换) */
     --color-main-text: var(--color-text);
     --color-main-background: var(--color-background);
     --color-main-card: var(--color-card);
     --color-main-border: var(--color-border);
 }
 
-/* D. 暗色模式全局切换 */
+/* =========================================
+   D. 暗色模式全局切换 (Dark Mode)
+   ========================================= */
 @media (prefers-color-scheme: dark) {
     :root {
         --color-main-text: var(--color-text-dark);
@@ -48,10 +56,12 @@
     }
 }
 
-/* E. 基础样式 */
+/* =========================================
+   E. 基础样式 (Typography & Base)
+   ========================================= */
 html {
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-    line-height: 1.7; /* 增加行高提高可读性 */
+    line-height: 1.7; 
     color: var(--color-main-text);
     background-color: var(--color-main-background);
     transition: background-color 0.3s, color 0.3s;
@@ -66,11 +76,10 @@ body {
     flex-direction: column;
 }
 
-/* 链接样式 */
 a {
     color: var(--color-primary);
     text-decoration: none;
-    transition: color 0.2s, border-color 0.2s;
+    transition: color 0.2s;
 }
 a:hover {
     color: #004d40;
@@ -78,15 +87,10 @@ a:hover {
 }
 
 @media (prefers-color-scheme: dark) {
-    a {
-        color: var(--color-link-dark);
-    }
-    a:hover {
-        color: #e0f2f1;
-    }
+    a { color: var(--color-link-dark); }
+    a:hover { color: #e0f2f1; }
 }
 
-/* 标题样式 */
 h1, h2, h3, h4, h5, h6 {
     line-height: 1.3;
     margin-top: 2em;
@@ -100,23 +104,21 @@ h2 { font-size: 1.8rem; border-bottom: 1px solid var(--color-main-border); paddi
 h3 { font-size: 1.4rem; }
 h4 { font-size: 1.2rem; }
 
-/* 列表样式 */
-ul, ol {
-    padding-left: 20px;
-    margin-bottom: 1.5em;
-}
-li {
-    margin-bottom: 0.5em;
-}
+ul, ol { padding-left: 20px; margin-bottom: 1.5em; }
+li { margin-bottom: 0.5em; }
 
-/* F. 布局容器 */
+/* =========================================
+   F. 布局容器 (Layout)
+   ========================================= */
 .container {
     max-width: 1000px;
     margin: 0 auto;
     padding: 0 20px;
 }
 
-/* G. 头部 (Header) 导航 */
+/* =========================================
+   G. 头部导航 (Header)
+   ========================================= */
 header {
     background-color: var(--color-main-card);
     border-bottom: 1px solid var(--color-main-border);
@@ -161,7 +163,9 @@ header nav a.active-nav-link {
     text-decoration: none;
 }
 
-/* H. 主内容区域 (Main) */
+/* =========================================
+   H. 主内容区域 (Main)
+   ========================================= */
 main {
     flex-grow: 1;
     padding: 40px 0;
@@ -181,7 +185,9 @@ main {
     max-width: 100%;
 }
 
-/* I. 侧边目录 (TOC) */
+/* =========================================
+   I. 侧边目录 (TOC)
+   ========================================= */
 .toc-area {
     width: 250px;
     flex-shrink: 0;
@@ -212,36 +218,18 @@ main {
     text-decoration: none;
     line-height: 1.4;
 }
-.toc-area ul li a:hover {
-    color: var(--color-primary);
-}
-.toc-area ul ul {
-    padding-left: 15px;
-}
+.toc-area ul li a:hover { color: var(--color-primary); }
+.toc-area ul ul { padding-left: 15px; }
 
-/* 仅在文章页显示目录 */
-.page-post .toc-area {
-    display: block;
-}
-.page-post .content-area {
-    flex-basis: 70%;
-    max-width: 70%;
-}
-/* 其他页面隐藏目录 */
-.page-index .toc-area,
-.page-archive .toc-area,
-.page-tags .toc-area {
-    display: none;
-}
-.page-index .content-area,
-.page-archive .content-area,
-.page-tags .content-area {
-    flex-basis: 100%;
-    max-width: 100%;
-}
+/* 页面特定显示逻辑 */
+.page-post .toc-area { display: block; }
+.page-post .content-area { flex-basis: 70%; max-width: 70%; }
+.page-index .toc-area, .page-archive .toc-area, .page-tags .toc-area { display: none; }
+.page-index .content-area, .page-archive .content-area, .page-tags .content-area { flex-basis: 100%; max-width: 100%; }
 
-
-/* J. 文章内容基础样式 (Content) */
+/* =========================================
+   J. 文章内容基础样式 (Content)
+   ========================================= */
 .post-content img {
     max-width: 100%;
     height: auto;
@@ -256,12 +244,11 @@ main {
     font-size: 1.05rem;
 }
 
-/* 引用块优化 */
 .post-content blockquote {
     border-left: 4px solid var(--color-primary);
     padding: 15px 20px;
     margin: 20px 0;
-    background-color: var(--color-main-background); /* 避免在暗色模式下过亮 */
+    background-color: var(--color-main-background);
     color: #666;
     border-radius: 0 4px 4px 0;
     font-style: italic;
@@ -273,28 +260,24 @@ main {
     }
 }
 
-/* O. Markdown 扩展元素样式 (Markdown Extended Elements) 
-   修复：表格、代码、高亮、提示块等
-*/
+/* =========================================
+   O. Markdown 扩展元素增强 (Markdown Enhanced)
+   ========================================= */
 
-/* 1. 表格样式 (Table) */
+/* 1. 表格 (Table) - 响应式滚动与边框修复 */
 .post-content table {
     width: 100%;
     max-width: 100%;
     border-collapse: collapse;
     margin: 20px 0;
     overflow-x: auto;
-    display: block; /* 响应式滚动 */
+    display: block; /* 移动端默认块级显示以支持滚动 */
+    border: 1px solid var(--color-main-border);
 }
-/* 桌面端取消 block，让表格自适应 */
 @media (min-width: 600px) {
-    .post-content table {
-        display: table;
-    }
+    .post-content table { display: table; }
 }
-
-.post-content th, 
-.post-content td {
+.post-content th, .post-content td {
     padding: 10px 15px;
     border: 1px solid var(--color-main-border);
     text-align: left;
@@ -307,19 +290,14 @@ main {
     background-color: rgba(0, 0, 0, 0.02);
 }
 @media (prefers-color-scheme: dark) {
-    .post-content th {
-        background-color: rgba(255, 255, 255, 0.1);
-    }
-    .post-content tr:nth-child(even) {
-        background-color: rgba(255, 255, 255, 0.05);
-    }
+    .post-content th { background-color: rgba(255, 255, 255, 0.1); }
+    .post-content tr:nth-child(even) { background-color: rgba(255, 255, 255, 0.05); }
 }
 
-/* 2. 行内代码样式 (Inline Code) */
-/* ！！！关键修复：排除 pre 内部的 code，防止代码块被污染 */
+/* 2. 行内代码 (Inline Code) */
 .post-content code:not(pre code) {
     background-color: rgba(0, 0, 0, 0.06);
-    color: #d63384; /* 醒目的洋红色 */
+    color: #d63384; 
     padding: 2px 6px;
     border-radius: 4px;
     font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
@@ -332,60 +310,66 @@ main {
     }
 }
 
-/* 3. 代码块高亮样式 (Code Blocks) */
-/* 修复：确保 .highlight 容器和内部 pre 都有正确的样式 */
-.highlight {
+/* 3. 代码块 (Code Blocks) - 核心修复 */
+
+/* 容器样式：兼容 .highlight (配置) 和 .codehilite (默认) */
+.highlight, 
+.codehilite {
     margin: 20px 0;
     border-radius: 6px;
-    background-color: #f5f5f5; /* 默认背景 */
+    background-color: var(--color-code-bg);
     border: 1px solid var(--color-border);
+    overflow: hidden; /* 防止圆角溢出 */
 }
 
-/* 如果 Markdown 没有生成 .highlight 包裹 (fallback) */
+/* 保底样式：处理未包裹的 pre */
 .post-content pre {
-    background-color: #f5f5f5;
+    background-color: var(--color-code-bg);
     border-radius: 6px;
     margin: 20px 0;
-    overflow-x: auto; /* 允许横向滚动 */
-    border: 1px solid var(--color-border); /* 加上边框，防止和背景混淆 */
+    border: 1px solid var(--color-border);
+    overflow-x: auto;
 }
 
-/* 代码块内部 */
-.highlight pre,
+/* 代码块内部排版 */
+.highlight pre, 
+.codehilite pre,
 .post-content pre {
     padding: 15px;
     margin: 0;
-    overflow-x: auto;
+    overflow-x: auto; /* 横向滚动 */
     color: #333;
-    font-family: 'SFMono-Regular', Consolas, Menlo, monospace; /* 强制等宽字体 */
+    font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
     font-size: 0.9rem;
     line-height: 1.5;
 }
 
-/* 强制代码块内的 code 标签取消背景和特殊颜色，继承 pre 的样式 */
-.highlight pre code,
+/* 强制重置代码块内 code 的样式，防止继承行内代码的粉色背景 */
+.highlight pre code, 
+.codehilite pre code,
 .post-content pre code {
     background-color: transparent !important;
     color: inherit !important;
     padding: 0 !important;
     border-radius: 0 !important;
+    white-space: pre; /* 保持代码格式 */
 }
 
 /* 暗色模式代码块 */
 @media (prefers-color-scheme: dark) {
-    .highlight,
+    .highlight, 
+    .codehilite,
     .post-content pre {
-        background-color: #282c34; /* 经典的暗色代码背景 */
+        background-color: var(--color-code-bg-dark) !important;
         border-color: #444;
         color: #abb2bf;
     }
-    .highlight pre,
-    .post-content pre {
+    .highlight pre, .codehilite pre, .post-content pre {
         color: #abb2bf;
     }
 }
 
-/* 4. 分割线 (Horizontal Rule) */
+/* 4. 分割线 (HR) */
 .post-content hr {
     height: 1px;
     border: 0;
@@ -393,7 +377,7 @@ main {
     margin: 40px 0;
 }
 
-/* 5. 提示块/警告块 (Admonitions) - 需要启用 admonition 扩展 */
+/* 5. 提示块 (Admonitions) */
 .admonition {
     margin: 20px 0;
     padding: 15px;
@@ -403,21 +387,17 @@ main {
 }
 .admonition-title {
     font-weight: bold;
-    margin-bottom: 10px !important; /* 覆盖默认 p margin */
+    margin-bottom: 10px !important;
     display: block;
 }
-/* 不同类型的提示块 */
 .admonition.note { border-color: var(--color-admonition-note); }
 .admonition.warning, .admonition.attention { border-color: var(--color-admonition-warn); }
 .admonition.danger, .admonition.error { border-color: var(--color-admonition-danger); }
-
 @media (prefers-color-scheme: dark) {
-    .admonition {
-        background-color: rgba(255, 255, 255, 0.05);
-    }
+    .admonition { background-color: rgba(255, 255, 255, 0.05); }
 }
 
-/* 6. 脚注样式 (Footnotes) */
+/* 6. 脚注 (Footnotes) */
 .footnote {
     font-size: 0.85rem;
     color: #777;
@@ -425,69 +405,50 @@ main {
     border-top: 1px solid var(--color-main-border);
     padding-top: 20px;
 }
-.footnote ol {
-    padding-left: 20px;
-}
-.footnote-ref {
-    text-decoration: none;
-    margin-left: 2px;
-}
+.footnote ol { padding-left: 20px; }
+.footnote-ref { text-decoration: none; margin-left: 2px; }
 
-
-/* K. 文章元数据 (Post Meta) */
+/* =========================================
+   K. 文章元数据 (Post Meta)
+   ========================================= */
 .post-meta {
-    /* MODIFIED: 移除 flex-wrap: wrap，让 flex-direction: column 在小屏幕上生效 */
     display: flex;
     flex-wrap: wrap; 
     align-items: center;
     font-size: 0.9rem;
-    color: #777; /* 通用浅灰色 */
-    margin-bottom: 25px; /* 增加与内容的间距 */
+    color: #777; 
+    margin-bottom: 25px; 
     padding-bottom: 20px;
     border-bottom: 1px solid var(--color-main-border);
 }
 
-/* NEW: 元数据内部容器，用于容纳日期和标签 */
 .meta-container {
     display: flex;
     align-items: center;
-    flex-wrap: wrap; /* 确保在小屏幕上日期和标签可以换行 */
-    gap: 20px; /* 日期和标签之间的间距 */
+    flex-wrap: wrap; 
+    gap: 20px; 
 }
 
-/* 统一日期和标签的基准颜色，在暗色模式下单独调整 */
 .meta-date {
-    margin-right: 0; /* 移除原来的右边距，使用 gap 控制 */
+    margin-right: 0; 
     font-weight: 500;
-    color: #999; /* 比 #777 更柔和 */
-    display: flex; /* 确保日期和图标对齐 */
+    color: #999; 
+    display: flex; 
     align-items: center;
 }
 
-/* NEW: 标签容器优化 */
 .meta-tags {
     display: flex;
     align-items: center;
     gap: 5px;
 }
-
-.meta-tags-label {
-    font-weight: 500;
-    color: #777; /* 比标签文字稍暗 */
-}
-
+.meta-tags-label { font-weight: 500; color: #777; }
 .tags-list {
-    list-style: none;
-    padding: 0;
-    margin: 0 !important; /* 强制移除列表默认边距 */
-    display: flex;
-    flex-wrap: wrap;
-    gap: 5px;
+    list-style: none; padding: 0; margin: 0 !important;
+    display: flex; flex-wrap: wrap; gap: 5px;
 }
-.tags-list li {
-    display: inline;
-    margin: 0; /* 移除 li 默认边距 */
-}
+.tags-list li { display: inline; margin: 0; }
+
 .tag-badge {
     display: inline-block;
     background-color: var(--color-primary-light); 
@@ -504,49 +465,24 @@ main {
     text-decoration: none;
 }
 
-/* NEW: 响应式调整 */
 @media (max-width: 600px) {
-    .post-meta {
-        /* 在窄屏上将日期和标签垂直排列 */
+    .post-meta, .meta-container {
         flex-direction: column;
         align-items: flex-start;
         gap: 10px;
-    }
-    .meta-container {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 10px;
-    }
-    .meta-tags {
-        /* 移除分隔线 */
-        border-left: none;
-        padding-left: 0;
     }
 }
 
-/* 暗色模式下颜色调整 */
 @media (prefers-color-scheme: dark) {
-    .post-meta {
-        color: #aaa;
-    }
-    .meta-date {
-        color: #888;
-    }
-    .meta-tags-label {
-        color: #aaa;
-    }
-    .tag-badge {
-        background-color: #383838;
-        color: var(--color-link-dark);
-    }
-    .tag-badge:hover {
-        background-color: var(--color-link-dark);
-        color: var(--color-background-dark);
-    }
+    .post-meta, .meta-tags-label { color: #aaa; }
+    .meta-date { color: #888; }
+    .tag-badge { background-color: #383838; color: var(--color-link-dark); }
+    .tag-badge:hover { background-color: var(--color-link-dark); color: var(--color-background-dark); }
 }
 
-
-/* L. 底部 (Footer) */
+/* =========================================
+   L. 底部 (Footer)
+   ========================================= */
 footer {
     padding: 20px 0;
     border-top: 1px solid var(--color-main-border);
@@ -556,21 +492,13 @@ footer {
     margin-top: auto;
     background-color: var(--color-main-card);
 }
-.footer-content {
-    max-width: 1000px;
-    margin: 0 auto;
-    padding: 0 20px;
-}
-.footer-links a {
-    color: #999;
-    margin: 0 5px;
-}
-.footer-links a:hover {
-    color: var(--color-primary);
-}
+.footer-content { max-width: 1000px; margin: 0 auto; padding: 0 20px; }
+.footer-links a { color: #999; margin: 0 5px; }
+.footer-links a:hover { color: var(--color-primary); }
 
-
-/* M. 按钮 (Button) 样式 */
+/* =========================================
+   M. 按钮 (Buttons)
+   ========================================= */
 .button {
     display: inline-block;
     padding: 10px 18px;
@@ -585,7 +513,6 @@ footer {
     line-height: 1.2;
 }
 
-/* Primary Button Style */
 .button-primary {
     background-color: var(--color-primary);
     color: white;
@@ -596,11 +523,9 @@ footer {
     background-color: #004d40;
     color: white;
     border-color: #004d40;
-    box-shadow: 0 4px 10px rgba(0, 121, 107, 0.5);
     transform: translateY(-1px);
 }
 
-/* Secondary Button Style */
 .button-secondary {
     background-color: transparent;
     color: var(--color-primary);
@@ -609,33 +534,17 @@ footer {
 .button-secondary:hover {
     background-color: var(--color-primary-light);
     color: var(--color-primary);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
 }
-
-/* Dark Mode Button Adaptation */
 @media (prefers-color-scheme: dark) {
-    .button-secondary {
-        color: var(--color-link-dark);
-        border-color: var(--color-link-dark);
-    }
-    .button-secondary:hover {
-        background-color: rgba(128, 203, 196, 0.1);
-        color: var(--color-link-dark);
-        border-color: var(--color-link-dark);
-    }
+    .button-secondary { color: var(--color-link-dark); border-color: var(--color-link-dark); }
+    .button-secondary:hover { background-color: rgba(128, 203, 196, 0.1); }
 }
 
+/* =========================================
+   N. 列表卡片 (Post Cards)
+   ========================================= */
+.post-list { list-style: none; padding: 0; margin: 0; }
 
-/* N. 文章列表卡片化样式 (关键溢出修正与布局优化) */
-
-/* 移除列表默认样式 */
-.post-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-}
-
-/* 1. 卡片基础样式和悬停效果 */
 .post-list-item {
     background-color: var(--color-main-card); 
     border: 1px solid var(--color-main-border);
@@ -643,179 +552,66 @@ footer {
     padding: 20px 25px; 
     margin-bottom: 20px; 
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
-    display: flex; /* NEW: 使用 Flex 布局 */
-    flex-direction: column; /* NEW: 垂直堆叠内容 */
-    justify-content: space-between; /* NEW: 将内容和元数据推向两端 */
-    text-decoration: none; 
-    color: inherit; 
-    cursor: pointer;
-    min-height: 120px; /* 最小高度，保证卡片视觉稳定 */
-    
-    /* ！！！最强力修复：防止内容撑开卡片 ！！！*/
+    display: flex; flex-direction: column; justify-content: space-between;
+    text-decoration: none; color: inherit; 
+    min-height: 120px; 
     overflow: hidden; 
-    word-wrap: break-word; 
-    word-break: break-word; 
+    word-wrap: break-word; word-break: break-word; 
 }
-
-/* 悬停效果：向上浮动并添加阴影 */
 .post-list-item:hover {
     border-color: var(--color-primary); 
     box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1);
     transform: translateY(-3px);
-    text-decoration: none;
 }
 
-/* 2. 标题优化 */
 .post-list-item .post-title {
-    margin-top: 0;
-    margin-bottom: 8px;
-    font-size: 1.4rem;
-    font-weight: 700;
-    line-height: 1.3;
-    color: var(--color-main-text);
-    transition: color 0.2s;
+    margin-top: 0; margin-bottom: 8px;
+    font-size: 1.4rem; font-weight: 700; line-height: 1.3;
+    color: var(--color-main-text); transition: color 0.2s;
 }
+.post-list-item:hover .post-title { color: var(--color-primary); }
 
-/* 悬停时标题颜色变化 */
-.post-list-item:hover .post-title {
-    color: var(--color-primary);
-}
-
-
-/* 3. 摘要/描述文字优化 */
 .post-list-item .post-excerpt {
-    color: #666; 
-    font-size: 0.95rem;
-    line-height: 1.6;
-    margin-bottom: 0; /* 移除底部间距，由 meta-list 的 padding-top 控制 */
-    
-    /* NEW: 优化摘要显示行数，防止过长 */
-    display: -webkit-box;
-    -webkit-line-clamp: 2; /* 限制为 2 行 */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-    text-overflow: ellipsis; 
-
-    /* 确保摘要区域本身也防止溢出 */
-    word-wrap: break-word;
-    word-break: break-word;
+    color: #666; font-size: 0.95rem; line-height: 1.6; margin-bottom: 0;
+    display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical;
+    overflow: hidden; text-overflow: ellipsis; 
 }
+.post-list-item .post-excerpt img { max-width: 100%; display: block; }
+.post-list-item .post-excerpt pre { overflow-x: auto; max-width: 100%; margin: 0; }
 
-/* 关键修复 2: 确保卡片内的富文本内容不会撑大卡片 */
-.post-list-item .post-excerpt img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-}
-.post-list-item .post-excerpt pre {
-    overflow-x: auto; /* 确保代码块可以滚动 */
-    max-width: 100%; /* 限制代码块最大宽度 */
-    margin-left: 0;
-    margin-right: 0;
-}
-
-/* 4. 元数据容器 (日期/标签) 优化 - 增强为行内布局 */
 .post-list-item .post-meta-list {
-    display: flex;
-    justify-content: space-between; /* NEW: 日期在左，标签在右 */
-    align-items: center;
+    display: flex; justify-content: space-between; align-items: center;
     flex-wrap: wrap; 
-    font-size: 0.85rem;
-    color: #999; 
-    margin-top: 15px;
-    padding-top: 10px;
+    font-size: 0.85rem; color: #999; 
+    margin-top: 15px; padding-top: 10px;
     border-top: 1px solid var(--color-main-border);
 }
 
-/* 5. 列表中的日期样式 */
-.post-list-item .meta-date {
-    margin-right: 0; 
-    color: #999; 
-    font-weight: 500;
-    display: flex;
-    align-items: center;
-    gap: 5px;
-}
-
-/* 6. 列表中的标签样式 */
-.post-list-item .meta-tags {
-    margin-left: auto; /* 自动推到右侧 */
-}
-.post-list-item .tags-list {
-    gap: 5px;
-    margin: 0;
-}
-/* 列表页中的标签不再是链接，改为 span 并继承样式 */
+.post-list-item .meta-date { margin-right: 0; color: #999; gap: 5px; }
+.post-list-item .meta-tags { margin-left: auto; }
+.post-list-item .tags-list { gap: 5px; margin: 0; }
 .post-list-item .tag-badge {
-    color: var(--color-primary);
-    background-color: var(--color-primary-light);
-    border-radius: 4px; /* 缩小圆角以适应信息列表 */
-    padding: 2px 6px;
-    font-size: 0.8rem;
-    font-weight: 500;
+    color: var(--color-primary); background-color: var(--color-primary-light);
+    border-radius: 4px; padding: 2px 6px; font-size: 0.8rem;
 }
 
-
-/* 7. 移动端优化 */
+/* 响应式列表卡片 */
 @media (max-width: 768px) {
-    /* ... (头部和布局保持不变) ... */
-    .header-inner {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-    header nav {
-        margin-top: 10px;
-        width: 100%;
-        display: flex;
-        flex-wrap: wrap;
-    }
-    header nav a {
-        margin-left: 0;
-        margin-right: 15px;
-    }
+    .header-inner { flex-direction: column; align-items: flex-start; }
+    header nav { margin-top: 10px; width: 100%; display: flex; flex-wrap: wrap; }
+    header nav a { margin-left: 0; margin-right: 15px; }
+    .main-layout { flex-direction: column; gap: 20px; }
+    .toc-area { display: none !important; }
+    .page-post .content-area { flex-basis: 100%; max-width: 100%; }
     
-    .main-layout {
-        flex-direction: column;
-        gap: 20px;
-    }
-    
-    .toc-area {
-        display: none !important;
-    }
-    .page-post .content-area {
-        flex-basis: 100%;
-        max-width: 100%;
-    }
-    .post-list-item {
-        padding: 15px 20px;
-    }
-    
-    /* 移动端元数据垂直堆叠 */
-    .post-list-item .post-meta-list {
-        flex-direction: column;
-        align-items: flex-start;
-        gap: 5px;
-    }
-    .post-list-item .meta-tags {
-        margin-left: 0;
-    }
+    .post-list-item { padding: 15px 20px; }
+    .post-list-item .post-meta-list { flex-direction: column; align-items: flex-start; gap: 5px; }
+    .post-list-item .meta-tags { margin-left: 0; }
 }
 
-
-/* 暗色模式下列表样式的兼容性调整 */
 @media (prefers-color-scheme: dark) {
-    .post-list-item:hover {
-        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08);
-    }
-    .post-list-item .post-excerpt {
-        color: #b0b0b0; 
-    }
-    .post-list-item .post-meta-list,
-    .post-list-item .meta-date {
-        color: #777;
-    }
-    .post-list-item .tag-badge {
-        background-color: #383838;
-        color: var(--color-link-dark);
-    }
+    .post-list-item:hover { box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08); }
+    .post-list-item .post-excerpt { color: #b0b0b0; }
+    .post-list-item .post-meta-list, .post-list-item .meta-date { color: #777; }
+    .post-list-item .tag-badge { background-color: #383838; color: var(--color-link-dark); }
 }
