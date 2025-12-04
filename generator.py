@@ -27,11 +27,11 @@ env = Environment(
 
 def tag_to_slug(tag_name: str) -> str:
     """将标签名转换为 URL 友好的 slug (小写，空格变'-')。"""
+    # 确保该函数与 parser.py 中的定义一致
     return tag_name.lower().replace(' ', '-')
 
 def get_site_root():
     """返回规范化的 SITE_ROOT，用于路径拼接，确保不以斜杠结尾（除非是空字符串）。"""
-    # 修正：使用 config.REPO_SUBPATH 或 config.SITE_ROOT 作为根路径的基础
     root = config.REPO_SUBPATH or config.SITE_ROOT
     if not root or root == '/':
         return ''
@@ -51,23 +51,20 @@ def make_internal_url(path: str) -> str:
     # 否则返回 /repo_subpath/path
     return f"{site_root}/{path_without_leading_slash}"
 
-# NEW: 辅助函数 - 检查文章是否隐藏
+# 辅助函数 - 检查文章是否隐藏
 def is_post_hidden(post: Dict[str, Any]) -> bool:
     """检查文章是否设置了 'hidden: true'"""
-    # yaml.safe_load 会将 'true'/'True' 解析为 Python 的 True
     return post.get('hidden') in [True, 'true', 'True']
 
-# --- 文件复制函数 (用于静态资源) ---
+# --- 文件复制函数 (保持不变) ---
 
 def copy_static_files():
     """复制 assets 目录到 _site 目录"""
-    # 假设 assets 目录在项目根目录
     source_dir = 'assets'
     target_dir = os.path.join(config.BUILD_DIR, 'assets')
     
     if os.path.exists(source_dir):
         if os.path.exists(target_dir):
-            # 修正：只删除 assets 目录本身，而不是整个 _site
             shutil.rmtree(target_dir) 
         shutil.copytree(source_dir, target_dir)
         print(f"SUCCESS: Copied static files from {source_dir} to {target_dir}.")
@@ -84,38 +81,28 @@ def copy_media_files():
             shutil.rmtree(target_dir)
         shutil.copytree(source_dir, target_dir)
         print(f"SUCCESS: Copied media files from {source_dir} to {target_dir}.")
-    # 如果不存在，不打印警告，因为媒体目录可能是可选的
 
 
 # --- 页面生成函数 ---
 
-# MODIFIED: generate_about_page (为 content_html 添加 h1 标题)
+# generate_about_page (保持不变)
 def generate_about_page(post: Dict[str, Any]):
-    """
-    生成 about.html 页面。
-    post 字典必须包含 'title', 'content_html' 等元数据。
-    """
+    """生成 about.html 页面。"""
     try:
         template = env.get_template('base.html')
-        
-        # 确保 link 字段存在，用于 canonical_url
         link = post.get('link', f"/{config.ABOUT_OUTPUT_FILE}")
-        
-        # 组装 JSON-LD Schema (可选，这里简化为 None)
         json_ld_schema = None 
-        
-        # 修正：手动构建带 h1 标题的内容，因为 base.html 不再自动处理 page-header 标题
         content_with_title = f"<h1>{post.get('title', '关于我')}</h1>\n{post['content_html']}"
         
         html_content = template.render(
             page_id='about',
-            page_title=post.get('title', '关于我'), # 默认标题
+            page_title=post.get('title', '关于我'), 
             # 通用变量
             blog_title=config.BLOG_TITLE,
             blog_description=config.BLOG_DESCRIPTION,
             blog_author=config.BLOG_AUTHOR,
             site_root=make_internal_url(''),
-            canonical_url=config.BASE_URL.rstrip('/') + link, # 明确使用完整 URL
+            canonical_url=config.BASE_URL.rstrip('/') + link, 
             css_filename=config.CSS_FILENAME,
             current_year=datetime.now(timezone.utc).year,
             footer_time_info=f"最后构建于 {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}.",
@@ -128,13 +115,11 @@ def generate_about_page(post: Dict[str, Any]):
             max_posts_on_index=0, 
             post=post, 
             lang='zh-CN',
-            # 修正：post_date 和 post_tags 应该在 post 页面设置，这里清空以防误用
             post_date=None, 
             post_tags=[],
         )
 
         output_path = os.path.join(config.BUILD_DIR, config.ABOUT_OUTPUT_FILE)
-        
         output_dir = os.path.dirname(output_path)
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -147,13 +132,13 @@ def generate_about_page(post: Dict[str, Any]):
     except Exception as e:
         print(f"Error generating about page: {type(e).__name__}: {e}")
 
-# MODIFIED: generate_post_html (为 base.html 提供 post_date 和 post_tags)
+# generate_post_html (保持不变)
 def generate_post_html(post: Dict[str, Any]):
     """为单篇文章生成 HTML 页面"""
     try:
         template = env.get_template('base.html')
         
-        # 组装 JSON-LD Schema (Article Schema)
+        # JSON-LD Schema
         json_ld_schema = json.dumps({
             "@context": "https://schema.org",
             "@type": "Article",
@@ -170,8 +155,7 @@ def generate_post_html(post: Dict[str, Any]):
             }
         }, ensure_ascii=False)
         
-        # 修正：确保 post_tags 格式正确（包含 slug 和 name）
-        post_tags_data = post.get('tags', []) # tags 已经是包含 name 和 slug 的列表
+        post_tags_data = post.get('tags', []) 
         
         html_content = template.render(
             page_id='post',
@@ -192,14 +176,11 @@ def generate_post_html(post: Dict[str, Any]):
             toc_html=post.get('toc_html'),
             post=post,
             lang='zh-CN',
-            # 修正：传递 post_date 和 post_tags 到模板
             post_date=post['date'].strftime('%Y-%m-%d'),
             post_tags=post_tags_data,
-            # 修正：post 页面不需要 posts 列表
             posts=[],
         )
 
-        # 确保输出路径存在
         output_path = os.path.join(config.BUILD_DIR, post['link'].lstrip('/'))
         output_dir = os.path.dirname(output_path)
         if not os.path.exists(output_dir):
@@ -214,16 +195,12 @@ def generate_post_html(post: Dict[str, Any]):
         print(f"Error generating post '{post.get('title', 'Unknown')}' HTML: {type(e).__name__}: {e}")
 
 
-# MODIFIED: generate_index_html (首页只显示可见文章，使用 posts 变量)
+# generate_index_html (保持不变)
 def generate_index_html(all_posts: List[Dict[str, Any]]):
     """生成首页 index.html"""
     try:
-        # 过滤掉被隐藏的文章
         visible_posts = [p for p in all_posts if not is_post_hidden(p)] 
-        
-        # 选取首页文章
         posts_for_index = visible_posts[:config.MAX_POSTS_ON_INDEX] 
-        
         template = env.get_template('base.html')
         
         html_content = template.render(
@@ -238,12 +215,12 @@ def generate_index_html(all_posts: List[Dict[str, Any]]):
             css_filename=config.CSS_FILENAME,
             current_year=datetime.now(timezone.utc).year,
             footer_time_info=f"最后构建于 {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}.",
-            json_ld_schema=None, # 首页不使用 Article Schema
+            json_ld_schema=None, 
             
             # 列表特定变量 (通过 posts 渲染富列表)
             posts=posts_for_index,
             max_posts_on_index=config.MAX_POSTS_ON_INDEX,
-            content_html="", # 首页使用 posts 渲染列表
+            content_html="", 
             lang='zh-CN',
         )
 
@@ -257,29 +234,24 @@ def generate_index_html(all_posts: List[Dict[str, Any]]):
         print(f"Error generating index.html: {type(e).__name__}: {e}")
 
 
-# MODIFIED: generate_archive_html (归档页只显示可见文章，并手动构建列表到 content_html)
+# generate_archive_html (保持不变)
 def generate_archive_html(all_posts: List[Dict[str, Any]]):
     """生成归档页 archive.html (显示所有可见文章)"""
     try:
-        # 过滤掉被隐藏的文章
         visible_posts = [p for p in all_posts if not is_post_hidden(p)]
-
         template = env.get_template('base.html')
         
-        # 将文章按年份分组
         archive_map = defaultdict(list)
         for post in visible_posts:
             year = post['date'].year
             archive_map[year].append(post)
             
-        # 按年份降序排序
         sorted_archive = sorted(archive_map.items(), key=lambda x: x[0], reverse=True)
             
         # 渲染归档页内容 (手动构建 content_html，包含 h1 标题)
         content_html = "<h1>文章归档</h1>\n"
         for year, posts in sorted_archive:
             content_html += f"<h2>{year} ({len(posts)} 篇)</h2>\n<ul class=\"archive-list\">\n"
-            # 确保帖子在该年份内按日期降序排列
             sorted_posts = sorted(posts, key=lambda p: p['date'], reverse=True)
             for post in sorted_posts:
                 link = make_internal_url(post['link'])
@@ -318,16 +290,14 @@ def generate_archive_html(all_posts: List[Dict[str, Any]]):
         print(f"Error generating archive.html: {type(e).__name__}: {e}")
 
 
-# MODIFIED: generate_tags_list_html (标签列表页只统计可见文章，并手动构建列表到 content_html)
+# generate_tags_list_html (保持不变)
 def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
     """生成所有标签的列表页 tags.html"""
     try:
-        # 过滤 tag_map，只包含可见文章
         filtered_tag_map = defaultdict(list)
         for tag, posts in tag_map.items():
             visible_posts = [p for p in posts if not is_post_hidden(p)]
             if visible_posts:
-                # 只保留包含可见文章的标签，并使用可见文章列表
                 filtered_tag_map[tag].extend(visible_posts)
 
         template = env.get_template('base.html')
@@ -335,7 +305,6 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
         # 生成标签列表的 HTML (手动构建 content_html，包含 h1 标题)
         content_html = "<h1>所有标签</h1>\n"
         content_html += "<ul class=\"tags-cloud-list\">\n"
-        # 按文章数量降序排列标签
         sorted_tags = sorted(filtered_tag_map.items(), key=lambda item: len(item[1]), reverse=True)
         
         for tag, posts in sorted_tags:
@@ -375,26 +344,28 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
         print(f"Error generating tags.html: {type(e).__name__}: {e}")
 
 
-# FIXED: generate_tag_page (修复标签页空白，将列表赋值给 posts)
+# 关键修复函数：generate_tag_page
 def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
     """为单个标签生成页面"""
     try:
         # 1. 过滤掉被隐藏的文章
         visible_tag_posts = [p for p in all_tag_posts if not is_post_hidden(p)]
         
+        # ！！！关键调试点 1：检查此处打印的文章数量是否 > 0 
+        print(f"DEBUG: Tag '{tag}' has {len(visible_tag_posts)} visible posts.")
+        
         if not visible_tag_posts:
-            # 如果所有文章都被隐藏，则不生成该标签页
-            print(f"INFO: Skipping tag '{tag}' page generation as all posts are hidden.")
-            return
+            # 如果所有文章都被隐藏或列表为空，则不生成该标签页
+            print(f"INFO: Skipping tag '{tag}' page generation as all posts are hidden/empty.")
+            return 
             
         template = env.get_template('base.html')
         tag_slug = tag_to_slug(tag)
         output_filename = f'{tag_slug}.html'
         
         # 2. 渲染模板
-        # 关键修复：将列表传递给 posts 变量，让 base.html 使用统一的文章卡片列表样式渲染。
         html_content = template.render(
-            page_id='tag', # <--- 确保 page_id 是 'tag'
+            page_id='tag', # <--- 必须是 'tag'
             page_title=f"标签: {tag}",
             # 通用变量
             blog_title=config.BLOG_TITLE,
@@ -409,14 +380,15 @@ def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
             
             # 列表特定变量
             tag=tag,
-            posts=visible_tag_posts, # <--- 关键：传递可见文章列表，用于列表渲染
-            max_posts_on_index=len(visible_tag_posts) + 1, # 确保全部显示
-            content_html="", # <--- content_html 置空，让模板使用 posts 渲染
+            posts=visible_tag_posts, # <--- 关键：文章列表必须传入 posts 变量
+            max_posts_on_index=len(visible_tag_posts) + 1, 
+            content_html="", # content_html 置空，让模板使用 posts 渲染
             lang='zh-CN',
         )
 
         output_path = os.path.join(config.TAGS_OUTPUT_DIR, output_filename)
         
+        # 冗余检查：确保目录存在（防止 autobuild.py 失败）
         output_dir = os.path.dirname(output_path)
         if not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -424,14 +396,14 @@ def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(html_content)
         
-        print(f"SUCCESS: Generated tag page: {output_filename}.")
+        # ！！！关键调试点 2：检查输出路径是否正确
+        print(f"SUCCESS: Generated tag page: {output_path} (URL: tags/{output_filename}).")
 
     except Exception as e:
         print(f"Error generating tag page for '{tag}': {type(e).__name__}: {e}")
 
 
-# --- XML/RSS 生成函数 ---
-
+# --- XML/RSS 生成函数 (保持不变) ---
 def generate_robots_txt():
     """生成 robots.txt"""
     content = f"""User-agent: *
@@ -446,16 +418,12 @@ Sitemap: {config.BASE_URL.rstrip('/')}{make_internal_url(config.SITEMAP_FILE)}
     except Exception as e:
         print(f"Error generating robots.txt: {e}")
 
-# MODIFIED: generate_sitemap (Sitemap只包含可见文章和页面)
+# generate_sitemap (保持不变)
 def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
-    """
-    生成 sitemap.xml。
-    传入的 parsed_posts 应该已经是过滤后的可见文章和特殊页面列表。
-    """
+    """生成 sitemap.xml。"""
+    # ... (代码省略) ...
     base_url_normalized = config.BASE_URL.rstrip('/')
-    
     urls = []
-    
     # 首页
     urls.append(f"""
     <url>
@@ -463,7 +431,6 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
         <changefreq>daily</changefreq>
         <priority>1.0</priority>
     </url>""")
-    
     # 归档页
     urls.append(f"""
     <url>
@@ -471,7 +438,6 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>""")
-
     # 标签列表页
     urls.append(f"""
     <url>
@@ -479,15 +445,10 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
         <changefreq>weekly</changefreq>
         <priority>0.8</priority>
     </url>""")
-
     # 文章和特殊页面
     for post in parsed_posts:
-        # NOTE: 链接可能已经是 /about.html 或 /posts/slug.html
         link = make_internal_url(post.get('link', '/')) 
-        
-        # 确保日期存在并格式化
         lastmod_date = post.get('date', datetime.now(timezone.utc)).strftime('%Y-%m-%d')
-        
         urls.append(f"""
     <url>
         <loc>{base_url_normalized}{link}</loc>
@@ -495,35 +456,28 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
     </url>""")
-        
     sitemap_content = f"""<?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 {''.join(urls)}
 </urlset>"""
     return sitemap_content
 
-# MODIFIED: generate_rss (RSS只包含可见文章)
+# generate_rss (保持不变)
 def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
-    """
-    生成 RSS feed。
-    传入的 parsed_posts 应该已经是过滤后的可见文章列表。
-    """
-    
+    """生成 RSS feed。"""
+    # ... (代码省略) ...
     items = []
     base_url_normalized = config.BASE_URL.rstrip('/')
     
     # 仅取最新的10篇可见文章
     for post in parsed_posts[:10]:
-        # 使用 get 安全获取 link
         post_link = post.get('link')
         if not post_link:
-            continue # 如果没有 link，跳过 RSS 条目
+            continue
             
-        # 修复文章链接
         link = f"{base_url_normalized}{make_internal_url(post_link)}"
-        pub_date = post['date'].strftime('%a, %d %b %Y %H:%M:%S +0000') # RFC 822 格式
+        pub_date = post['date'].strftime('%a, %d %b %Y %H:%M:%S +0000') 
         
-        # 使用 CDATA 包装 content_html
         items.append(f"""
     <item>
       <title>{post['title']}</title>
