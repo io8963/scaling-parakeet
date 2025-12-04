@@ -42,162 +42,120 @@ def build_site():
         # 不删除整个 _site，只删除动态生成的内容，保留旧的静态文件
         for item in os.listdir(config.BUILD_DIR):
             item_path = os.path.join(config.BUILD_DIR, item)
-            # 保留 assets 目录（其中包含 style.css），后面单独处理
-            if item not in ['assets', config.STATIC_DIR, config.MEDIA_DIR]: 
-                 if os.path.isdir(item_path):
+            # 保留 assets 目录（其中包含 style.css）和 STATIC_DIR/MEDIA_DIR，后面单独处理
+            if item not in ['assets', config.STATIC_DIR, config.MEDIA_DIR]:
+                if os.path.isdir(item_path):
                     shutil.rmtree(item_path)
-                 else:
+                else:
                     os.remove(item_path)
-
     
-    # 创建所有必需的目录
+    # 确保 posts 和 tags 的输出目录存在
     os.makedirs(config.POSTS_OUTPUT_DIR, exist_ok=True)
     os.makedirs(config.TAGS_OUTPUT_DIR, exist_ok=True)
-    os.makedirs(os.path.join(config.BUILD_DIR, 'assets'), exist_ok=True) # 确保 assets 目录存在
-    
-    # NEW: 优化 4 - 资产指纹/哈希
-    print("Calculating asset hash...")
-    style_css_path = os.path.join('assets', 'style.css')
-    asset_hash = hash_file(style_css_path)
-    # 将哈希值存入配置，供 generator.py 使用
-    config.ASSET_HASH = asset_hash
-    # 创建带哈希的文件名
-    hashed_css_filename = f"style.{asset_hash}.css"
-    hashed_css_path = os.path.join(config.BUILD_DIR, 'assets', hashed_css_filename)
-    
-    # 复制静态文件，包括带哈希的 CSS
-    print("Copying static assets...")
-    # 1. 复制 style.css 到带哈希的新文件
-    try:
-        shutil.copy2(style_css_path, hashed_css_path)
-        # 将带哈希的 CSS 文件名存入配置，供 generator 引用
-        config.CSS_FILENAME = hashed_css_filename
-        print(f"SUCCESS: Copied {style_css_path} to {hashed_css_path}")
-    except FileNotFoundError:
-        print(f"ERROR: Cannot find required file {style_css_path}")
-        config.CSS_FILENAME = 'style.css' # 保底
-    
-    # 2. 复制其他静态/媒体文件
-    for src_dir, dest_dir in [('static', config.STATIC_OUTPUT_DIR), ('media', config.MEDIA_OUTPUT_DIR)]:
-        if os.path.exists(src_dir):
-            try:
-                # 目标目录已经存在，所以我们只复制内容
-                shutil.copytree(src_dir, dest_dir, dirs_exist_ok=True)
-                print(f"Copied {src_dir} content to {dest_dir}.")
-            except Exception as e:
-                print(f"Error copying {src_dir}: {e}")
 
-    print("--- 2. 解析 Markdown 文件 ---")
+    # 1b. 处理静态文件 (包括 CSS 和其他静态资源)
+    # 确保 assets 目录存在
+    assets_dir = os.path.join(config.BUILD_DIR, 'assets')
+    os.makedirs(assets_dir, exist_ok=True)
+    
+    # 复制静态文件（如果存在）
+    if os.path.exists(config.STATIC_DIR):
+        print(f"Copying static files from {config.STATIC_DIR} to {config.STATIC_OUTPUT_DIR}")
+        # 复制整个静态目录到 BUILD_DIR
+        shutil.copytree(config.STATIC_DIR, config.STATIC_OUTPUT_DIR, dirs_exist_ok=True)
+    
+    # NEW: 处理 style.css 的哈希和复制
+    css_source_path = 'assets/style.css'
+    if os.path.exists(css_source_path):
+        # 1. 计算哈希
+        css_hash = hash_file(css_source_path)
+        # 2. 生成带哈希的新文件名
+        new_css_filename = f"style.{css_hash}.css"
+        # 3. 更新 config.CSS_FILENAME 变量（关键步骤）
+        config.CSS_FILENAME = new_css_filename
+        # 4. 复制并重命名 CSS 文件到 _site/assets/
+        css_dest_path = os.path.join(assets_dir, new_css_filename)
+        shutil.copy2(css_source_path, css_dest_path)
+        print(f"SUCCESS: Copied and hashed CSS to {new_css_filename}")
+    else:
+        # 如果 style.css 不存在，使用默认文件名
+        config.CSS_FILENAME = 'style.css'
+        print("Warning: assets/style.css not found. Using default CSS filename.")
 
+    # 2. 查找 Markdown 文件
+    print("--- 2. 查找和解析 Markdown 文件 ---")
+    
+    # 查找所有 .md 文件，优先从 config.MD_DIR 查找，如果不存在，则从根目录查找
     md_files = glob.glob(os.path.join(config.MD_DIR, '*.md'))
-    parsed_posts: List[Dict[str, Any]] = []
-    about_post: Dict[str, Any] = {}
-    total_parsed = 0
-    skipped_posts = 0
-
-    for md_file in md_files:
-        post_slug = os.path.splitext(os.path.basename(md_file))[0]
-        output_path = os.path.join(config.POSTS_OUTPUT_DIR, f'{post_slug}.html')
-        
-        # NEW: 优化 3 - 增量构建逻辑
-        is_updated = True
-        try:
-            md_mtime = os.path.getmtime(md_file)
-            if os.path.exists(output_path):
-                html_mtime = os.path.getmtime(output_path)
-                if md_mtime <= html_mtime:
-                    # 如果 Markdown 文件修改时间不晚于 HTML 文件，则跳过解析
-                    is_updated = False
-                    skipped_posts += 1
-        except Exception as e:
-             # 如果获取时间戳失败，为了安全起见，重新解析
-             print(f"Warning: Failed to get mtime for {md_file}. Rebuilding. Error: {e}")
-             is_updated = True
-             
-        if not is_updated:
-            continue # 跳过未更新的文件
-
-        # 仅解析需要更新的文件
-        metadata, content_markdown, content_html, toc_html = get_metadata_and_content(md_file)
-        
-        if not metadata:
-            print(f"Skipping {md_file} due to empty/invalid metadata.")
-            continue
-            
-        total_parsed += 1
-
-        # 检查是否为 about 页面
-        if post_slug.lower() == 'about':
-            about_post = {
-                'slug': post_slug,
-                'title': metadata.get('title', '关于我'),
-                'content_html': content_html,
-                'toc_html': toc_html,
-                # about 页面也需要日期用于 sitemap 等
-                'date': metadata.get('date', None) 
-            }
-            continue
-
-        # 处理常规文章
-        post_data = {
-            'slug': post_slug,
-            'title': metadata.get('title', '无标题文章'),
-            'date': metadata.get('date', None),
-            'tags': metadata.get('tags', []),
-            'content_markdown': content_markdown,
-            'content_html': content_html,
-            'toc_html': toc_html
-        }
-        
-        parsed_posts.append(post_data)
-
-
-    print(f"Parsed {total_parsed} updated post(s). Skipped {skipped_posts} unchanged post(s).")
+    if not md_files:
+        md_files = glob.glob('*.md')
     
-    if not parsed_posts and not about_post:
-        print("No content to build. Exiting.")
+    if not md_files:
+        print("Error: No Markdown files found in 'markdown/' or root directory. Aborting build.")
         return
 
-    print("--- 3. 排序和数据整合 ---")
+    parsed_posts: List[Dict[str, Any]] = []
+    tag_map = defaultdict(list) # 存储 {tag: [post1, post2, ...]}
     
-    # 3a. 按日期降序排序所有文章
+    for md_file in md_files:
+        # 2a. 解析文件内容
+        metadata, content_markdown, content_html, toc_html = get_metadata_and_content(md_file)
+        
+        # 检查是否成功解析到元数据 (如缺少 date/title/slug 则跳过)
+        if not all(k in metadata for k in ['date', 'title', 'slug']):
+            print(f"Warning: Skipping file '{md_file}' due to missing critical metadata (date, title, or slug).")
+            continue
+            
+        # 2b. 构造文章对象
+        post: Dict[str, Any] = {
+            # 将所有元数据放入 post 对象
+            **metadata, 
+            'content_markdown': content_markdown,
+            'content_html': content_html,
+            'toc_html': toc_html,
+        }
+        
+        # 2c. 构造文章链接
+        # 链接格式: posts/{slug}.html
+        post_link = os.path.join(config.POSTS_DIR, f"{post['slug']}.html")
+        post['link'] = post_link
+        
+        # 2d. 汇总标签
+        for tag_data in post.get('tags', []):
+            tag_map[tag_data['name']].append(post)
+            
+        parsed_posts.append(post)
+
+    # 3. 排序文章 (按日期降序)
+    print("--- 3. 排序和最终处理文章 ---")
     final_parsed_posts = sorted(
         parsed_posts, 
         key=lambda p: p['date'], 
         reverse=True
     )
     
-    # 3b. 构建标签映射
-    tag_map = defaultdict(list)
-    for post in final_parsed_posts:
-        for tag_data in post.get('tags', []):
-            tag_map[tag_data['name']].append(post)
+    print(f"Successfully parsed {len(final_parsed_posts)} articles.")
 
-    print("--- 4. 生成通用页面和列表页 ---")
-
-    # 4a. 生成所有文章详情页
+    # 4. 生成 HTML 页面
+    print("--- 4. 生成 HTML 页面 ---")
+    
+    # 4a. 生成所有单篇文章页
     for post in final_parsed_posts:
         generator.generate_post_html(post)
-        
-    print(f"Generated {len(final_parsed_posts)} post files.")
+    print(f"Generated {len(final_parsed_posts)} post pages.")
     
-    # 4b. 生成关于页面
-    if about_post:
-        generator.generate_about_html(about_post)
-        print("Generated about page.")
-    
-    # 4c. 生成首页
+    # 4b. 生成首页
     generator.generate_index_html(final_parsed_posts)
     
-    # 4d. 生成归档页
+    # 4c. 生成归档页
     generator.generate_archive_html(final_parsed_posts)
     
-    # 4e. 生成标签页
+    # 4d. 生成标签页
     
-    # 4e-1. 生成所有标签的列表页 (tags.html)
+    # 4d-1. 生成所有标签的列表页 (tags.html)
     generator.generate_tags_list_html(tag_map)
 
-    # 4e-2. 为每个标签生成单独页面
+    # 4d-2. 为每个标签生成单独页面
     for tag, posts in tag_map.items():
         # 按日期排序该标签下的文章
         sorted_tag_posts = sorted(
@@ -234,8 +192,9 @@ def build_site():
         print(f"SUCCESS: Generated {config.RSS_FILE}.")
     except Exception as e:
         print(f"Error generating rss.xml: {type(e).__name__}: {e}")
+        
+    print("\\n--- 网站构建完成！ ---")
 
-    print("--- 构建完成 ---")
-    
+
 if __name__ == '__main__':
     build_site()
