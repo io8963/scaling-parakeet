@@ -7,8 +7,15 @@
     <meta name="description" content="{{blog_description}}">
     <meta name="author" content="{{blog_author}}">
     <link rel="canonical" href="{{canonical_url}}">
-    <link rel="stylesheet" href="{{site_root}}/assets/style.css">
+    <link rel="stylesheet" href="{{site_root}}/assets/{{css_filename}}"> 
     <link rel="alternate" type="application/rss+xml" title="{{blog_title}} RSS Feed" href="{{site_root}}/rss.xml">
+
+    {%- if json_ld_schema -%}
+    <script type="application/ld+json">
+    {{ json_ld_schema | safe }}
+    </script>
+    {%- endif -%}
+
 </head>
 <body class="page-{{page_id}}">
     <header>
