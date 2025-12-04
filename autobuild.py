@@ -98,8 +98,9 @@ def build_site():
     # 2. 查找 Markdown 文件
     print("--- 2. 查找和解析 Markdown 文件 ---")
     
-    # 查找所有 .md 文件，优先从 config.MD_DIR 查找，如果不存在，则从根目录查找
-    md_files = glob.glob(os.path.join(config.MD_DIR, '*.md'))
+    # 查找所有 .md 文件，优先从 config.MARKDOWN_DIR 查找，如果不存在，则从根目录查找
+    # FIX: 将 config.MD_DIR 更改为 config.MARKDOWN_DIR
+    md_files = glob.glob(os.path.join(config.MARKDOWN_DIR, '*.md'))
     if not md_files:
         md_files = glob.glob('*.md')
     
@@ -130,7 +131,7 @@ def build_site():
         
         # 2c. 构造文章链接
         # 链接格式: posts/{slug}.html
-        post_link = os.path.join(config.POSTS_DIR, f"{post['slug']}.html")
+        post_link = os.path.join(config.POSTS_DIR_NAME, f"{post['slug']}.html")
         post['link'] = post_link
         
         # 2d. 汇总标签
