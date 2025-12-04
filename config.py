@@ -16,8 +16,36 @@ BLOG_AUTHOR = "Data Li"
 
 # NEW: 存储 CSS 文件的哈希名，在 autobuild.py 中设置
 CSS_FILENAME = 'style.css' 
+
 # NEW: 存储代码高亮 CSS 类的名称（Pygments 默认类名）
 CODE_HIGHLIGHT_CLASS = 'highlight'
+
+# --- Markdown 配置 ---
+# 默认的 Markdown 扩展列表
+MARKDOWN_EXTENSIONS = [
+    'extra', 
+    'fenced_code', 
+    'codehilite', 
+    'toc', 
+    'admonition', 
+]
+# ！！！关键修复：Markdown 扩展配置 ！！！
+MARKDOWN_EXTENSION_CONFIGS = {
+    'markdown.extensions.toc': {
+        'baselevel': 2, # TOC 从 h2 开始生成
+        'anchorlink': True, # 启用锚点链接
+        # slugify 函数将在 parser.py 中动态添加，因为它依赖于 parser.py 内部函数
+    },
+    'markdown.extensions.codehilite': {
+        # 允许代码块复制功能
+        'linenums': False,
+        'css_class': CODE_HIGHLIGHT_CLASS, # 使用 config 中的类名
+        'use_pygments': True, # 确保使用 Pygments
+        'noclasses': True, # 强制内联样式，如果需要外置样式，设置为 False
+    }
+}
+# --- Markdown 配置结束 ---
+
 
 # --- 列表配置 ---
 # 首页显示的文章数量
@@ -30,17 +58,13 @@ MD_DIR = 'markdown'         # 源文件目录
 # 内部目录名
 POSTS_DIR = 'posts'
 TAGS_DIR = 'tags'
-# NEW: 添加 MEDIA_DIR 配置，用于未来可能包含图片等媒体文件的目录
 MEDIA_DIR = 'media' 
-
-# NEW: 静态文件源目录 (例如：放置除 CSS 外的图片、JS、字体等)
-STATIC_DIR = 'static' # <--- 新增
+STATIC_DIR = 'static' # 静态文件源目录
 
 # 输出文件/目录路径 (使用 os.path.join 组合)
 POSTS_OUTPUT_DIR = os.path.join(BUILD_DIR, POSTS_DIR)
 TAGS_OUTPUT_DIR = os.path.join(BUILD_DIR, TAGS_DIR)
-# NEW: 静态文件输出目录
-STATIC_OUTPUT_DIR = os.path.join(BUILD_DIR, STATIC_DIR) # <--- 新增
+STATIC_OUTPUT_DIR = os.path.join(BUILD_DIR, STATIC_DIR)
 
 # 特殊文件
 INDEX_FILE = 'index.html'
