@@ -26,6 +26,15 @@
     --color-blockquote-bg: #f0f0f0; /* 引用背景 */
     --color-blockquote-border: #ccc;
     --color-code-bg: #f4f4f4; /* 代码背景 */
+
+    /* NEW: 代码高亮颜色变量 (浅色模式默认) */
+    --code-color-bg: #f6f8fa;
+    --code-color-text: #24292e;
+    --code-color-keyword: #d73a49; /* 关键词 */
+    --code-color-string: #032f62; /* 字符串 */
+    --code-color-comment: #6a737d; /* 注释 */
+    --code-color-operator: #d73a49; /* 运算符 */
+    --code-color-name: #22863a; /* 函数/类名 */
 }
 
 /* 深色模式主题变量覆盖 */
@@ -41,6 +50,15 @@
         --color-blockquote-border: #555;
         --color-code-bg: #222;
         --color-text-code: #ddd; /* 深色代码文本 */
+
+        /* NEW: 代码高亮颜色变量 (深色模式覆盖) */
+        --code-color-bg: #272822; /* Monokai-like dark background */
+        --code-color-text: #f8f8f2;
+        --code-color-keyword: #f92672;
+        --code-color-string: #e6db74;
+        --code-color-comment: #75715e;
+        --code-color-operator: #f92672;
+        --code-color-name: #a6e22e;
     }
 }
 
@@ -336,7 +354,8 @@ blockquote {
 
 /* 代码块 */
 pre {
-    background-color: var(--color-code-bg);
+    /* 移除通用代码背景，由高亮类接管 */
+    /* background-color: var(--color-code-bg); */
     padding: 15px;
     border-radius: 6px;
     overflow-x: auto;
@@ -345,12 +364,13 @@ pre {
     border: 1px solid var(--color-border);
 }
 pre code {
-    color: var(--color-text);
+    /* color: var(--color-text); */
+    /* 移除通用代码文本色，由高亮类接管 */
 }
 @media (prefers-color-scheme: dark) {
-    pre code {
+    /* pre code {
         color: var(--color-text-dark);
-    }
+    } */
 }
 
 /* 图片响应式 */
@@ -447,12 +467,11 @@ tr:nth-child(even) {
 
 .post-list {
     list-style: none;
-    /* MODIFIED: 移除卡片自带的左右内边距，让卡片内部的列表项来控制内边距 */
     padding: 0; 
-    margin: 0; /* 确保列表没有额外的默认外边距 */
+    margin: 0; 
 }
 .post-item {
-    padding: 15px 20px; /* MODIFIED: 增加左右内边距，使其与 .card 的 padding: 20px 对齐 */
+    padding: 15px 20px; 
     border-bottom: 1px dashed var(--color-border);
 }
 .post-item:last-child {
@@ -542,4 +561,56 @@ tr:nth-child(even) {
         background-color: rgba(128, 203, 196, 0.1); /* 使用 link-dark 的透明版本 */
         color: var(--color-link-dark);
     }
+}
+
+/* G. NEW: 代码高亮主题 (Pygments / Github 风格) */
+
+/* 浅色高亮主题 */
+.highlight {
+    background: var(--code-color-bg);
+    color: var(--code-color-text);
+    padding: 15px; /* 确保与 pre 的 padding 一致，或覆盖 pre 的样式 */
+    display: block;
+    line-height: 1.45;
+    overflow-x: auto;
+}
+
+.highlight .k { color: var(--code-color-keyword); } /* Keyword */
+.highlight .s { color: var(--code-color-string); } /* String */
+.highlight .c { color: var(--code-color-comment); } /* Comment */
+.highlight .o { color: var(--code-color-operator); } /* Operator */
+.highlight .nf { color: var(--code-color-name); } /* Name.Function */
+.highlight .nc { color: var(--code-color-name); } /* Name.Class */
+.highlight .nt { color: #22863a; } /* Name.Tag (e.g., HTML tags) */
+.highlight .err { color: #b31d28; } /* Error */
+.highlight .vg { color: #e36209; } /* Name.Variable.Global */
+.highlight .m { color: #005cc5; } /* Literal.Number */
+.highlight .p { color: #24292e; } /* Punctuation */
+
+/* 深色高亮主题覆盖 */
+@media (prefers-color-scheme: dark) {
+    .highlight {
+        background: var(--code-color-bg);
+        color: var(--code-color-text);
+    }
+    /* 使用深色模式的 Monokai 风格颜色变量 */
+    .highlight .k { color: var(--code-color-keyword); }
+    .highlight .s { color: var(--code-color-string); }
+    .highlight .c { color: var(--code-color-comment); }
+    .highlight .o { color: var(--code-color-operator); }
+    .highlight .nf { color: var(--code-color-name); }
+    .highlight .nc { color: var(--code-color-name); }
+    .highlight .nt { color: #7f8c8d; } 
+    .highlight .err { color: #ff0000; }
+    .highlight .vg { color: #ae81ff; }
+    .highlight .m { color: #ae81ff; } 
+    .highlight .p { color: var(--code-color-text); }
+}
+
+/* 行号和额外的代码块样式 */
+.highlight pre { 
+    /* 移除 pre 的边框和背景，由 .highlight 容器接管 */
+    border: none;
+    margin: 0;
+    padding: 0;
 }
