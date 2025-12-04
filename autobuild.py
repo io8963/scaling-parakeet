@@ -155,7 +155,8 @@ def build_site():
     
     # 4a. 生成所有单篇文章页
     for post in final_parsed_posts:
-        generator.generate_post_html(post)
+        # 修正: 将 generate_post_html 更改为 generator.generate_post_page
+        generator.generate_post_page(post)
     print(f"Generated {len(final_parsed_posts)} post pages.")
     
     # 4b. 生成首页
@@ -182,7 +183,7 @@ def build_site():
     print(f"Generated {len(tag_map)} tag pages.")
 
 
-    print("--- 5. 生成 XML 文件 ---")
+    print("--- 5. 生成 XML 文件 ---\n")
     
     # 5a. robots.txt
     generator.generate_robots_txt()
