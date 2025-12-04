@@ -102,6 +102,9 @@ def generate_about_page(post: Dict[str, Any]):
         # 组装 JSON-LD Schema (可选，这里简化为 None)
         json_ld_schema = None 
         
+        # FIXED: 为 content_html 添加 h1 标题，确保一致性
+        content_with_title = f"<h1>{post.get('title', '关于我')}</h1>\n{post['content_html']}"
+        
         html_content = template.render(
             page_id='about',
             page_title=post.get('title', '关于我'), # 默认标题
@@ -117,7 +120,7 @@ def generate_about_page(post: Dict[str, Any]):
             json_ld_schema=json_ld_schema,
 
             # 页面特定变量
-            content_html=post['content_html'],
+            content_html=content_with_title, # 使用带标题的内容
             toc_html=post.get('toc_html'),
             # about 页面不显示文章列表
             posts=[], 
@@ -128,7 +131,7 @@ def generate_about_page(post: Dict[str, Any]):
 
         output_path = os.path.join(config.BUILD_DIR, config.ABOUT_OUTPUT_FILE)
         
-        # 确保目录存在 (虽然 about.html 在根目录，但最好保留)
+        # 确保目录存在
         output_dir = os.path.dirname(output_path)
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -181,6 +184,7 @@ def generate_post_html(post: Dict[str, Any]):
             # 页面特定变量
             content_html=post['content_html'],
             toc_html=post.get('toc_html'),
+            # 模板现在从 post 字典中获取日期和标签信息
             post=post,
             lang='zh-CN',
         )
@@ -226,10 +230,10 @@ def generate_index_html(all_posts: List[Dict[str, Any]]):
             footer_time_info=f"最后构建于 {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}.",
             json_ld_schema=None, # 首页不使用 Article Schema
             
-            # 列表特定变量
+            # 列表特定变量 (使用 posts 变量渲染富列表)
             posts=posts_for_index,
             max_posts_on_index=config.MAX_POSTS_ON_INDEX,
-            content_html="", # 首页通过 posts 渲染列表
+            content_html="", 
             lang='zh-CN',
         )
 
@@ -243,7 +247,7 @@ def generate_index_html(all_posts: List[Dict[str, Any]]):
         print(f"Error generating index.html: {type(e).__name__}: {e}")
 
 
-# MODIFIED: generate_archive_html (归档页只显示可见文章)
+# MODIFIED: generate_archive_html (归档页只显示可见文章，并手动构建列表到 content_html)
 def generate_archive_html(all_posts: List[Dict[str, Any]]):
     """生成归档页 archive.html (显示所有可见文章)"""
     try:
@@ -261,10 +265,10 @@ def generate_archive_html(all_posts: List[Dict[str, Any]]):
         # 按年份降序排序
         sorted_archive = sorted(archive_map.items(), key=lambda x: x[0], reverse=True)
             
-        # 渲染归档页内容 (手动构建 content_html)
+        # 渲染归档页内容 (手动构建 content_html，包含 h1 标题)
         content_html = "<h1>文章归档</h1>\n"
         for year, posts in sorted_archive:
-            content_html += f"<h2>{year} ({len(posts)} 篇)</h2>\n<ul>\n"
+            content_html += f"<h2>{year} ({len(posts)} 篇)</h2>\n<ul class=\"archive-list\">\n"
             # 确保帖子在该年份内按日期降序排列
             sorted_posts = sorted(posts, key=lambda p: p['date'], reverse=True)
             for post in sorted_posts:
@@ -287,8 +291,8 @@ def generate_archive_html(all_posts: List[Dict[str, Any]]):
             footer_time_info=f"最后构建于 {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}.",
             json_ld_schema=None,
             
-            # 列表特定变量
-            content_html=content_html, # 归档页通过 content_html 渲染列表
+            # 列表特定变量 (通过 content_html 渲染简洁列表)
+            content_html=content_html,
             posts=[], 
             max_posts_on_index=0,
             lang='zh-CN',
@@ -304,7 +308,7 @@ def generate_archive_html(all_posts: List[Dict[str, Any]]):
         print(f"Error generating archive.html: {type(e).__name__}: {e}")
 
 
-# MODIFIED: generate_tags_list_html (标签列表页只统计可见文章)
+# MODIFIED: generate_tags_list_html (标签列表页只统计可见文章，并手动构建列表到 content_html)
 def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
     """生成所有标签的列表页 tags.html"""
     try:
@@ -318,16 +322,17 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
 
         template = env.get_template('base.html')
         
-        # 生成标签列表的 HTML (手动构建 content_html)
+        # 生成标签列表的 HTML (手动构建 content_html，包含 h1 标题)
         content_html = "<h1>所有标签</h1>\n"
-        content_html += "<ul>\n"
+        content_html += "<ul class=\"tags-cloud-list\">\n"
         # 按文章数量降序排列标签
         sorted_tags = sorted(filtered_tag_map.items(), key=lambda item: len(item[1]), reverse=True)
         
         for tag, posts in sorted_tags:
             tag_slug = tag_to_slug(tag)
             tag_link = make_internal_url(os.path.join(config.TAGS_DIR, f'{tag_slug}.html'))
-            content_html += f"  <li><a href=\"{tag_link}\">{tag}</a> ({len(posts)} 篇)</li>\n"
+            # 标签列表项，可以根据文章数量应用不同的CSS类（这里简化为统一类名）
+            content_html += f"  <li><a href=\"{tag_link}\" class=\"tag-cloud-item\">{tag}</a> ({len(posts)} 篇)</li>\n"
         content_html += "</ul>\n"
         
         html_content = template.render(
@@ -344,8 +349,8 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
             footer_time_info=f"最后构建于 {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}.",
             json_ld_schema=None,
             
-            # 列表特定变量
-            content_html=content_html, # 标签列表页通过 content_html 渲染列表
+            # 列表特定变量 (通过 content_html 渲染简洁列表)
+            content_html=content_html,
             posts=[], 
             max_posts_on_index=0,
             lang='zh-CN',
@@ -378,8 +383,7 @@ def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
         output_filename = f'{tag_slug}.html'
         
         # 2. 渲染模板
-        # 关键修复：将列表传递给 posts 变量，并假设 base.html 会像首页一样渲染它。
-        # 这样可以利用 base.html 中复杂的列表项渲染逻辑。
+        # 关键修复：将列表传递给 posts 变量，让 base.html 使用统一的文章卡片列表样式渲染。
         html_content = template.render(
             page_id='tag', # <--- 确保 page_id 是 'tag'
             page_title=f"标签: {tag}",
