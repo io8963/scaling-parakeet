@@ -2,57 +2,133 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
 <channel>
     <title>Data Li 的个人网站</title>
-    <link>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/</link>
+    <link>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev</link>
     <atom:link href="https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/rss.xml" rel="self" type="application/rss+xml" />
     <description>专注于数据科学、极简主义与纯粹的 Web 技术。</description>
-    <language>zhhans</language>
-    <lastBuildDate>Thu, 04 Dec 2025 09:11:28 +0000</lastBuildDate>
-    <generator>Custom Python SSG</generator>
-    
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 04 Dec 2025 09:35:53 +0000</lastBuildDate>
+    <managingEditor>Data Li</managingEditor>
+    <webMaster>Data Li</webMaster>
     <item>
-      <title>网站 UI/UX 和维护问题清单</title>
-      <link>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/03.html</link>
-      <pubDate>Thu, 04 Dec 2025 00:00:00 +0000</pubDate>
-      <guid isPermaLink="true">https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/03.html</guid>
-      <description><![CDATA[<p>为了持续提升用户体验并解决已发现的样式和维护问题，特列出以下九项待处理事项：</p>
-<h2 id="uiux">🛠️ UI/UX 待解决问题</h2>
-<ol>
-<li><strong>移动端标题栏显示异常：</strong> 在部分移动设备上，顶部标题栏（Header）存在显示 Bug，影响初次加载体验。</li>
-<li><strong>深色模式样式适配不足：</strong> 标题栏及导航栏在深色模式（Dark Mode）下的背景和文字颜色适配不完善，与页面主体风格不一致。</li>
-<li><strong>移动导航栏过于拥挤：</strong> 在窄屏设备上，顶部导航链接元素间距不足，显示效果拥挤。</li>
-<li><strong>页脚内容优化：</strong> 需要进一步优化底部页脚（Footer）的显示内容和排版，使其更简洁或更具信息量。</li>
-<li><strong>Emoji 字符显示异常：</strong> 页面上的 Emoji 表情符号无法正常显示，需要检查字体或字符集配置。</li>
-<li><strong>代码块主题待更换：</strong> 浅色模式下，代码显示区域（Code Block）的颜色方案（高亮主题）不够美观，计划更换为更舒适的主题。</li>
-<li><strong>取消首字下沉效果：</strong> 不希望文章段落的第一个字出现放大的首字下沉（Drop Cap）效果，需从 CSS 中移除。</li>
-<li><strong>顶部导航栏圆角适配：</strong> 顶部导航栏的直角与页面中其他卡片（如文章内容区）的圆角设计不统一，应进行圆角处理以适配整体设计风格。</li>
-</ol>
-<h2 id="_1">⚙️ 维护及数据问题</h2>
-<ol>
-<li><strong>部署时间更新异常：</strong> 文章页面底部的部署时间（Build Time）有时不能根据 Markdown 文件的修改时间（<code>mtime</code>）自动更新，需要检查 Python 生成器逻辑或 GitHub Actions 提交机制。</li>
-</ol>
-<hr />
-<p><strong>下一步计划：</strong> 优先解决移动端、样式适配和圆角不一致问题（1, 2, 3, 8）。</p>]]></description>
+      <title>About</title>
+      <link>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/about.html</link>
+      <pubDate>Thu, 04 Dec 2025 09:35:48 +0000</pubDate>
+      <guid isPermaLink="true">https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/about.html</guid>
+      <description><![CDATA[<h2 id="data-li">👋 大家好，我是 Data Li<a class="headerlink" href="#data-li" title="Permanent link">&para;</a></h2>
+<p>我是一名专注于 <strong>数据科学</strong> 和 <strong>纯粹 Web 技术</strong> 的开发者。</p>
+<h3 id="_1">💡 网站理念<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<p>这个网站是我实践<strong>极简主义</strong>和<strong>高性能</strong> Web 技术的试验场。</p>
+<ul>
+<li><strong>轻量级：</strong> 不依赖任何现代前端框架（如 React/Vue）。所有页面由 Python 脚本（<code>autobuild.py</code>）生成纯静态 HTML。</li>
+<li><strong>优雅：</strong> 追求内容的可读性，通过 CSS 实现了简洁美观的暗色模式和卡片化设计。</li>
+<li><strong>专注：</strong> 博客内容主要围绕数据分析、Python 编程、Web 开发心得，以及对极简生活方式的思考。</li>
+</ul>
+<h3 id="_2">🛠️ 我的技术栈<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>数据科学:</strong> Python, Pandas, NumPy, Scikit-learn, Matplotlib, SQL</li>
+<li><strong>Web 技术:</strong> HTML5, CSS3, Vanilla JavaScript, <strong>纯静态生成</strong></li>
+<li><strong>自动化:</strong> Python Scripting, GitHub Actions</li>
+</ul>
+<h3 id="_3">🤝 联系我<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>欢迎通过以下方式与我交流：</p>
+<ul>
+<li><strong>GitHub:</strong> <a href="https://github.com/io8963">io8963</a></li>
+<li><strong>Email:</strong> [您的邮箱地址]</li>
+</ul>
+<hr />]]></description>
     </item>
-
     <item>
-      <title>Markdown 样式测试文档 - All Features</title>
+      <title>01</title>
+      <link>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/01.html</link>
+      <pubDate>Thu, 04 Dec 2025 09:35:48 +0000</pubDate>
+      <guid isPermaLink="true">https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/01.html</guid>
+      <description><![CDATA[<h3 id="_1">🚀 大家好！这是我的第一篇文章。<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<p>欢迎来到 <strong>Data Li 的个人网站</strong>！</p>
+<p>这是我的个人博客的起点。与许多依赖复杂前端框架的网站不同，这个博客完全由 <strong>Python 驱动的纯静态脚本</strong> 生成。它追求极致的性能和简洁性，所有的样式都基于我们之前优化过的极简 CSS。</p>
+<p>这个网站的诞生源于对 <strong>极简主义</strong> 和 <strong>Web 性能</strong> 的追求，让内容本身成为最大的主角。</p>
+<h3 id="_2">💡 为什么选择这种“极简”建站方式？<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<p>在前端技术日益复杂的今天，我希望回归本质：让内容成为核心。这种建站方式有几个核心优势：</p>
+<ol>
+<li><strong>极快的速度：</strong> 纯 HTML 文件，无需客户端渲染，加载速度几乎瞬间完成。</li>
+<li><strong>极低的维护成本：</strong> 只需要 Python 和 Markdown，没有复杂的依赖。</li>
+<li><strong>优雅的兼容性：</strong> 实现了自动暗色模式和优秀的响应式设计。</li>
+</ol>
+<h4 id="python">Python 静态生成核心 (代码高亮展示)<a class="headerlink" href="#python" title="Permanent link">&para;</a></h4>
+<p>我们使用 <code>markdown</code> 库，并配置了多个扩展来确保您的技术文章能完美展示，特别是代码高亮功能（由 <code>codehilite</code> 驱动）：</p>
+<p>```python</p>
+<h2 id="parserpy-markdown">parser.py 中的 Markdown 配置片段<a class="headerlink" href="#parserpy-markdown" title="Permanent link">&para;</a></h2>
+<p>md = markdown.Markdown(extensions=[
+    'fenced_code',      # 支持```代码块
+    'codehilite',       # 代码高亮
+    'tables',           # 表格支持
+    'meta',             # 提取元数据
+    'toc'               # 目录生成
+])</p>
+<h2 id="html">所有的 HTML 文件都由此脚本一次性构建而成！<a class="headerlink" href="#html" title="Permanent link">&para;</a></h2>
+<h3 id="_3">📚 博客未来的主要内容方向<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h3>
+<p>未来，我计划围绕以下几个核心主题分享我的学习和实践心得：</p>
+<ul>
+<li><strong>数据科学 (Data Science):</strong> Python 的 Pandas/NumPy 实践、数据可视化和建模基础。</li>
+<li><strong>Web 开发心得:</strong> HTML/CSS 最佳实践、Web 性能优化、纯 Vanilla JavaScript 的用法。</li>
+<li><strong>极简主义与自动化:</strong> 如何利用 Python 脚本和工具提高效率，减少对大型工具的依赖。</li>
+<li><strong>个人思考:</strong> 关于学习、技术趋势和极简生活方式的随笔。</li>
+</ul>
+<h3 id="_4">📝 可读性特性展示 (表格)<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<p>这个博客支持完整的 Markdown 特性，包括表格。以下是本站特性的一览：</p>
+<table>
+<thead>
+<tr>
+<th style="text-align: left;">特性</th>
+<th style="text-align: center;">状态</th>
+<th style="text-align: left;">优势</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align: left;"><strong>极速加载</strong></td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: left;">纯静态文件，性能卓越</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>代码高亮</strong></td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: left;">提高技术文章可读性</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>粘性导航</strong></td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: left;">提升用户体验</td>
+</tr>
+<tr>
+<td style="text-align: left;"><strong>暗色模式</strong></td>
+<td style="text-align: center;">✅</td>
+<td style="text-align: left;">自动适配用户系统偏好</td>
+</tr>
+</tbody>
+</table>
+<h3 id="_5">结语<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h3>
+<p>感谢您的访问！如果您对 <strong>Python 静态生成</strong> 或 <strong>极简设计</strong> 有任何想法，欢迎通过 <a href="https://github.com/io8963">GitHub</a> 与我交流。</p>
+<p>希望您能在这个简洁、优雅的阅读空间中有所收获。期待在下一篇文章与您见面！</p>]]></description>
+    </item>
+    <item>
+      <title>02</title>
       <link>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/02.html</link>
-      <pubDate>Wed, 03 Dec 2025 00:00:00 +0000</pubDate>
+      <pubDate>Thu, 04 Dec 2025 09:35:48 +0000</pubDate>
       <guid isPermaLink="true">https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/02.html</guid>
-      <description><![CDATA[<h1 id="h1-">H1 - 顶级标题 (文章标题)</h1>
-<h2 id="h2-">H2 - 布局与结构测试</h2>
+      <description><![CDATA[<h2 id="h1-">H1 - 顶级标题 (文章标题)<a class="headerlink" href="#h1-" title="Permanent link">&para;</a></h2>
+<h3 id="h2-">H2 - 布局与结构测试<a class="headerlink" href="#h2-" title="Permanent link">&para;</a></h3>
 <p>这是文章的第一个段落。Markdown 应该能够清晰地展示各种文本样式。</p>
 <p>我们来测试一下：
 <strong>加粗文本 (Strong)</strong>，<em>斜体文本 (Emphasis)</em>，~~删除线文本~~。
 <strong><em>加粗斜体</em></strong>。
 段落中的 <code>行内代码</code> 应该有独立的背景色和字体样式。</p>
-<h3 id="h3-">H3 - 列表与链接</h3>
-<h4 id="h4-">H4 - 标题层级展示</h4>
-<h5 id="h5-">H5 - 小标题</h5>
-<h6 id="h6-">H6 - 最小标题</h6>
+<h4 id="h3-">H3 - 列表与链接<a class="headerlink" href="#h3-" title="Permanent link">&para;</a></h4>
+<h5 id="h4-">H4 - 标题层级展示<a class="headerlink" href="#h4-" title="Permanent link">&para;</a></h5>
+<h6 id="h5-">H5 - 小标题<a class="headerlink" href="#h5-" title="Permanent link">&para;</a></h6>
+<h6 id="h6-">H6 - 最小标题<a class="headerlink" href="#h6-" title="Permanent link">&para;</a></h6>
 <hr />
 <p>这是一条水平分隔线（Horizontal Rule），用于分隔内容区域。</p>
-<h3 id="lists">列表 (Lists)</h3>
+<h4 id="lists">列表 (Lists)<a class="headerlink" href="#lists" title="Permanent link">&para;</a></h4>
 <p><strong>无序列表：</strong></p>
 <ul>
 <li>列表项一<ul>
@@ -73,36 +149,36 @@
 </li>
 <li>第三步：运行脚本</li>
 </ol>
-<h3 id="_1">链接与图片</h3>
+<h4 id="_1">链接与图片<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h4>
 <p>这是一个 <a href="https://www.google.com">普通内联链接</a>。</p>
 <p>这是一个 <a href="https://github.com/io8963" target="_blank">外部链接，应带有“↗”标记</a>，检查它是否在新标签页打开。</p>
 <p>这是图片占位符（请确保 <code>media/placeholder-image.jpg</code> 文件存在）：
 <img alt="占位图描述：用于测试图片显示和圆角" src="media/placeholder-image.jpg" /></p>
-<h3 id="blockquotes">引用块 (Blockquotes)</h3>
+<h4 id="blockquotes">引用块 (Blockquotes)<a class="headerlink" href="#blockquotes" title="Permanent link">&para;</a></h4>
 <blockquote>
 <p>这是一个标准的引用块。
 它应有一个垂直的边线和不同的背景色，以突出强调。
 <strong>我们在这里测试强调文本</strong>，以及 <code>行内代码</code> 在引用块中的表现。</p>
 </blockquote>
-<h2 id="_2">📝 技术内容测试：代码与表格</h2>
-<h3 id="code-blocks">代码展示 (Code Blocks)</h3>
+<h3 id="_2">📝 技术内容测试：代码与表格<a class="headerlink" href="#_2" title="Permanent link">&para;</a></h3>
+<h4 id="code-blocks">代码展示 (Code Blocks)<a class="headerlink" href="#code-blocks" title="Permanent link">&para;</a></h4>
 <p><strong>Python 代码块 (Codehilite 高亮测试):</strong></p>
 <p>```python</p>
-<h1 id="python">这是一个 Python 代码块，用于测试代码高亮主题</h1>
+<h2 id="python">这是一个 Python 代码块，用于测试代码高亮主题<a class="headerlink" href="#python" title="Permanent link">&para;</a></h2>
 <p>import os
 from datetime import datetime</p>
 <p>def build_post(post_data: dict):
     """处理并生成单篇文章"""
     title = post_data.get('title', 'Untitled')
     date_str = post_data['date'].strftime('%Y-%m-%d')</p>
-<pre class="codehilite"><code># 打印调试信息
+<pre class="highlight"><code># 打印调试信息
 print(f&quot;Building: {title} ({date_str})&quot;)
 
 # 返回最终 HTML
 return f&quot;&lt;h1&gt;{title}&lt;/h1&gt;&quot;
 </code></pre>
 
-<h1 id="_3">运行主函数</h1>
+<h2 id="_3">运行主函数<a class="headerlink" href="#_3" title="Permanent link">&para;</a></h2>
 <p>if <strong>name</strong> == '<strong>main</strong>':
     # 这是一个长注释，用来测试代码块的横向滚动（如果代码很宽）
     print("Generation finished successfully.")</p>
@@ -122,7 +198,7 @@ return f&quot;&lt;h1&gt;{title}&lt;/h1&gt;&quot;
         font-size: 1.3em;
     }
 }</p>
-<h3 id="tables">表格 (Tables)</h3>
+<h4 id="tables">表格 (Tables)<a class="headerlink" href="#tables" title="Permanent link">&para;</a></h4>
 <p>这是一个标准的 Markdown 表格，应带有斑马线效果、边框和圆角。</p>
 <table>
 <thead>
@@ -166,88 +242,38 @@ return f&quot;&lt;h1&gt;{title}&lt;/h1&gt;&quot;
 </tr>
 </tbody>
 </table>
-<h2 id="_4">🧪 其他排版测试</h2>
-<h3 id="html">特殊字符和 HTML 实体</h3>
+<h3 id="_4">🧪 其他排版测试<a class="headerlink" href="#_4" title="Permanent link">&para;</a></h3>
+<h4 id="html">特殊字符和 HTML 实体<a class="headerlink" href="#html" title="Permanent link">&para;</a></h4>
 <p>版权符号 &copy;，注册商标 &reg;。
 测试中文标点符号：句号，逗号、引号“”，书名号《》。</p>
-<h3 id="_5">强调文本测试</h3>
+<h4 id="_5">强调文本测试<a class="headerlink" href="#_5" title="Permanent link">&para;</a></h4>
 <p>这是<strong>一段包含粗体</strong>的文字。
 这是<em>一段包含斜体</em>的文字。
 这是 <em>被强调的文本</em>，应该与普通文本有所区别，例如变色。</p>]]></description>
     </item>
-
     <item>
-      <title>🚀 欢迎来到 Data Li 的个人网站！</title>
-      <link>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/01.html</link>
-      <pubDate>Mon, 01 Dec 2025 00:00:00 +0000</pubDate>
-      <guid isPermaLink="true">https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/01.html</guid>
-      <description><![CDATA[<h2 id="_1">🚀 大家好！这是我的第一篇文章。</h2>
-<p>欢迎来到 <strong>Data Li 的个人网站</strong>！</p>
-<p>这是我的个人博客的起点。与许多依赖复杂前端框架的网站不同，这个博客完全由 <strong>Python 驱动的纯静态脚本</strong> 生成。它追求极致的性能和简洁性，所有的样式都基于我们之前优化过的极简 CSS。</p>
-<p>这个网站的诞生源于对 <strong>极简主义</strong> 和 <strong>Web 性能</strong> 的追求，让内容本身成为最大的主角。</p>
-<h2 id="_2">💡 为什么选择这种“极简”建站方式？</h2>
-<p>在前端技术日益复杂的今天，我希望回归本质：让内容成为核心。这种建站方式有几个核心优势：</p>
+      <title>03</title>
+      <link>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/03.html</link>
+      <pubDate>Thu, 04 Dec 2025 09:35:48 +0000</pubDate>
+      <guid isPermaLink="true">https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/posts/03.html</guid>
+      <description><![CDATA[<p>为了持续提升用户体验并解决已发现的样式和维护问题，特列出以下九项待处理事项：</p>
+<h3 id="uiux">🛠️ UI/UX 待解决问题<a class="headerlink" href="#uiux" title="Permanent link">&para;</a></h3>
 <ol>
-<li><strong>极快的速度：</strong> 纯 HTML 文件，无需客户端渲染，加载速度几乎瞬间完成。</li>
-<li><strong>极低的维护成本：</strong> 只需要 Python 和 Markdown，没有复杂的依赖。</li>
-<li><strong>优雅的兼容性：</strong> 实现了自动暗色模式和优秀的响应式设计。</li>
+<li><strong>移动端标题栏显示异常：</strong> 在部分移动设备上，顶部标题栏（Header）存在显示 Bug，影响初次加载体验。</li>
+<li><strong>深色模式样式适配不足：</strong> 标题栏及导航栏在深色模式（Dark Mode）下的背景和文字颜色适配不完善，与页面主体风格不一致。</li>
+<li><strong>移动导航栏过于拥挤：</strong> 在窄屏设备上，顶部导航链接元素间距不足，显示效果拥挤。</li>
+<li><strong>页脚内容优化：</strong> 需要进一步优化底部页脚（Footer）的显示内容和排版，使其更简洁或更具信息量。</li>
+<li><strong>Emoji 字符显示异常：</strong> 页面上的 Emoji 表情符号无法正常显示，需要检查字体或字符集配置。</li>
+<li><strong>代码块主题待更换：</strong> 浅色模式下，代码显示区域（Code Block）的颜色方案（高亮主题）不够美观，计划更换为更舒适的主题。</li>
+<li><strong>取消首字下沉效果：</strong> 不希望文章段落的第一个字出现放大的首字下沉（Drop Cap）效果，需从 CSS 中移除。</li>
+<li><strong>顶部导航栏圆角适配：</strong> 顶部导航栏的直角与页面中其他卡片（如文章内容区）的圆角设计不统一，应进行圆角处理以适配整体设计风格。</li>
 </ol>
-<h3 id="python">Python 静态生成核心 (代码高亮展示)</h3>
-<p>我们使用 <code>markdown</code> 库，并配置了多个扩展来确保您的技术文章能完美展示，特别是代码高亮功能（由 <code>codehilite</code> 驱动）：</p>
-<p>```python</p>
-<h1 id="parserpy-markdown">parser.py 中的 Markdown 配置片段</h1>
-<p>md = markdown.Markdown(extensions=[
-    'fenced_code',      # 支持```代码块
-    'codehilite',       # 代码高亮
-    'tables',           # 表格支持
-    'meta',             # 提取元数据
-    'toc'               # 目录生成
-])</p>
-<h1 id="html">所有的 HTML 文件都由此脚本一次性构建而成！</h1>
-<h2 id="_3">📚 博客未来的主要内容方向</h2>
-<p>未来，我计划围绕以下几个核心主题分享我的学习和实践心得：</p>
-<ul>
-<li><strong>数据科学 (Data Science):</strong> Python 的 Pandas/NumPy 实践、数据可视化和建模基础。</li>
-<li><strong>Web 开发心得:</strong> HTML/CSS 最佳实践、Web 性能优化、纯 Vanilla JavaScript 的用法。</li>
-<li><strong>极简主义与自动化:</strong> 如何利用 Python 脚本和工具提高效率，减少对大型工具的依赖。</li>
-<li><strong>个人思考:</strong> 关于学习、技术趋势和极简生活方式的随笔。</li>
-</ul>
-<h2 id="_4">📝 可读性特性展示 (表格)</h2>
-<p>这个博客支持完整的 Markdown 特性，包括表格。以下是本站特性的一览：</p>
-<table>
-<thead>
-<tr>
-<th style="text-align: left;">特性</th>
-<th style="text-align: center;">状态</th>
-<th style="text-align: left;">优势</th>
-</tr>
-</thead>
-<tbody>
-<tr>
-<td style="text-align: left;"><strong>极速加载</strong></td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: left;">纯静态文件，性能卓越</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>代码高亮</strong></td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: left;">提高技术文章可读性</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>粘性导航</strong></td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: left;">提升用户体验</td>
-</tr>
-<tr>
-<td style="text-align: left;"><strong>暗色模式</strong></td>
-<td style="text-align: center;">✅</td>
-<td style="text-align: left;">自动适配用户系统偏好</td>
-</tr>
-</tbody>
-</table>
-<h2 id="_5">结语</h2>
-<p>感谢您的访问！如果您对 <strong>Python 静态生成</strong> 或 <strong>极简设计</strong> 有任何想法，欢迎通过 <a href="https://github.com/io8963">GitHub</a> 与我交流。</p>
-<p>希望您能在这个简洁、优雅的阅读空间中有所收获。期待在下一篇文章与您见面！</p>]]></description>
+<h3 id="_1">⚙️ 维护及数据问题<a class="headerlink" href="#_1" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>部署时间更新异常：</strong> 文章页面底部的部署时间（Build Time）有时不能根据 Markdown 文件的修改时间（<code>mtime</code>）自动更新，需要检查 Python 生成器逻辑或 GitHub Actions 提交机制。</li>
+</ol>
+<hr />
+<p><strong>下一步计划：</strong> 优先解决移动端、样式适配和圆角不一致问题（1, 2, 3, 8）。</p>]]></description>
     </item>
 </channel>
 </rss>
