@@ -1,4 +1,4 @@
-# parser.py
+
 
 import os
 import re
@@ -109,9 +109,10 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
              # 从内容中获取第一行作为标题
              metadata['title'] = content_markdown.split('\n', 1)[0].strip()
     
-    # 5. 处理 description/excerpt
-    # 如果没有 description 或 excerpt，留空
-    metadata['excerpt'] = metadata.get('excerpt', metadata.get('description', ''))
+    # 5. 处理 summary/excerpt/description (核心修改点)
+    # 逻辑：优先查找 'summary'，如果没有则查找 'excerpt'，最后查找 'description'
+    # 这样在模板中只需统一调用 post.excerpt 即可显示
+    metadata['excerpt'] = metadata.get('summary') or metadata.get('excerpt') or metadata.get('description') or ''
     
     # --- Markdown 渲染 ---
     
