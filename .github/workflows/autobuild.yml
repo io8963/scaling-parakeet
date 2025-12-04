@@ -1,11 +1,13 @@
+# autobuild.yml
+
 name: Build Blog
 
-# 触发条件：推送到 main 分支时执行
+# 【关键修复】触发条件：推送到 main 或任何其他分支时执行，以及 PR 动作
 on:
   push:
     branches:
       - main
-      - '*' # 触发所有其他分支 (测试/预览环境)
+      - '*' # 确保此行存在：捕获所有分支的推送事件，包括您的测试分支
   pull_request:
     branches:
       - main
@@ -45,17 +47,12 @@ jobs:
         
     - name: Create Posts Directory (if not exists)
       # 4. 确保 posts 目录存在
+      # 注意：根据您的 config.py，Markdown 源文件目录是 'markdown'
       run: |
-        mkdir -p posts
+        mkdir -p markdown
         
     - name: Run Autobuild Script (Generate all static files)
-      # 5. 运行 Python 脚本，执行 Markdown 转换和 HTML/RSS/Sitemap 生成
+      # 5. 运行 Python 脚本，执行 Markdown 转换
       run: python autobuild.py
       
-    - name: Commit generated files to Git
-      # 6. 核心步骤：将生成的静态文件提交回 Git 仓库
-      uses: stefanzweifel/git-auto-commit-action@v5
-      with:
-        commit_message: "Build: Automated build via GitHub Actions"
-        # 优化建议 7: 限制只提交构建目录下的文件
-        path: _site
+    # 6. Cloudflare Pages 会自动检测 _site 目录并部署
