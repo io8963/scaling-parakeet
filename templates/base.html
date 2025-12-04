@@ -56,29 +56,33 @@
                     {%- endif -%}
                 </div>
                 
-                {%- if page_id == 'index' or page_id == 'tag' -%} 
+                {%- if page_id == 'index' or page_id == 'tag' or page_id == 'archive' -%} 
                     
                     {%- if page_id == 'tag' -%}
                         <h1 class="page-list-title">标签: {{tag}} (共 {{posts | length}} 篇)</h1>
+                    {%- elif page_id == 'archive' -%}
+                        <h1 class="page-list-title">文章归档 (共 {{posts | length}} 篇)</h1>
                     {%- endif -%}
                     
                     <ul class="post-list">
                     {% for post in posts %}
                         <a href="{{site_root}}/{{post.link}}" class="post-list-item">
-                            <h2 class="post-title">{{post.title}}</h2>
-                            
-                            {% if post.excerpt %}
-                            <p class="post-excerpt">{{post.excerpt}}</p>
-                            {% endif %}
+                            <div class="post-content-wrapper">
+                                <h2 class="post-title">{{post.title}}</h2>
+                                
+                                {% if post.excerpt %}
+                                <p class="post-excerpt">{{post.excerpt}}</p>
+                                {% endif %}
+                            </div>
                             
                             <div class="post-meta-list">
-                                <span class="meta-date">{{post.date_formatted}}</span>
+                                <span class="meta-date">🗓 {{post.date_formatted}}</span>
                                 
                                 {% if post.tags %}
-                                    <div class="meta-tags">
+                                    <div class="meta-tags list-tags">
                                         <ul class="tags-list">
                                         {% for tag in post.tags %}
-                                            <li><a href="{{site_root}}/tags/{{tag.slug}}.html" class="tag-badge">{{tag.name}}</a></li>
+                                            <li><span class="tag-badge">{{tag.name}}</span></li>
                                         {% endfor %}
                                         </ul>
                                     </div>
