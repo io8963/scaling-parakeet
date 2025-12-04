@@ -18,6 +18,14 @@ BLOG_AUTHOR = "Data Li"
 # 首页显示的文章数量
 MAX_POSTS_ON_INDEX = 5 
 
+# --- Markdown 配置 ---
+# 优化建议 5: Markdown 扩展配置集中管理
+MARKDOWN_EXTENSIONS = [
+    'extra', 
+    'codehilite', 
+    'toc'
+]
+
 # --- 目录和文件配置 ---
 BUILD_DIR = '_site'         # 构建输出目录
 MD_DIR = 'markdown'         # 源文件目录
@@ -45,5 +53,7 @@ TAGS_FILE = 'tags.html'
 ABOUT_FILE = 'about.html'
 SITEMAP_FILE = 'sitemap.xml'
 RSS_FILE = 'rss.xml'
-# 新增：关于页面的 Markdown 文件名
 ABOUT_MD_FILE = 'about.md'
+
+# 默认语言 (用于 HTML lang 属性)
+LANG = 'zh-Hans'
