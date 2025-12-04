@@ -10,7 +10,7 @@ import json # NEW: 导入 json 库用于生成 JSON-LD
 # 导入配置
 import config
 
-# --- Jinja2 环境配置 ---
+# --- Jinja2 环境配置配置 ---
 # 设置模板目录
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 env = Environment(
@@ -136,11 +136,15 @@ def generate_post_html(post: Dict[str, Any]):
     """生成单篇文章页。"""
     template = env.get_template('base.html')
     
+    # --- 关键修正：安全地获取 'excerpt' 字段，如果不存在则使用空字符串 ---
+    post_excerpt = post.get('excerpt', "")
+    
     # 准备上下文
     context = create_base_context(
         page_id='post', 
         title=post['title'], 
-        description=post['excerpt'],
+        # 使用安全获取的摘要作为页面的 description
+        description=post_excerpt, 
         url_path=f"/{post['link']}" # 确保 URL 正确，例如 /posts/slug.html
     )
     
@@ -153,7 +157,8 @@ def generate_post_html(post: Dict[str, Any]):
 
     # 渲染并写入文件
     try:
-        output_path = os.path.join(config.POSTS_OUTPUT_DIR, f"{post['slug']}.html")
+        # post['link'] 应该包含路径，例如 posts/example-post.html
+        output_path = os.path.join(config.BUILD_DIR, post['link'])
         os.makedirs(os.path.dirname(output_path), exist_ok=True) # 确保目录存在
         html_content = template.render(context)
         with open(output_path, 'w', encoding='utf-8') as f:
@@ -181,9 +186,11 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
     sorted_tags = sorted(tag_map.items(), key=lambda item: len(item[1]), reverse=True)
     
     for tag_name, posts in sorted_tags:
-        tag_slug = posts[0]['tags'][0]['slug'] # 假设第一个文章的标签 slug 是正确的
-        count = len(posts)
-        tag_list_html += f"<a href=\"{make_internal_url(os.path.join(config.TAGS_DIR, tag_slug + '.html'))}\" class=\"tag-badge\">{tag_name} ({count})</a>"
+        # 确保 posts 列表不为空
+        if posts:
+            tag_slug = posts[0]['tags'][0]['slug'] # 假设第一个文章的标签 slug 是正确的
+            count = len(posts)
+            tag_list_html += f"<a href=\"{make_internal_url(os.path.join(config.TAGS_DIR, tag_slug + '.html'))}\" class=\"tag-badge\">{tag_name} ({count})</a>"
         
     tag_list_html += "</div>"
     
@@ -204,6 +211,12 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
 def generate_tag_page(tag_name: str, posts: List[Dict[str, Any]]):
     """为单个标签生成页面 /tags/{tag_slug}.html。"""
     template = env.get_template('base.html')
+    
+    # 确保 posts 列表不为空
+    if not posts:
+        print(f"Warning: Skipping generation for empty tag '{tag_name}'.")
+        return
+        
     tag_slug = posts[0]['tags'][0]['slug']
     
     # 准备上下文
@@ -255,14 +268,18 @@ def create_article_json_ld(post: Dict[str, Any]) -> str:
     
     # 确保日期格式为 ISO 8601
     date_published = post['date'].isoformat()
-    date_modified = post.get('date_modified', post['date']).isoformat()
+    # 使用 get 安全获取 date_modified
+    date_modified = post.get('date_modified', post['date']).isoformat() 
+    
+    # 使用 get 安全获取 excerpt
+    description = post.get('excerpt', config.BLOG_DESCRIPTION)
 
     schema = {
         "@context": "https://schema.org",
         "@type": "BlogPosting",
         "headline": post['title'],
         "url": link,
-        "description": post['excerpt'],
+        "description": description, # 使用安全获取的描述
         "datePublished": date_published,
         "dateModified": date_modified,
         "author": {
