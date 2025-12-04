@@ -6,10 +6,7 @@ import yaml
 import markdown
 from datetime import datetime, timezone, date
 from typing import Dict, Any, Tuple
-import config # NEW: Import config to access extensions list
-
-# MODIFIED: 简化 imports，依赖全部写在 generator.py 或 autobuild.py 中
-# from config import * # 避免循环引用，配置在主文件中加载
+import config # 修正 1: 导入 config 文件以使用统一的 Markdown 扩展配置
 
 def tag_to_slug(tag_name: str) -> str:
     """将标签名转换为 URL 友好的 slug (小写，空格变'-')。"""
@@ -60,19 +57,17 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
         # 将 date 对象转换为 UTC 时区的 datetime
         metadata['date'] = datetime.combine(metadata['date'], datetime.min.time(), tzinfo=timezone.utc)
     elif 'date' not in metadata:
-        # MODIFIED START: 如果没有 date 字段，使用文件的最后修改时间 (mtime) 作为默认值
+        # 如果没有 date 字段，使用文件的最后修改时间 (mtime) 作为默认值
         try:
             # 获取文件的最后修改时间戳
             mtime_timestamp = os.path.getmtime(md_file_path)
             # 转换为带 UTC 时区的 datetime 对象
             mtime_datetime = datetime.fromtimestamp(mtime_timestamp, tz=timezone.utc)
             metadata['date'] = mtime_datetime
-            # print(f"DEBUG: Using mtime {mtime_datetime} for {md_file_path}") # 调试行，可移除
         except Exception as e:
             print(f"Warning: Could not get mtime for {md_file_path}: {e}")
             # 如果获取 mtime 失败，使用当前时间作为保底
             metadata['date'] = datetime.now(timezone.utc)
-        # MODIFIED END
         
     # 处理 tags：确保 tags 字段是一个列表，并转换为 slug
     if 'tags' in metadata:
@@ -88,5 +83,8 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
             {'name': t, 'slug': tag_to_slug(t)}
             for t in tags_list
         ]
+    else: 
+        # 修正 2: 关键修复，如果 metadata 中没有 tags 键，则初始化为空列表，防止 KeyError
+        metadata['tags'] = []
         
     return metadata, content_markdown, content_html, toc_html
