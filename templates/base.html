@@ -33,16 +33,17 @@
     <main id="main-content">
         <div class="main-layout">
             <div class="content-area">
+                
                 <div class="page-header">
-                    {{main_title_html | safe}}
                     {%- if page_id == 'post' -%}
+                        <h1>{{post.title}}</h1>
                         <div class="post-meta">
-                            <span class="meta-date">发布于 {{post_date}}</span>
-                            {% if post_tags %}
+                            <span class="meta-date">发布于 {{post.date_formatted}}</span> 
+                            {% if post.tags %}
                                 <div class="meta-tags">
                                     <span class="meta-tags-label">标签:</span> 
                                     <ul class="tags-list">
-                                    {% for tag in post_tags %}
+                                    {% for tag in post.tags %}
                                         <li><a href="{{site_root}}/tags/{{tag.slug}}.html" class="tag-badge">{{tag.name}}</a></li>
                                     {% endfor %}
                                     </ul>
@@ -52,23 +53,44 @@
                     {%- endif -%}
                 </div>
                 
-      {%- if page_id in ['index', 'tag'] -%} 
+                {%- if page_id == 'index' or page_id == 'tag' -%}
+                    
+                    {%- if page_id == 'tag' -%}
+                        <h1 class="page-list-title">标签: {{tag}} (共 {{posts | length}} 篇)</h1>
+                    {%- endif -%}
+                    
                     <ul class="post-list">
                     {% for post in posts %}
-                        <a href="{{site_root}}{{post.link}}">
-                            <li class="post-list-item">
-                            ... (列表项详细内容) ...
-                            </li>
+                        <a href="{{site_root}}{{post.link}}" class="post-list-item">
+                            <h2 class="post-title">{{post.title}}</h2>
+                            
+                            {% if post.excerpt %}
+                            <p class="post-excerpt">{{post.excerpt}}</p>
+                            {% endif %}
+                            
+                            <div class="post-meta-list">
+                                <span class="meta-date">{{post.date_formatted}}</span>
+                                
+                                {% if post.tags %}
+                                    <div class="meta-tags">
+                                        <ul class="tags-list">
+                                        {% for tag in post.tags %}
+                                            <li><a href="{{site_root}}/tags/{{tag.slug}}.html" class="tag-badge">{{tag.name}}</a></li>
+                                        {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
+                            </div>
                         </a>
                     {% endfor %}
                     </ul>
                     
-                    {# 只有首页才显示查看全部归档的链接 #}
                     {%- if page_id == 'index' and posts|length == max_posts_on_index -%}
                     <div class="read-more-link-area">
                         <a href="{{site_root}}/archive.html" class="button button-secondary">查看全部归档 &raquo;</a>
                     </div>
                     {%- endif -%}
+
                 {%- else -%}
                     {{content_html | safe}}
                 {%- endif -%}
