@@ -112,21 +112,19 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     
     # --- Markdown 渲染 ---
     
-    # 1. 设置 Markdown 扩展
-    md = markdown.Markdown(
-        extensions=[
-            'extra', 
-            'fenced_code', 
-            'codehilite', 
-            'meta', 
-            'toc' # 启用目录扩展
-        ], 
-        # 修正 2: 传入 Markdown 扩展配置
-        extension_configs=config.MARKDOWN_EXTENSION_CONFIGS 
-    )
+# 位于 parser.py 约 120 行附近
+# --- Markdown 渲染 ---
 
-    # 2. 渲染内容
-    content_html = md.convert(content_markdown)
+# 1. 设置 Markdown 扩展
+md = markdown.Markdown(
+    extensions=config.MARKDOWN_EXTENSIONS, # 使用配置中的扩展列表
+    extension_configs=config.MARKDOWN_EXTENSION_CONFIGS, # 使用配置中的扩展设置
+    output_format='html5',
+)
+# ...
+# 2. 渲染内容
+content_html = md.convert(content_markdown)
+# ...
     
     # 3. 提取目录 (TOC) HTML
     # md.toc 是 toc 扩展生成的内容
