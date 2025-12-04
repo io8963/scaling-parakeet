@@ -347,6 +347,7 @@ main {
     border-radius: 6px;
     margin: 20px 0;
     overflow-x: auto; /* 允许横向滚动 */
+    border: 1px solid var(--color-border); /* 加上边框，防止和背景混淆 */
 }
 
 /* 代码块内部 */
