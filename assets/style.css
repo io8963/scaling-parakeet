@@ -1,3 +1,5 @@
+--- START OF FILE scaling-parakeet-main/assets/style.css ---
+
 /* NEW: 全局 Box-Sizing 修复，防止 Padding 导致的溢出问题 */
 *, *::before, *::after {
     box-sizing: border-box;
@@ -23,6 +25,11 @@
     --color-border-light: #eee;
     --color-border-dark: #444;
 
+    /* Admonition (提示块) 颜色 */
+    --color-admonition-note: #00796b;
+    --color-admonition-warn: #fbc02d;
+    --color-admonition-danger: #d32f2f;
+
     /* MODIFIED: 统一的文本、背景和边框变量，用于亮/暗模式切换 */
     --color-main-text: var(--color-text);
     --color-main-background: var(--color-background);
@@ -37,16 +44,18 @@
         --color-main-background: var(--color-background-dark);
         --color-main-card: var(--color-card-dark);
         --color-main-border: var(--color-border-dark);
+        --color-primary-light: #004d40; /* 暗色模式下加深背景 */
     }
 }
 
 /* E. 基础样式 */
 html {
-    font-family: 'Inter', sans-serif;
-    line-height: 1.6;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.7; /* 增加行高提高可读性 */
     color: var(--color-main-text);
     background-color: var(--color-main-background);
     transition: background-color 0.3s, color 0.3s;
+    font-size: 16px;
 }
 
 body {
@@ -79,15 +88,25 @@ a:hover {
 
 /* 标题样式 */
 h1, h2, h3, h4, h5, h6 {
-    line-height: 1.2;
-    margin-top: 1.5em;
-    margin-bottom: 0.5em;
+    line-height: 1.3;
+    margin-top: 2em;
+    margin-bottom: 0.8em;
     font-weight: 700;
+    color: var(--color-main-text);
 }
+
+h1 { font-size: 2.2rem; }
+h2 { font-size: 1.8rem; border-bottom: 1px solid var(--color-main-border); padding-bottom: 10px; }
+h3 { font-size: 1.4rem; }
+h4 { font-size: 1.2rem; }
 
 /* 列表样式 */
 ul, ol {
     padding-left: 20px;
+    margin-bottom: 1.5em;
+}
+li {
+    margin-bottom: 0.5em;
 }
 
 /* F. 布局容器 */
@@ -183,16 +202,18 @@ main {
 .toc-area ul {
     list-style: none;
     padding: 0;
+    margin: 0;
 }
 .toc-area ul li a {
     display: block;
     padding: 4px 0;
     color: #666;
     font-size: 0.9rem;
+    text-decoration: none;
+    line-height: 1.4;
 }
 .toc-area ul li a:hover {
     color: var(--color-primary);
-    text-decoration: none;
 }
 .toc-area ul ul {
     padding-left: 15px;
@@ -220,39 +241,168 @@ main {
 }
 
 
-/* J. 文章内容样式 (Content) */
+/* J. 文章内容基础样式 (Content) */
 .post-content img {
     max-width: 100%;
     height: auto;
     border-radius: 6px;
     display: block;
-    margin: 15px auto;
-}
-.post-content blockquote {
-    border-left: 4px solid var(--color-primary);
-    padding: 10px 20px;
-    margin: 20px 0;
-    background-color: var(--color-primary-light);
-    color: #444;
-    border-radius: 4px;
+    margin: 20px auto;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.1);
 }
 
-/* 代码高亮 */
+.post-content p {
+    margin-bottom: 1.5em;
+    font-size: 1.05rem;
+}
+
+/* 引用块优化 */
+.post-content blockquote {
+    border-left: 4px solid var(--color-primary);
+    padding: 15px 20px;
+    margin: 20px 0;
+    background-color: var(--color-main-background); /* 避免在暗色模式下过亮 */
+    color: #666;
+    border-radius: 0 4px 4px 0;
+    font-style: italic;
+}
+@media (prefers-color-scheme: dark) {
+    .post-content blockquote {
+        color: #b0b0b0;
+        background-color: rgba(255,255,255,0.05);
+    }
+}
+
+/* O. Markdown 扩展元素样式 (Markdown Extended Elements) 
+   修复：表格、代码、高亮、提示块等
+*/
+
+/* 1. 表格样式 (Table) */
+.post-content table {
+    width: 100%;
+    max-width: 100%;
+    border-collapse: collapse;
+    margin: 20px 0;
+    overflow-x: auto;
+    display: block; /* 响应式滚动 */
+}
+/* 桌面端取消 block，让表格自适应 */
+@media (min-width: 600px) {
+    .post-content table {
+        display: table;
+    }
+}
+
+.post-content th, 
+.post-content td {
+    padding: 10px 15px;
+    border: 1px solid var(--color-main-border);
+    text-align: left;
+}
+.post-content th {
+    background-color: rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+}
+.post-content tr:nth-child(even) {
+    background-color: rgba(0, 0, 0, 0.02);
+}
+@media (prefers-color-scheme: dark) {
+    .post-content th {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    .post-content tr:nth-child(even) {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* 2. 行内代码样式 (Inline Code) */
+/* 排除 pre 内部的 code，只针对行内 */
+.post-content code:not(pre code) {
+    background-color: rgba(0, 0, 0, 0.06);
+    color: #d63384; /* 醒目的洋红色 */
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+    font-size: 0.9em;
+}
+@media (prefers-color-scheme: dark) {
+    .post-content code:not(pre code) {
+        background-color: rgba(255, 255, 255, 0.15);
+        color: #ff80ab;
+    }
+}
+
+/* 3. 代码块高亮样式 (Code Blocks) */
+.highlight {
+    margin: 20px 0;
+    border-radius: 6px;
+    overflow: hidden; /* 圆角 */
+}
 .highlight pre {
     padding: 15px;
     overflow-x: auto;
-    border-radius: 6px;
+    margin: 0;
     background-color: #f5f5f5;
     color: #333;
-    font-family: monospace;
-    max-width: 100%; /* 确保代码块本身不溢出 */
+    font-family: 'SFMono-Regular', Consolas, Menlo, monospace;
+    font-size: 0.9rem;
+    line-height: 1.5;
 }
 @media (prefers-color-scheme: dark) {
     .highlight pre {
-        background-color: #2d2d2d;
-        color: #ccc;
+        background-color: #282c34; /* 经典的暗色代码背景 */
+        color: #abb2bf;
     }
 }
+
+/* 4. 分割线 (Horizontal Rule) */
+.post-content hr {
+    height: 1px;
+    border: 0;
+    background-color: var(--color-main-border);
+    margin: 40px 0;
+}
+
+/* 5. 提示块/警告块 (Admonitions) - 需要启用 admonition 扩展 */
+.admonition {
+    margin: 20px 0;
+    padding: 15px;
+    border-left: 5px solid var(--color-primary);
+    background-color: rgba(0, 0, 0, 0.03);
+    border-radius: 4px;
+}
+.admonition-title {
+    font-weight: bold;
+    margin-bottom: 10px !important; /* 覆盖默认 p margin */
+    display: block;
+}
+/* 不同类型的提示块 */
+.admonition.note { border-color: var(--color-admonition-note); }
+.admonition.warning, .admonition.attention { border-color: var(--color-admonition-warn); }
+.admonition.danger, .admonition.error { border-color: var(--color-admonition-danger); }
+
+@media (prefers-color-scheme: dark) {
+    .admonition {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+}
+
+/* 6. 脚注样式 (Footnotes) */
+.footnote {
+    font-size: 0.85rem;
+    color: #777;
+    margin-top: 40px;
+    border-top: 1px solid var(--color-main-border);
+    padding-top: 20px;
+}
+.footnote ol {
+    padding-left: 20px;
+}
+.footnote-ref {
+    text-decoration: none;
+    margin-left: 2px;
+}
+
 
 /* K. 文章元数据 (Post Meta) */
 .post-meta {
@@ -299,13 +449,14 @@ main {
 .tags-list {
     list-style: none;
     padding: 0;
-    margin: 0;
+    margin: 0 !important; /* 强制移除列表默认边距 */
     display: flex;
     flex-wrap: wrap;
     gap: 5px;
 }
 .tags-list li {
     display: inline;
+    margin: 0; /* 移除 li 默认边距 */
 }
 .tag-badge {
     display: inline-block;
@@ -366,7 +517,6 @@ main {
 
 
 /* L. 底部 (Footer) */
-/* ... (样式保持不变) ... */
 footer {
     padding: 20px 0;
     border-top: 1px solid var(--color-main-border);
@@ -391,7 +541,6 @@ footer {
 
 
 /* M. 按钮 (Button) 样式 */
-/* ... (样式保持不变) ... */
 .button {
     display: inline-block;
     padding: 10px 18px;
@@ -586,6 +735,9 @@ footer {
     }
     header nav {
         margin-top: 10px;
+        width: 100%;
+        display: flex;
+        flex-wrap: wrap;
     }
     header nav a {
         margin-left: 0;
