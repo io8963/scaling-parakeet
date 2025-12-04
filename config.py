@@ -56,12 +56,22 @@ MAX_POSTS_ON_INDEX = 5
 MARKDOWN_DIR = 'markdown'
 # 构建输出目录
 BUILD_DIR = '_site'
-# 存放文章的子目录名称（在 MARKDOWN_DIR 内）
+# 存放文章的子目录名称（在 BUILD_DIR 内）
 POSTS_DIR_NAME = 'posts' 
+# 存放标签页面的子目录名称（在 BUILD_DIR 内）
+TAGS_DIR_NAME = 'tags' # NEW: 添加 tags 子目录名称
 # 存放静态资源的目录（如 favicon, robots.txt, sitemap.xml 等）
 STATIC_DIR = 'static'
 # 存放媒体文件（图片、视频等）的目录
 MEDIA_DIR = 'media'
+
+# NEW: 组合后的输出目录
+# 文章输出目录: _site/posts
+POSTS_OUTPUT_DIR = os.path.join(BUILD_DIR, POSTS_DIR_NAME)
+# 标签输出目录: _site/tags
+TAGS_OUTPUT_DIR = os.path.join(BUILD_DIR, TAGS_DIR_NAME)
+# 静态资源输出目录: _site/static
+STATIC_OUTPUT_DIR = os.path.join(BUILD_DIR, STATIC_DIR)
 
 # 特殊文件名称
 SITEMAP_FILE = 'sitemap.xml'
