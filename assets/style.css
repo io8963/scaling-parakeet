@@ -447,7 +447,7 @@ footer {
 }
 
 
-/* N. 文章列表卡片化样式 (关键溢出修正) */
+/* N. 文章列表卡片化样式 (关键溢出修正与布局优化) */
 
 /* 移除列表默认样式 */
 .post-list {
@@ -464,15 +464,18 @@ footer {
     padding: 20px 25px; 
     margin-bottom: 20px; 
     transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1); 
-    display: block; 
+    display: flex; /* NEW: 使用 Flex 布局 */
+    flex-direction: column; /* NEW: 垂直堆叠内容 */
+    justify-content: space-between; /* NEW: 将内容和元数据推向两端 */
     text-decoration: none; 
     color: inherit; 
     cursor: pointer;
+    min-height: 120px; /* 最小高度，保证卡片视觉稳定 */
     
     /* ！！！最强力修复：防止内容撑开卡片 ！！！*/
     overflow: hidden; 
-    word-wrap: break-word; /* 强制长单词换行 (老标准) */
-    word-break: break-word; /* 强制长单词换行 (新标准兼容) */
+    word-wrap: break-word; 
+    word-break: break-word; 
 }
 
 /* 悬停效果：向上浮动并添加阴影 */
@@ -505,10 +508,16 @@ footer {
     color: #666; 
     font-size: 0.95rem;
     line-height: 1.6;
-    margin-bottom: 12px;
+    margin-bottom: 0; /* 移除底部间距，由 meta-list 的 padding-top 控制 */
     
-    /* NEW: 确保摘要区域本身也防止溢出 */
-    overflow: hidden; 
+    /* NEW: 优化摘要显示行数，防止过长 */
+    display: -webkit-box;
+    -webkit-line-clamp: 2; /* 限制为 2 行 */
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    text-overflow: ellipsis; 
+
+    /* 确保摘要区域本身也防止溢出 */
     word-wrap: break-word;
     word-break: break-word;
 }
@@ -526,11 +535,12 @@ footer {
     margin-right: 0;
 }
 
-/* 4. 元数据容器 (日期/标签) 优化 */
+/* 4. 元数据容器 (日期/标签) 优化 - 增强为行内布局 */
 .post-list-item .post-meta-list {
     display: flex;
-    flex-wrap: wrap; 
+    justify-content: space-between; /* NEW: 日期在左，标签在右 */
     align-items: center;
+    flex-wrap: wrap; 
     font-size: 0.85rem;
     color: #999; 
     margin-top: 15px;
@@ -540,14 +550,36 @@ footer {
 
 /* 5. 列表中的日期样式 */
 .post-list-item .meta-date {
-    margin-right: 15px; 
+    margin-right: 0; 
     color: #999; 
+    font-weight: 500;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+/* 6. 列表中的标签样式 */
+.post-list-item .meta-tags {
+    margin-left: auto; /* 自动推到右侧 */
+}
+.post-list-item .tags-list {
+    gap: 5px;
+    margin: 0;
+}
+/* 列表页中的标签不再是链接，改为 span 并继承样式 */
+.post-list-item .tag-badge {
+    color: var(--color-primary);
+    background-color: var(--color-primary-light);
+    border-radius: 4px; /* 缩小圆角以适应信息列表 */
+    padding: 2px 6px;
+    font-size: 0.8rem;
     font-weight: 500;
 }
 
-/* 6. 移动端优化 */
+
+/* 7. 移动端优化 */
 @media (max-width: 768px) {
-    /* ... (样式保持不变) ... */
+    /* ... (头部和布局保持不变) ... */
     .header-inner {
         flex-direction: column;
         align-items: flex-start;
@@ -575,6 +607,16 @@ footer {
     .post-list-item {
         padding: 15px 20px;
     }
+    
+    /* 移动端元数据垂直堆叠 */
+    .post-list-item .post-meta-list {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
+    }
+    .post-list-item .meta-tags {
+        margin-left: 0;
+    }
 }
 
 
@@ -589,5 +631,9 @@ footer {
     .post-list-item .post-meta-list,
     .post-list-item .meta-date {
         color: #777;
+    }
+    .post-list-item .tag-badge {
+        background-color: #383838;
+        color: var(--color-link-dark);
     }
 }
