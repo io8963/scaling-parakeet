@@ -50,17 +50,21 @@ def build_site():
                     os.remove(item_path)
     
     # 确保 posts 和 tags 的输出目录存在
-    # ！！！关键修正区：添加日志和错误检查，确保目录创建成功 ！！！
+    # 关键修正区：添加日志和错误检查，确保目录创建成功 
     try:
         os.makedirs(config.POSTS_OUTPUT_DIR, exist_ok=True)
         os.makedirs(config.TAGS_OUTPUT_DIR, exist_ok=True)
+        # 确保静态目录也存在
+        os.makedirs(config.STATIC_OUTPUT_DIR, exist_ok=True) 
+        
         print(f"SUCCESS: Ensured output directory exists: {config.POSTS_OUTPUT_DIR}")
         print(f"SUCCESS: Ensured output directory exists: {config.TAGS_OUTPUT_DIR}")
+        print(f"SUCCESS: Ensured output directory exists: {config.STATIC_OUTPUT_DIR}")
     except OSError as e:
         print(f"FATAL ERROR: Failed to create output directories. Check filesystem permissions.")
         print(f"Error details: {e}")
         return # 目录创建失败，停止后续构建
-    # ！！！修正区结束 ！！！
+    # 修正区结束 
 
     # 1b. 处理静态文件 (包括 CSS 和其他静态资源)
     # 确保 assets 目录存在
@@ -130,9 +134,7 @@ def build_site():
         post['link'] = post_link
         
         # 2d. 汇总标签
-        # 注意：这里假设 parser.py 返回的 tags 已经是 name/slug 字典列表
         for tag_data in post.get('tags', []):
-            # 使用 tag_data['name'] 作为 tag_map 的键
             tag_map[tag_data['name']].append(post)
             
         parsed_posts.append(post)
