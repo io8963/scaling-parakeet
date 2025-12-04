@@ -30,6 +30,8 @@ MD_DIR = 'markdown'         # 源文件目录
 # 内部目录名
 POSTS_DIR = 'posts'
 TAGS_DIR = 'tags'
+# NEW: 添加 MEDIA_DIR 配置，用于未来可能包含图片等媒体文件的目录
+MEDIA_DIR = 'media' # 确保此配置存在，以避免 autobuild.py 中的 AttributeError
 
 # 输出文件/目录路径 (使用 os.path.join 组合)
 POSTS_OUTPUT_DIR = os.path.join(BUILD_DIR, POSTS_DIR)
