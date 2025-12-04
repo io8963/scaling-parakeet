@@ -238,7 +238,7 @@
         box-shadow: var(--shadow-dark); 
     }
 
-    /* NEW: 列表卡片悬停效果深色适配 */
+    /* NEW: 列表卡片悬停效果深色适配 (保留原有) */
     .post-list-item:hover {
         box-shadow: var(--shadow-dark-hover);
         border-color: var(--color-link-dark); /* 边框变为暗色主题色 */
@@ -706,51 +706,104 @@ nav a.active-nav-link {
     color: #444;
 }
 
-/* 1. 首页文章列表卡片增强 */
+/* 1. 首页文章列表卡片增强 - NEW CARD LAYOUT */
 .index-posts-list {
     list-style: none; 
     padding: 0;
-    margin-top: 2em;
+    margin-top: 2rem;
+    margin-bottom: 2rem;
     background-color: transparent; 
     border: none;
     box-shadow: none;
+    /* NEW: 使用 Grid 布局替代旧的列表样式 */
+    display: grid; 
+    gap: 20px; 
 }
+/* 文章卡片样式 (使用现有类名 post-list-item) */
 .post-list-item {
-    padding: 1.5rem;
-    margin-bottom: 2rem; 
-    border: 1px solid var(--color-border); 
+    /* 继承通用卡片样式 */
     background-color: var(--color-card); 
-    border-radius: 12px;
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s; /* 新增 border-color 过渡 */
+    border: 1px solid var(--color-border); 
+    box-shadow: var(--shadow); 
+    border-radius: 12px; 
+    padding: 25px; 
+    transition: all 0.3s ease;
+    display: block; 
+    margin-bottom: 0; /* 移除旧的底部外边距，由 Grid gap 控制 */
 }
-/* NEW UX SUGGESTION 1: 列表卡片悬停反馈 */
+/* 列表卡片悬停反馈 */
 .post-list-item:hover {
     transform: translateY(-3px); 
     box-shadow: var(--shadow-hover);
-    border-color: var(--color-primary); /* 边框变为主题色 */
+    border-color: var(--color-primary); 
 }
-.post-list-item h2 { /* Article Title */
-    margin-top: 0.5em;
+/* 标题优化 */
+.post-list-item h2 { 
+    margin-top: 0; 
     margin-bottom: 0.5em;
-    font-size: 1.4em;
-    font-weight: 700; /* 略微加粗标题 */
-    border-bottom: none;
-    padding-bottom: 0;
+    font-size: 1.5em; 
+    font-weight: 700; 
+    line-height: 1.4;
+    border-bottom: none; /* 确保移除旧样式 */
+    padding-bottom: 0; /* 确保移除旧样式 */
 }
-.post-list-item p { /* Summary/Abstract */
-    color: #666; 
-    font-size: 0.95em;
-    line-height: 1.5;
-    margin-top: 0.5em;
-    margin-bottom: 1em; 
+.post-list-item h2 a {
+    color: var(--color-text); 
+    text-decoration: none;
+    transition: color 0.2s;
 }
-.post-list-item .post-meta { /* Meta data in index list */
+.post-list-item h2 a:hover {
+    color: var(--color-primary); 
+}
+
+/* 元数据优化 (日期和标签) */
+.post-list-item .post-meta { 
+    display: flex; 
+    align-items: center;
+    justify-content: space-between; 
     font-size: 0.85em;
-    margin-bottom: 0;
-    padding-bottom: 0;
-    border-bottom: none;
-    color: #999;
+    color: #888;
+    margin-bottom: 1em;
+    padding-bottom: 0.5em;
+    border-bottom: 1px dashed var(--color-border); 
 }
+.post-list-item .post-meta > span:not(:last-child)::after, 
+.post-list-item .post-meta > div:not(:last-child)::after { 
+    /* 移除原有的元数据分隔符 */
+    content: ""; 
+    margin-left: 0; 
+}
+.post-list-item .meta-tags {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
+    gap: 8px; 
+}
+
+/* 摘要优化 */
+.post-list-item p { 
+    color: var(--color-text); 
+    font-size: 1em;
+    line-height: 1.6;
+    margin-top: 0.5em;
+    margin-bottom: 0; 
+}
+
+/* 移动端适配 */
+@media (max-width: 768px) {
+    .post-list-item {
+        padding: 15px;
+    }
+    .post-list-item .post-meta {
+        flex-direction: column; 
+        align-items: flex-start;
+        gap: 5px;
+    }
+    .post-list-item .meta-tags {
+        justify-content: flex-start;
+    }
+}
+/* END NEW CARD LAYOUT */
 
 
 /* 2. 面包屑导航样式 (Breadcrumbs) */
