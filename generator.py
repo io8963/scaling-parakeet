@@ -5,7 +5,7 @@ from datetime import datetime, timezone
 from collections import defaultdict
 from typing import List, Dict, Any
 from jinja2 import Environment, FileSystemLoader
-import json # NEW: 导入 json 库用于生成 JSON-LD
+import json # 导入 json 库用于生成 JSON-LD
 
 # 导入配置
 import config
@@ -21,6 +21,10 @@ env = Environment(
 )
 
 # --- 辅助函数 ---
+
+def tag_to_slug(tag_name: str) -> str:
+    """将标签名转换为 URL 友好的 slug (小写，空格变'-')。"""
+    return tag_name.lower().replace(' ', '-')
 
 def get_site_root():
     """返回规范化的 SITE_ROOT，用于路径拼接，确保不以斜杠结尾（除非是空字符串）。"""
@@ -160,7 +164,11 @@ def generate_post_html(post: Dict[str, Any]):
     context['main_title_html'] = f"<h1>{post['title']}</h1>"
     context['content_html'] = post['content_html'] # 文章内容
     context['toc_html'] = post['toc_html'] # 目录内容
-    context['post_date'] = post['date_formatted_full'] # 完整格式的日期
+    
+    # --- 修正 3: 使用 .get() 安全获取 'date_formatted_full'，提供保底值 ---
+    # 这个值应该已经在 parser.py 中添加，但以防万一，使用 get() 
+    context['post_date'] = post.get('date_formatted_full', "日期未提供") 
+    
     context['post_tags'] = post.get('tags', []) # 标签列表
     context['json_ld_schema'] = create_article_json_ld(post) # 文章的 JSON-LD
 
@@ -197,7 +205,8 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
     for tag_name, posts in sorted_tags:
         # 确保 posts 列表不为空
         if posts:
-            tag_slug = posts[0]['tags'][0]['slug'] # 假设第一个文章的标签 slug 是正确的
+            # 查找正确的 tag_slug：遍历 posts[0] 中的 tags 列表，找到匹配当前 tag_name 的 slug
+            tag_slug = next((t['slug'] for t in posts[0]['tags'] if t['name'] == tag_name), tag_to_slug(tag_name))
             count = len(posts)
             tag_list_html += f"<a href=\"{make_internal_url(os.path.join(config.TAGS_DIR, tag_slug + '.html'))}\" class=\"tag-badge\">{tag_name} ({count})</a>"
         
@@ -226,8 +235,9 @@ def generate_tag_page(tag_name: str, posts: List[Dict[str, Any]]):
         print(f"Warning: Skipping generation for empty tag '{tag_name}'.")
         return
         
-    tag_slug = posts[0]['tags'][0]['slug']
-    
+    # 查找正确的 tag_slug
+    tag_slug = tag_to_slug(tag_name) # 直接使用函数确保一致性
+
     # 准备上下文
     context = create_base_context(
         page_id='tag', 
@@ -253,7 +263,7 @@ def generate_tag_page(tag_name: str, posts: List[Dict[str, Any]]):
         print(f"Error generating tag page for '{tag_name}': {type(e).__name__}: {e}")
 
 
-# --- 静态和 XML 文件生成函数 (省略大部分，仅保留 JSON-LD 辅助) ---
+# --- 静态和 XML 文件生成函数 (JSON-LD 辅助) ---
 
 def create_index_json_ld() -> str:
     """生成首页的 Organization JSON-LD 结构化数据。"""
@@ -272,8 +282,13 @@ def create_index_json_ld() -> str:
 
 def create_article_json_ld(post: Dict[str, Any]) -> str:
     """生成单篇文章的 Article JSON-LD 结构化数据。"""
-    # 假设 post['link'] 是 posts/slug.html
-    link = f"{config.BASE_URL.rstrip('/')}/{post.get('link', '')}" # 再次使用 .get() 确保安全
+    # post_link 在 generate_post_html 中安全获取/构造。这里再次进行安全检查。
+    post_link = post.get('link')
+    if not post_link:
+        # 如果 link 缺失，基于 slug 构造它
+        post_link = os.path.join(config.POSTS_DIR, f"{post['slug']}.html")
+    
+    link = f"{config.BASE_URL.rstrip('/')}/{post_link}"
     
     # 确保日期格式为 ISO 8601
     date_published = post['date'].isoformat()
@@ -307,10 +322,7 @@ def create_article_json_ld(post: Dict[str, Any]) -> str:
     }
     return json.dumps(schema, indent=2, ensure_ascii=False)
     
-# 省略 generate_robots_txt, generate_sitemap, generate_rss 等函数
-# 这些函数依赖于 config.py 中定义的常量，且未直接影响内容显示问题
-# 在实际项目中应保留，此处为避免截断，仅保留核心渲染逻辑。
-# ... (generate_sitemap, generate_rss) ...
+# --- 静态文件生成函数 ---
 
 def generate_robots_txt():
     """生成 robots.txt 文件。"""
