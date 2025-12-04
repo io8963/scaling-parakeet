@@ -136,16 +136,25 @@ def generate_post_html(post: Dict[str, Any]):
     """生成单篇文章页。"""
     template = env.get_template('base.html')
     
-    # --- 关键修正：安全地获取 'excerpt' 字段，如果不存在则使用空字符串 ---
+    # --- 修正 1: 安全地获取 'excerpt' 字段，如果不存在则使用空字符串 ---
     post_excerpt = post.get('excerpt', "")
     
+    # --- 修正 2: 确保 'link' 字段存在，如果缺失则基于 slug 构造 ---
+    # 'link' 应该是 posts/slug.html 的格式
+    post_link = post.get('link')
+    if not post_link:
+        # 如果 link 缺失，使用 slug 和配置构造它
+        post_link = os.path.join(config.POSTS_DIR, f"{post['slug']}.html")
+        print(f"Warning: 'link' missing for '{post['slug']}'. Using generated link: {post_link}")
+        
     # 准备上下文
     context = create_base_context(
         page_id='post', 
         title=post['title'], 
         # 使用安全获取的摘要作为页面的 description
         description=post_excerpt, 
-        url_path=f"/{post['link']}" # 确保 URL 正确，例如 /posts/slug.html
+        # 使用安全的 post_link 构造 url_path
+        url_path=f"/{post_link}" 
     )
     
     context['main_title_html'] = f"<h1>{post['title']}</h1>"
@@ -157,8 +166,8 @@ def generate_post_html(post: Dict[str, Any]):
 
     # 渲染并写入文件
     try:
-        # post['link'] 应该包含路径，例如 posts/example-post.html
-        output_path = os.path.join(config.BUILD_DIR, post['link'])
+        # 使用安全的 post_link 作为输出路径
+        output_path = os.path.join(config.BUILD_DIR, post_link)
         os.makedirs(os.path.dirname(output_path), exist_ok=True) # 确保目录存在
         html_content = template.render(context)
         with open(output_path, 'w', encoding='utf-8') as f:
@@ -264,7 +273,7 @@ def create_index_json_ld() -> str:
 def create_article_json_ld(post: Dict[str, Any]) -> str:
     """生成单篇文章的 Article JSON-LD 结构化数据。"""
     # 假设 post['link'] 是 posts/slug.html
-    link = f"{config.BASE_URL.rstrip('/')}/{post['link']}"
+    link = f"{config.BASE_URL.rstrip('/')}/{post.get('link', '')}" # 再次使用 .get() 确保安全
     
     # 确保日期格式为 ISO 8601
     date_published = post['date'].isoformat()
@@ -346,10 +355,15 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
     
     # 单篇文章
     for post in parsed_posts:
+        # 使用 get 安全获取 link
+        post_link = post.get('link')
+        if not post_link:
+            continue # 如果没有 link，跳过 sitemap 条目，因为无法定位文章
+            
         last_mod = post['date'].strftime('%Y-%m-%d')
         url_tags.append(f"""
     <url>
-        <loc>{base_url_normalized}{make_internal_url(post['link'])}</loc>
+        <loc>{base_url_normalized}{make_internal_url(post_link)}</loc>
         <lastmod>{last_mod}</lastmod>
         <changefreq>monthly</changefreq>
         <priority>0.6</priority>
@@ -369,8 +383,13 @@ def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
     
     # 仅取最新的10篇
     for post in parsed_posts[:10]:
+        # 使用 get 安全获取 link
+        post_link = post.get('link')
+        if not post_link:
+            continue # 如果没有 link，跳过 RSS 条目
+            
         # 修复文章链接
-        link = f"{base_url_normalized}{make_internal_url(post['link'])}"
+        link = f"{base_url_normalized}{make_internal_url(post_link)}"
         pub_date = post['date'].strftime('%a, %d %b %Y %H:%M:%S +0000') # RFC 822 格式
         items.append(f"""
     <item>
