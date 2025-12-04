@@ -28,31 +28,23 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
 
     # 使用正则表达式分隔 Frontmatter (--- ... ---) 和内容
     # 匹配 YAML Front Matter 块
-    match = re.match(r'---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
+    match = re.match(r'---\\s*\\n(.*?)\\n---\\s*\\n', content, re.DOTALL)
 
     if match:
         yaml_data = match.group(1)
         content_markdown = content[len(match.group(0)):]
         try:
             metadata = yaml.safe_load(yaml_data) or {}
-        except yaml.YAMLError as exc:
-            print(f"Error parsing YAML frontmatter in {md_file_path}: {exc}")
+        except yaml.YAMLError as e:
+            print(f"Error parsing YAML frontmatter in {md_file_path}: {e}")
             metadata = {}
     else:
-        # 整个文件都是内容
-        content_markdown = content
         metadata = {}
-        
-    # 优化建议 5: 使用 config 中定义的 Markdown 扩展列表
-    md = markdown.Markdown(
-        extensions=config.MARKDOWN_EXTENSIONS 
-    )
-    
-    # 转换 Markdown 到 HTML
-    content_html = md.convert(content_markdown)
-    toc_html = md.toc # TOC 扩展自动生成的目录 HTML
+        content_markdown = content
 
-    # 处理 date 字段
+    # --- 核心元数据处理和规范化 ---
+    
+    # 1. 处理 date: 确保 date 是一个带时区的 datetime 对象
     if 'date' in metadata and isinstance(metadata['date'], date) and not isinstance(metadata['date'], datetime):
         # 将 date 对象转换为 UTC 时区的 datetime
         metadata['date'] = datetime.combine(metadata['date'], datetime.min.time(), tzinfo=timezone.utc)
@@ -68,8 +60,18 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
             print(f"Warning: Could not get mtime for {md_file_path}: {e}")
             # 如果获取 mtime 失败，使用当前时间作为保底
             metadata['date'] = datetime.now(timezone.utc)
+            
+    # NEW: 添加 'date_formatted_full' 字段，供前端页面展示使用
+    # 格式化日期为 'YYYY年MM月DD日 HH:MM' (例如: 2023年12月04日 17:22)
+    # 使用strftime进行格式化
+    if 'date' in metadata and isinstance(metadata['date'], datetime):
+        # 注意：使用本地化格式 YYYY年MM月DD日
+        metadata['date_formatted_full'] = metadata['date'].strftime('%Y年%m月%d日 %H:%M')
+    else:
+        # 保底值
+        metadata['date_formatted_full'] = "未知日期"
         
-    # 处理 tags：确保 tags 字段是一个列表，并转换为 slug
+    # 2. 处理 tags：确保 tags 字段是一个列表，并转换为 slug
     if 'tags' in metadata:
         if isinstance(metadata['tags'], str):
             # 如果是逗号分隔的字符串，分割成列表
@@ -80,11 +82,54 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
             tags_list = []
             
         metadata['tags'] = [
-            {'name': t, 'slug': tag_to_slug(t)}
+            {'name': t, 'slug': tag_to_slug(t)} 
             for t in tags_list
         ]
-    else: 
-        # 修正 2: 关键修复，如果 metadata 中没有 tags 键，则初始化为空列表，防止 KeyError
-        metadata['tags'] = []
-        
+    else:
+        metadata['tags'] = [] # 确保 tag 始终是列表
+
+    # 3. 处理 slug
+    if 'slug' not in metadata:
+        # 尝试从文件名生成 slug
+        file_name = os.path.basename(md_file_path)
+        base_name = os.path.splitext(file_name)[0]
+        # 假设文件名是日期+标题的组合，例如 2023-12-04-my-post.md
+        # 移除日期前缀，使用剩余部分作为 slug
+        slug_match = re.match(r'^\d{4}-\d{2}-\d{2}-(.*)$', base_name)
+        if slug_match:
+            metadata['slug'] = slug_match.group(1).lower()
+        else:
+             # 如果文件名不是标准格式，使用整个文件名
+            metadata['slug'] = base_name.lower()
+    
+    # 4. 处理 title
+    if 'title' not in metadata:
+        metadata['title'] = metadata['slug'].replace('-', ' ').title() # 简单的标题化
+
+    # 5. 处理 description/excerpt
+    # 如果没有 description 或 excerpt，留空，交给调用方处理 KeyError (已在 generator.py 中修复)
+    # metadata['excerpt'] = metadata.get('excerpt', metadata.get('description', ''))
+    
+    # --- Markdown 渲染 ---
+    
+    # 1. 设置 Markdown 扩展
+    md = markdown.Markdown(
+        extensions=[
+            'extra', 
+            'fenced_code', 
+            'codehilite', 
+            'meta', 
+            'toc' # 启用目录扩展
+        ], 
+        # 修正 2: 传入 Markdown 扩展配置
+        extension_configs=config.MARKDOWN_EXTENSION_CONFIGS 
+    )
+
+    # 2. 渲染内容
+    content_html = md.convert(content_markdown)
+    
+    # 3. 提取目录 (TOC) HTML
+    # md.toc 是 toc 扩展生成的内容
+    toc_html = md.toc or ""
+
     return metadata, content_markdown, content_html, toc_html
