@@ -447,10 +447,12 @@ tr:nth-child(even) {
 
 .post-list {
     list-style: none;
-    padding: 0;
+    /* MODIFIED: 移除卡片自带的左右内边距，让卡片内部的列表项来控制内边距 */
+    padding: 0; 
+    margin: 0; /* 确保列表没有额外的默认外边距 */
 }
 .post-item {
-    padding: 15px 0;
+    padding: 15px 20px; /* MODIFIED: 增加左右内边距，使其与 .card 的 padding: 20px 对齐 */
     border-bottom: 1px dashed var(--color-border);
 }
 .post-item:last-child {
