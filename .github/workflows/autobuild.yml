@@ -1,0 +1,56 @@
+name: Build Blog
+
+# 触发条件：推送到 main 分支时执行
+on:
+  push:
+    branches:
+      - main
+    # 任何文件更改（包括新增的 Markdown 文件）都会触发此工作流
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    
+    # 关键修复：添加 contents: write 权限，允许 GITHUB_TOKEN 推送更改
+    permissions:
+      contents: write
+
+    steps:
+    - name: Checkout Repository
+      # 1. 检出最新的代码
+      uses: actions/checkout@v4
+      
+    - name: Set up Python
+      # 2. 设置 Python 环境
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.x' 
+        
+    - name: Install Python Dependencies
+      # 3. 关键修复：安装所需的 Python 库，包括 Jinja2
+      run: |
+        pip install -r requirements.txt
+        
+    - name: Create Posts Directory (if not exists)
+      # 4. 确保 posts 目录存在
+      run: |
+        mkdir -p posts
+        
+    - name: Run Autobuild Script (Generate all static files)
+      # 5. 运行 Python 脚本，执行 Markdown 转换和 HTML/RSS/Sitemap 生成
+      run: python autobuild.py
+      
+    - name: Commit generated files to Git
+      # 6. 核心步骤：将生成的静态文件提交回 Git 仓库
+      # ⚠️ 注意：file_pattern 已移除，Action 将自动提交所有新增和修改的文件
+      uses: stefanzweifel/git-auto-commit-action@v5
+      with:
+        commit_message: "Auto: Generate static blog files"
+        # 排除 source files, 仅提交生成的文件和修改的 requirements/workflow 文件
+        files_to_ignore: |
+          markdown/*.md
+          *.py
+          config.py
+          parser.py
+          generator.py
+          templates/*
