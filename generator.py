@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from collections import defaultdict
 from typing import List, Dict, Any
 from jinja2 import Environment, FileSystemLoader
+import json # NEW: 导入 json 库用于生成 JSON-LD
 
 # 导入配置
 import config
@@ -47,7 +48,7 @@ def make_internal_url(path: str) -> str:
     
     return site_root + '/' + path_without_leading_slash
 
-def generate_page_title(page_id: str, post_data: Dict[str, Any] = None) -> str:
+def generate_page_title(page_id: str, context: Any = None) -> str:
     """根据页面类型生成浏览器 <title> 标签内容"""
     if page_id == 'index':
         return '首页'
@@ -55,13 +56,56 @@ def generate_page_title(page_id: str, post_data: Dict[str, Any] = None) -> str:
         return '文章归档'
     elif page_id == 'tags':
         return '所有标签'
-    elif page_id == 'tag-page' and post_data:
-        return f"标签: {post_data}"
+    elif page_id == 'tag-page' and isinstance(context, str):
+        return f"标签: {context}"
     elif page_id == 'about':
         return '关于我'
-    elif page_id == 'post' and post_data and post_data.get('title'):
-        return post_data['title']
+    elif page_id == 'post' and context and context.get('title'):
+        return context['title']
     return '页面'
+
+# NEW: 优化 5 - 生成 JSON-LD 结构化数据
+def generate_json_ld_schema(post_data: Dict[str, Any], canonical_url: str) -> str:
+    """生成文章的 BlogPosting 结构化数据"""
+    if not post_data or 'title' not in post_data:
+        return ""
+        
+    base_url_normalized = config.BASE_URL.rstrip('/')
+    
+    # 提取文章摘要 (简化的内容清理)
+    excerpt = post_data['content_markdown'][:200].split('\n')[0].strip()
+    
+    schema = {
+        "@context": "https://schema.org",
+        "@type": "BlogPosting",
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "@id": canonical_url
+        },
+        "headline": post_data['title'],
+        "description": excerpt,
+        "datePublished": post_data['date'].isoformat(),
+        # dateModified 暂时使用发布时间
+        "dateModified": post_data['date'].isoformat(), 
+        "author": {
+            "@type": "Person",
+            "name": config.BLOG_AUTHOR
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": config.BLOG_TITLE,
+            "logo": {
+                "@type": "ImageObject",
+                # 如果有 logo 文件，请更改此链接
+                "url": f"{base_url_normalized}{make_internal_url('/assets/logo.png')}" 
+            }
+        },
+        "url": canonical_url,
+        "keywords": [tag['name'] for tag in post_data.get('tags', [])]
+    }
+    
+    # 使用 json.dumps 格式化输出
+    return json.dumps(schema, ensure_ascii=False, indent=4)
 
 
 def regenerate_html_file(
@@ -77,6 +121,7 @@ def regenerate_html_file(
     blog_description: str,
     blog_author: str,
     lang: str = 'zh-Hans',
+    css_filename: str = config.CSS_FILENAME, # NEW: 优化 4 - 传入 CSS 文件名
     # 文章/列表页特定变量
     main_title_html: str = '',
     content_html: str = '',
@@ -86,7 +131,9 @@ def regenerate_html_file(
     # 页脚时间信息
     footer_time_info: str = '',
     # 目录变量
-    toc_html: str = ''
+    toc_html: str = '',
+    # NEW: 优化 5 - 结构化数据
+    json_ld_schema: str = '' 
 ):
     """使用 Jinja2 渲染并写入 HTML 文件"""
     
@@ -105,12 +152,14 @@ def regenerate_html_file(
             blog_description=blog_description,
             blog_author=blog_author,
             lang=lang,
+            css_filename=css_filename, # NEW: 优化 4 - 传递给模板
             main_title_html=main_title_html,
             content_html=content_html,
             post_date=post_date,
             post_tags=post_tags, # 直接传递列表，Jinja2 在模板中循环处理
             footer_time_info=footer_time_info,
-            toc_html=toc_html
+            toc_html=toc_html,
+            json_ld_schema=json_ld_schema # NEW: 优化 5 - 传递给模板
         )
 
         # 确保输出目录存在
@@ -118,6 +167,10 @@ def regenerate_html_file(
         # 写入文件
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(rendered_html)
+            
+        # NEW: 优化 3 - 成功生成后，更新文件的访问时间/修改时间
+        # 这样下次增量构建时可以跳过此文件
+        os.utime(output_path, None) 
             
     except Exception as e:
         print(f"ERROR: Could not render/write HTML file {output_path}: {e}")
@@ -139,10 +192,12 @@ def generate_post_html(post_data: Dict[str, Any]):
     post_date_str = post_data['date'].astimezone(timezone.utc).strftime('%Y-%m-%d')
     
     now_utc = datetime.now(timezone.utc)
-    # 优化建议 3: 将标签固定为“构建于”
     time_label = "构建于" 
-    build_time_utc_str = now_utc.strftime('%Y-%m-%d %H:%M:%S UTC') # 重命名变量
+    build_time_utc_str = now_utc.strftime('%Y-%m-%d %H:%M:%S UTC')
     footer_time_info_str = f"{time_label}: {build_time_utc_str}" 
+    
+    # NEW: 优化 5 - 生成文章的 JSON-LD 结构化数据
+    json_ld_schema = generate_json_ld_schema(post_data, config.BASE_URL + canonical_url.lstrip('/'))
     
     regenerate_html_file(
         output_path=output_path,
@@ -155,12 +210,14 @@ def generate_post_html(post_data: Dict[str, Any]):
         blog_description=config.BLOG_DESCRIPTION,
         blog_author=config.BLOG_AUTHOR,
         lang=config.LANG,
+        css_filename=config.CSS_FILENAME, # NEW
         main_title_html=main_title_html,
         content_html=post_data['content_html'],
         post_date=post_date_str,
         post_tags=post_data['tags'],
         footer_time_info=footer_time_info_str,
-        toc_html=post_data['toc_html']
+        toc_html=post_data['toc_html'],
+        json_ld_schema=json_ld_schema # NEW
     )
     
 def generate_index_html(parsed_posts: List[Dict[str, Any]]):
@@ -177,6 +234,7 @@ def generate_index_html(parsed_posts: List[Dict[str, Any]]):
         post_date_str = post['date'].astimezone(timezone.utc).strftime('%Y-%m-%d')
         
         # 截取前 150 个字符作为摘要
+        # 警告：这里仍使用了 content_markdown，如果需要优化 1 的功能，需要修改 parser.py
         excerpt = post['content_markdown'][:150].split('\n')[0].strip() + '...'
         
         content_html_parts.append(f"""
@@ -210,6 +268,7 @@ def generate_index_html(parsed_posts: List[Dict[str, Any]]):
         blog_description=config.BLOG_DESCRIPTION,
         blog_author=config.BLOG_AUTHOR,
         lang=config.LANG,
+        css_filename=config.CSS_FILENAME, # NEW
         main_title_html=f"<h1>{config.BLOG_TITLE}</h1>",
         content_html=content_html,
         # 页脚信息
@@ -247,13 +306,13 @@ def generate_archive_html(parsed_posts: List[Dict[str, Any]]):
         blog_description=config.BLOG_DESCRIPTION,
         blog_author=config.BLOG_AUTHOR,
         lang=config.LANG,
+        css_filename=config.CSS_FILENAME, # NEW
         main_title_html="<h1>文章归档</h1>",
         content_html=content_html,
         # 页脚信息
         footer_time_info=f"总文章数: {len(parsed_posts)}"
     )
     
-# 新增函数：生成关于页面 (about.html)
 def generate_about_html(post_data: Dict[str, Any]):
     """生成关于页面 (about.html) 的 HTML 文件"""
     
@@ -279,6 +338,7 @@ def generate_about_html(post_data: Dict[str, Any]):
         blog_description=config.BLOG_DESCRIPTION,
         blog_author=config.BLOG_AUTHOR,
         lang=config.LANG,
+        css_filename=config.CSS_FILENAME, # NEW
         main_title_html=main_title_html,
         content_html=post_data['content_html'],
         footer_time_info=footer_time_info_str,
@@ -323,6 +383,7 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
         blog_description=config.BLOG_DESCRIPTION,
         blog_author=config.BLOG_AUTHOR,
         lang=config.LANG,
+        css_filename=config.CSS_FILENAME, # NEW
         main_title_html="<h1>所有标签</h1>",
         content_html=content_html,
         footer_time_info=f"总标签数: {len(tag_map)}"
@@ -364,6 +425,7 @@ def generate_tag_page(tag_name: str, posts: List[Dict[str, Any]]):
         blog_description=config.BLOG_DESCRIPTION,
         blog_author=config.BLOG_AUTHOR,
         lang=config.LANG,
+        css_filename=config.CSS_FILENAME, # NEW
         main_title_html=f"<h1>标签: {tag_name}</h1>",
         content_html=content_html,
         footer_time_info=f"此标签下有 {len(posts)} 篇文章"
