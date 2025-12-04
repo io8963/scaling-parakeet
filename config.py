@@ -23,13 +23,11 @@ CODE_HIGHLIGHT_CLASS = 'highlight'
 # --- Markdown 配置 ---
 # 默认的 Markdown 扩展列表
 MARKDOWN_EXTENSIONS = [
-    'extra', 
-    'fenced_code',  # ！！！关键修复：必须显式启用此扩展才能识别 ``` 代码块
-    'codehilite',   # 启用代码高亮
-    'toc', 
-    'admonition', 
-    'nl2br',        # 可选：将换行符视为 <br>
-    'tables',       # 确保表格扩展启用
+    'extra',        # 包含了 fenced_code, tables, footnotes 等常用扩展
+    'codehilite',   # 启用代码高亮 (必须安装 Pygments 库)
+    'toc',          # 目录支持
+    'admonition',   # 提示块支持 (!!! note)
+    'sane_lists',   # 更好的列表行为
 ]
 
 # ！！！关键修复：Markdown 扩展配置 ！！！
@@ -37,13 +35,12 @@ MARKDOWN_EXTENSION_CONFIGS = {
     'markdown.extensions.toc': {
         'baselevel': 2, # TOC 从 h2 开始生成
         'anchorlink': True, # 启用锚点链接
-        # slugify 函数将在 parser.py 中动态添加
     },
     'markdown.extensions.codehilite': {
-        'linenums': False,             # 是否显示行号，建议 False 保持简洁
+        'linenums': False,             # 是否显示行号，建议 False 保持简洁，方便复制
         'css_class': CODE_HIGHLIGHT_CLASS, # 使用 'highlight' 类名
-        'use_pygments': True,          # 使用 Pygments 库进行高亮
-        'noclasses': True,             # True=使用内联样式(兼容性好), False=需要额外的 pygments.css
+        'use_pygments': True,          # ！！！关键：使用 Pygments 库进行高亮
+        'noclasses': True,             # True=使用内联样式(兼容性好, 无需额外CSS), False=需要额外的 pygments.css
         'guess_lang': True,            # 自动猜测语言
     }
 }
