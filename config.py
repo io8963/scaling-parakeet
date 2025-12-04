@@ -14,17 +14,14 @@ BLOG_TITLE = "Data Li 的个人网站"
 BLOG_DESCRIPTION = "专注于数据科学、极简主义与纯粹的 Web 技术。"
 BLOG_AUTHOR = "Data Li"
 
+# NEW: 存储 CSS 文件的哈希名，在 autobuild.py 中设置
+CSS_FILENAME = 'style.css' 
+# NEW: 存储代码高亮 CSS 类的名称（Pygments 默认类名）
+CODE_HIGHLIGHT_CLASS = 'highlight'
+
 # --- 列表配置 ---
 # 首页显示的文章数量
 MAX_POSTS_ON_INDEX = 5 
-
-# --- Markdown 配置 ---
-# 优化建议 5: Markdown 扩展配置集中管理
-MARKDOWN_EXTENSIONS = [
-    'extra', 
-    'codehilite', 
-    'toc'
-]
 
 # --- 目录和文件配置 ---
 BUILD_DIR = '_site'         # 构建输出目录
@@ -53,7 +50,13 @@ TAGS_FILE = 'tags.html'
 ABOUT_FILE = 'about.html'
 SITEMAP_FILE = 'sitemap.xml'
 RSS_FILE = 'rss.xml'
-ABOUT_MD_FILE = 'about.md'
-
-# 默认语言 (用于 HTML lang 属性)
+# 语言设置
 LANG = 'zh-Hans'
+
+# --- Markdown 解析配置 ---
+MARKDOWN_EXTENSIONS = [
+    'extra',
+    'codehilite', # 启用代码高亮
+    'toc', # 启用目录生成
+    'fenced_code', # 启用三个反引号的代码块
+]
