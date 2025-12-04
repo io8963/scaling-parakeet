@@ -50,6 +50,8 @@ MARKDOWN_EXTENSION_CONFIGS = {
 # --- 列表配置 ---
 # 首页显示的文章数量
 MAX_POSTS_ON_INDEX = 5 
+# NEW FIX: RSS Feed 中包含的最大文章数量
+RSS_FEED_MAX_ITEMS = 10 
 
 # --- 目录和文件配置 ---
 # Markdown 源文件所在的根目录
