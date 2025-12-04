@@ -51,25 +51,20 @@ MARKDOWN_EXTENSION_CONFIGS = {
 # 首页显示的文章数量
 MAX_POSTS_ON_INDEX = 5 
 
-# --- 目录和文件配置 ---
-BUILD_DIR = '_site'         # 构建输出目录
-MD_DIR = 'markdown'         # 源文件目录
+# --- 目录和文件配置 (修复缺失的变量) ---
+# Markdown 源文件所在的根目录
+MARKDOWN_DIR = 'markdown'
+# 构建输出目录
+BUILD_DIR = '_site'
+# 存放文章的子目录名称（在 MARKDOWN_DIR 内）
+POSTS_DIR_NAME = 'posts' 
+# 存放静态资源的目录（如 favicon, robots.txt, sitemap.xml 等）
+STATIC_DIR = 'static'
+# 存放媒体文件（图片、视频等）的目录
+MEDIA_DIR = 'media'
 
-# 内部目录名
-POSTS_DIR = 'posts'
-TAGS_DIR = 'tags'
-MEDIA_DIR = 'media' 
-STATIC_DIR = 'static' # 静态文件源目录
-
-# 输出文件/目录路径 (使用 os.path.join 组合)
-POSTS_OUTPUT_DIR = os.path.join(BUILD_DIR, POSTS_DIR)
-TAGS_OUTPUT_DIR = os.path.join(BUILD_DIR, TAGS_DIR)
-STATIC_OUTPUT_DIR = os.path.join(BUILD_DIR, STATIC_DIR)
-
-# 特殊文件
-INDEX_FILE = 'index.html'
-ARCHIVE_FILE = 'archive.html'
-TAGS_LIST_FILE = 'tags.html'
-ABOUT_OUTPUT_FILE = 'about.html'
+# 特殊文件名称
 SITEMAP_FILE = 'sitemap.xml'
 RSS_FILE = 'rss.xml'
+
+# --- 目录配置结束 ---
