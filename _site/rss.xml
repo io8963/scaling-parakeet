@@ -6,7 +6,7 @@
     <atom:link href="https://scaling-parakeet-138.pages.dev/rss.xml" rel="self" type="application/rss+xml" />
     <description>专注于数据科学、极简主义与纯粹的 Web 技术。</description>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 04 Dec 2025 11:42:10 +0000</lastBuildDate>
+    <pubDate>Thu, 04 Dec 2025 11:44:19 +0000</pubDate>
 
     <item>
       <title>网站 UI/UX 和维护问题清单</title>
@@ -172,34 +172,6 @@ return f&quot;&lt;h1&gt;{title}&lt;/h1&gt;&quot;
 <p>这是<strong>一段包含粗体</strong>的文字。
 这是<em>一段包含斜体</em>的文字。
 这是 <em>被强调的文本</em>，应该与普通文本有所区别，例如变色。</p>]]></description>
-    </item>
-    <item>
-      <title>关于 Data Li</title>
-      <link>https://scaling-parakeet-138.pages.dev/posts/about.html</link>
-      <pubDate>Mon, 01 Dec 2025 00:00:00 +0000</pubDate>
-      <guid isPermaLink="true">https://scaling-parakeet-138.pages.dev/posts/about.html</guid>
-      <description><![CDATA[<h1 id="data-li">👋 大家好，我是 Data Li</h1>
-<p>我是一名专注于 <strong>数据科学</strong> 和 <strong>纯粹 Web 技术</strong> 的开发者。</p>
-<h2 id="_1">💡 网站理念</h2>
-<p>这个网站是我实践<strong>极简主义</strong>和<strong>高性能</strong> Web 技术的试验场。</p>
-<ul>
-<li><strong>轻量级：</strong> 不依赖任何现代前端框架（如 React/Vue）。所有页面由 Python 脚本（<code>autobuild.py</code>）生成纯静态 HTML。</li>
-<li><strong>优雅：</strong> 追求内容的可读性，通过 CSS 实现了简洁美观的暗色模式和卡片化设计。</li>
-<li><strong>专注：</strong> 博客内容主要围绕数据分析、Python 编程、Web 开发心得，以及对极简生活方式的思考。</li>
-</ul>
-<h2 id="_2">🛠️ 我的技术栈</h2>
-<ul>
-<li><strong>数据科学:</strong> Python, Pandas, NumPy, Scikit-learn, Matplotlib, SQL</li>
-<li><strong>Web 技术:</strong> HTML5, CSS3, Vanilla JavaScript, <strong>纯静态生成</strong></li>
-<li><strong>自动化:</strong> Python Scripting, GitHub Actions</li>
-</ul>
-<h2 id="_3">🤝 联系我</h2>
-<p>欢迎通过以下方式与我交流：</p>
-<ul>
-<li><strong>GitHub:</strong> <a href="https://github.com/io8963">io8963</a></li>
-<li><strong>Email:</strong> [您的邮箱地址]</li>
-</ul>
-<hr>]]></description>
     </item>
     <item>
       <title>🚀 欢迎来到 Data Li 的个人网站！</title>
