@@ -1,9 +1,9 @@
-# generator.py (完整内容，包含所有修复)
+# generator.py
 
 import os
 import shutil 
 import glob   
-from datetime import datetime, timezone
+from datetime import datetime, timezone # 确保 datetime, timezone 被导入
 from collections import defaultdict
 from typing import List, Dict, Any, Tuple 
 from jinja2 import Environment, FileSystemLoader
@@ -74,7 +74,12 @@ def generate_article_json_ld(post: Dict[str, Any]) -> Dict[str, Any]:
     
     # 格式化日期为 ISO 8601
     date_published_iso = post['date'].isoformat()
-    date_modified_iso = post.get('last_modified', post['date']).isoformat()
+    # 修复: 确保 last_modified 在调用 isoformat 前如果是 datetime 对象，先提取 date 部分
+    last_mod_obj = post.get('last_modified', post['date'])
+    if isinstance(last_mod_obj, datetime):
+        date_modified_iso = last_mod_obj.isoformat()
+    else:
+        date_modified_iso = last_mod_obj.isoformat()
     
     return {
         "@context": "https://schema.org",
@@ -387,7 +392,16 @@ def generate_sitemap(all_posts: List[Dict[str, Any]]) -> str:
     
     # 3. 所有文章页
     for post in all_posts:
-        last_mod = post.get('last_modified', post['date']).date().isoformat()
+        # ！！！ FIX ！！！: 检查对象类型，避免对 datetime.date 对象调用 .date()
+        last_mod_obj = post.get('last_modified', post['date'])
+        
+        # 如果是完整的 datetime.datetime 对象，调用 .date() 提取日期部分
+        if isinstance(last_mod_obj, datetime):
+            last_mod = last_mod_obj.date().isoformat()
+        else:
+            # 否则，假设它已经是 datetime.date 对象（或类似对象），直接调用 isoformat()
+            last_mod = last_mod_obj.isoformat()
+            
         urls.append(f"""
     <url>
         <loc>{base_url_normalized}{make_internal_url(post['link'])}</loc>
