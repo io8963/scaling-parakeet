@@ -31,7 +31,8 @@ def tag_to_slug(tag_name: str) -> str:
 
 def get_site_root():
     """返回规范化的 SITE_ROOT，用于路径拼接，确保不以斜杠结尾（除非是空字符串）。"""
-    root = config.REPO_SUBPATH
+    # 修正：使用 config.REPO_SUBPATH 或 config.SITE_ROOT 作为根路径的基础
+    root = config.REPO_SUBPATH or config.SITE_ROOT
     if not root or root == '/':
         return ''
     return root.rstrip('/') # 移除尾部斜杠
@@ -66,7 +67,8 @@ def copy_static_files():
     
     if os.path.exists(source_dir):
         if os.path.exists(target_dir):
-            shutil.rmtree(target_dir) # 确保目标目录干净
+            # 修正：只删除 assets 目录本身，而不是整个 _site
+            shutil.rmtree(target_dir) 
         shutil.copytree(source_dir, target_dir)
         print(f"SUCCESS: Copied static files from {source_dir} to {target_dir}.")
     else:
@@ -87,7 +89,7 @@ def copy_media_files():
 
 # --- 页面生成函数 ---
 
-# NEW: 生成关于页面的函数
+# MODIFIED: generate_about_page (为 content_html 添加 h1 标题)
 def generate_about_page(post: Dict[str, Any]):
     """
     生成 about.html 页面。
@@ -102,7 +104,7 @@ def generate_about_page(post: Dict[str, Any]):
         # 组装 JSON-LD Schema (可选，这里简化为 None)
         json_ld_schema = None 
         
-        # FIXED: 为 content_html 添加 h1 标题，确保一致性
+        # 修正：手动构建带 h1 标题的内容，因为 base.html 不再自动处理 page-header 标题
         content_with_title = f"<h1>{post.get('title', '关于我')}</h1>\n{post['content_html']}"
         
         html_content = template.render(
@@ -120,18 +122,19 @@ def generate_about_page(post: Dict[str, Any]):
             json_ld_schema=json_ld_schema,
 
             # 页面特定变量
-            content_html=content_with_title, # 使用带标题的内容
+            content_html=content_with_title,
             toc_html=post.get('toc_html'),
-            # about 页面不显示文章列表
             posts=[], 
             max_posts_on_index=0, 
             post=post, 
             lang='zh-CN',
+            # 修正：post_date 和 post_tags 应该在 post 页面设置，这里清空以防误用
+            post_date=None, 
+            post_tags=[],
         )
 
         output_path = os.path.join(config.BUILD_DIR, config.ABOUT_OUTPUT_FILE)
         
-        # 确保目录存在
         output_dir = os.path.dirname(output_path)
         if output_dir and not os.path.exists(output_dir):
             os.makedirs(output_dir)
@@ -144,7 +147,7 @@ def generate_about_page(post: Dict[str, Any]):
     except Exception as e:
         print(f"Error generating about page: {type(e).__name__}: {e}")
 
-# 生成单篇文章的 HTML 页面
+# MODIFIED: generate_post_html (为 base.html 提供 post_date 和 post_tags)
 def generate_post_html(post: Dict[str, Any]):
     """为单篇文章生成 HTML 页面"""
     try:
@@ -167,6 +170,9 @@ def generate_post_html(post: Dict[str, Any]):
             }
         }, ensure_ascii=False)
         
+        # 修正：确保 post_tags 格式正确（包含 slug 和 name）
+        post_tags_data = post.get('tags', []) # tags 已经是包含 name 和 slug 的列表
+        
         html_content = template.render(
             page_id='post',
             page_title=post['title'],
@@ -184,9 +190,13 @@ def generate_post_html(post: Dict[str, Any]):
             # 页面特定变量
             content_html=post['content_html'],
             toc_html=post.get('toc_html'),
-            # 模板现在从 post 字典中获取日期和标签信息
             post=post,
             lang='zh-CN',
+            # 修正：传递 post_date 和 post_tags 到模板
+            post_date=post['date'].strftime('%Y-%m-%d'),
+            post_tags=post_tags_data,
+            # 修正：post 页面不需要 posts 列表
+            posts=[],
         )
 
         # 确保输出路径存在
@@ -204,7 +214,7 @@ def generate_post_html(post: Dict[str, Any]):
         print(f"Error generating post '{post.get('title', 'Unknown')}' HTML: {type(e).__name__}: {e}")
 
 
-# MODIFIED: generate_index_html (首页只显示可见文章)
+# MODIFIED: generate_index_html (首页只显示可见文章，使用 posts 变量)
 def generate_index_html(all_posts: List[Dict[str, Any]]):
     """生成首页 index.html"""
     try:
@@ -230,10 +240,10 @@ def generate_index_html(all_posts: List[Dict[str, Any]]):
             footer_time_info=f"最后构建于 {datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S UTC')}.",
             json_ld_schema=None, # 首页不使用 Article Schema
             
-            # 列表特定变量 (使用 posts 变量渲染富列表)
+            # 列表特定变量 (通过 posts 渲染富列表)
             posts=posts_for_index,
             max_posts_on_index=config.MAX_POSTS_ON_INDEX,
-            content_html="", 
+            content_html="", # 首页使用 posts 渲染列表
             lang='zh-CN',
         )
 
@@ -331,7 +341,6 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
         for tag, posts in sorted_tags:
             tag_slug = tag_to_slug(tag)
             tag_link = make_internal_url(os.path.join(config.TAGS_DIR, f'{tag_slug}.html'))
-            # 标签列表项，可以根据文章数量应用不同的CSS类（这里简化为统一类名）
             content_html += f"  <li><a href=\"{tag_link}\" class=\"tag-cloud-item\">{tag}</a> ({len(posts)} 篇)</li>\n"
         content_html += "</ul>\n"
         
@@ -366,7 +375,7 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
         print(f"Error generating tags.html: {type(e).__name__}: {e}")
 
 
-# FIXED: generate_tag_page (现在将列表赋值给 posts，并假设 base.html 已修改以渲染 tag 页面的 posts 变量)
+# FIXED: generate_tag_page (修复标签页空白，将列表赋值给 posts)
 def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
     """为单个标签生成页面"""
     try:
@@ -400,9 +409,9 @@ def generate_tag_page(tag: str, all_tag_posts: List[Dict[str, Any]]):
             
             # 列表特定变量
             tag=tag,
-            posts=visible_tag_posts, # <--- 关键：传递可见文章列表
+            posts=visible_tag_posts, # <--- 关键：传递可见文章列表，用于列表渲染
             max_posts_on_index=len(visible_tag_posts) + 1, # 确保全部显示
-            content_html="", # <--- 关键：content_html 置空，让模板使用 posts 渲染
+            content_html="", # <--- content_html 置空，让模板使用 posts 渲染
             lang='zh-CN',
         )
 
