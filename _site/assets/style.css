@@ -101,9 +101,8 @@
         --color-inline-code-text: var(--color-link-dark); 
         --color-scrollbar-thumb: #555; 
         
-        /* NEW UX SUGGESTION 2: 引用块文字颜色变量 */
-        /* 修正建议 1: 在深色模式下切换引用块文字颜色 */
-        --color-quote-text-light: var(--color-quote-text-dark); /* 使用暗色的值 */
+        /* 优化点 2: 移除冗余赋值，避免变量混淆 */
+        /* --color-quote-text-light: var(--color-quote-text-dark); */ 
 
         /* NEW UX SUGGESTION 4: TOC 激活背景色 */
         --color-toc-active-bg-light: var(--color-toc-active-bg-dark);
@@ -127,6 +126,9 @@
     
     /* MODIFIED: 头部导航栏深色模式适配和模糊效果 (解决问题 2 和 8) */
     header {
+        /* 优化建议 1: 启用背景模糊 */
+        -webkit-backdrop-filter: blur(8px); 
+        backdrop-filter: blur(8px);
         /* 深色模式下的背景和边框 */
         background-color: rgba(43, 43, 43, 0.95); /* 使用略透明的卡片背景 */
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
@@ -172,7 +174,7 @@
     
     /* 引用块的文字颜色切换 */
     blockquote {
-        /* 修正建议 1: 使用深色模式下设置的引用块文字颜色 */
+        /* 优化点 2: 使用深色模式下设置的引用块文字颜色 */
         color: var(--color-quote-text-dark); 
     }
 
@@ -237,898 +239,492 @@
         background-color: var(--color-header-info-bg-dark);
         box-shadow: var(--shadow-dark); 
     }
-
-    /* NEW: 列表卡片悬停效果深色适配 (保留原有) */
-    .post-list-item:hover {
-        box-shadow: var(--shadow-dark-hover);
-        border-color: var(--color-link-dark); /* 边框变为暗色主题色 */
-    }
 }
-
-/* NEW ADVANCED READABILITY 1: 自定义滚动条样式 */
-::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-}
-::-webkit-scrollbar-thumb {
-    background-color: var(--color-scrollbar-thumb); 
-    border-radius: 4px;
-}
-::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-/* NEW ADVANCED READABILITY 2: 提升焦点可见性 (Accessibility) */
-a:focus, button:focus, input:focus, textarea:focus, .tag-badge:focus, .post-card-link-wrapper:focus, .button-primary:focus, .button-secondary:focus {
-    outline: 2px solid var(--color-primary); 
-    outline-offset: 2px;
-    border-radius: 4px;
-}
-
-/* B. 核心排版优化 (Readability Enhancement) */
+/* E. 全局排版和布局 */
 body {
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", "Noto Sans CJK SC", sans-serif;
-    font-size: 18px; /* 提升基础字体大小 */
-    line-height: 1.8; /* 提升行高，增加阅读舒适度 */
-    max-width: 960px; 
-    margin: 0 auto;
-    padding: 1rem; 
-    word-wrap: break-word;
-    scroll-behavior: smooth; 
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    line-height: 1.7;
+    margin: 0;
+    padding: 0;
+    background-color: var(--color-background);
     color: var(--color-text);
-    background-color: var(--color-background); 
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility; 
+    transition: background-color 0.3s, color 0.3s;
 }
 
-/* NEW FIX: 解决 Sticky Header 覆盖内容的问题 */
+/* NEW COMPONENT STYLES: Header/Navigation Optimization */
+header {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    /* 优化建议 1: 启用背景模糊 */
+    background-color: rgba(255, 255, 255, 0.95); /* Semi-transparent white */
+    -webkit-backdrop-filter: blur(8px); 
+    backdrop-filter: blur(8px);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    border-bottom: 1px solid var(--color-border); 
+    border-radius: 0 0 10px 10px; /* 轻微圆角 */
+}
+header .header-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+}
+.site-title {
+    font-size: 1.5em;
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+    white-space: nowrap;
+}
+nav a {
+    text-decoration: none;
+    color: var(--color-text);
+    font-size: 1.05em;
+    font-weight: 500;
+    margin-left: 20px;
+    padding: 6px 10px;
+    border-radius: 6px;
+    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
+}
+nav a:hover {
+    background-color: var(--color-primary-light);
+    color: var(--color-primary);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+nav a.active-nav-link {
+    background-color: var(--color-nav-active-bg-light);
+    color: var(--color-nav-active-text-light);
+    box-shadow: 0 2px 5px rgba(0, 121, 107, 0.3); /* 提升阴影 */
+}
+nav a.active-nav-link:hover {
+    background-color: var(--color-nav-active-bg-light); /* 悬停时保持颜色 */
+    color: var(--color-nav-active-text-light);
+}
+
+/* F. 布局和容器 */
 main {
-    padding-top: 4rem; 
+    max-width: 1100px;
+    margin: 20px auto;
+    padding: 0 20px;
 }
-/* ---------------------------------------------------- */
+.content-layout-wrapper {
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+}
+.post-main-content {
+    flex-grow: 1;
+    min-width: 0; /* 允许 flex item 收缩 */
+    max-width: 100%;
+}
+.card {
+    background-color: var(--color-card);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.3s;
+}
+.card:hover {
+    box-shadow: var(--shadow-hover);
+}
 
-a:link, a:visited { 
-    color: var(--color-primary); 
+/* G. 链接样式 */
+a:link, a:visited {
+    color: var(--color-primary);
     text-decoration: none;
     transition: color 0.2s;
 }
 a:hover {
-    /* 修正建议 3: 提升非文章内容链接的悬停颜色 */
-    color: #004d40;
+    color: #004d40; /* 较深的 Primary 色 */
     text-decoration: underline;
 }
 
-/* NEW READABILITY 1: 提升文章内容中链接的可见性 */
-.post-content a:link, .post-content a:visited {
-    color: var(--color-primary); /* 确保文章内链接颜色一致 */
-    border-bottom: 1px dotted var(--color-primary); 
-    transition: border-bottom 0.2s, color 0.2s;
-}
-.post-content a:hover {
-    /* 修正建议 3: 确保文章内容链接悬停颜色更鲜明 */
-    color: var(--color-primary); 
-    border-bottom: 1px solid var(--color-primary); 
-}
-/* NEW: 外部链接目标指示器 */
-.post-content a[target="_blank"]::after {
-    content: " ↗";
-    font-size: 0.7em;
-    color: var(--color-primary);
-    vertical-align: super;
-    font-weight: bold;
-    margin-left: 2px;
-}
-
-
-/* 代码块默认样式（浅色）*/
-/* NEW UX SUGGESTION 3: 移除边框，增加阴影 */
-pre, .codehilite { 
-    background-color: var(--color-code-background); 
-    color: var(--color-text); 
-    border: none; /* 移除边框 */
-    box-shadow: var(--shadow); /* 新增阴影 */
-    padding: 1rem; 
-    border-radius: 8px; 
-    overflow-x: auto; 
-}
-/* NEW ADVANCED READABILITY 4: 优化行内代码可读性 */
-code {
-    font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
-    font-size: 0.9em; 
-    line-height: 1.2; 
-    padding: 2px 6px;
-    border-radius: 4px; 
-    white-space: nowrap; 
-    word-break: normal; 
-    background-color: var(--color-inline-code-background); 
-    color: var(--color-inline-code-text); 
-}
-
-/* 引用块样式 */
-blockquote {
-    padding: 15px 20px;
-    border-left: 4px solid var(--color-primary);
-    /* NEW FIX: 使用 quote 变量代替 quote-light */
-    background-color: var(--color-quote); /* 修正为通用变量 */
-    margin: 1.5em 0;
-    /* NEW UX SUGGESTION 2: 调整字体样式和颜色 */
-    font-style: normal;
-    font-size: 1.05em;
-    line-height: 1.6;
-    color: var(--color-quote-text-light); 
-    
-    border-radius: 8px;
-    transition: background-color 0.3s, border-color 0.3s, color 0.3s;
-}
-
-/* NEW ADVANCED READABILITY 5: 强调内容美化 (Light Mode) */
-.post-content strong {
-    color: var(--color-primary); 
-    font-weight: 700;
-}
-.post-content em {
-    color: #e65100; 
-    font-style: italic;
-}
-
-/* NEW: 孤行和寡行控制，提升段落阅读流 */
-.post-content p {
-    margin-top: 1.5em; /* 增加段落间距 */
-    margin-bottom: 1.5em; /* 增加段落间距 */
-    orphans: 3;
-    widows: 3;
-}
-.post-content blockquote {
-    orphans: 3;
-    widows: 3;
-}
-
-/* NEW ADVANCED READABILITY 3: 优化列表可读性 */
-.post-content ul, .post-content ol {
-    orphans: 3;
-    widows: 3;
-    margin: 1.5em 0; 
-    padding-left: 1.5em; 
-}
-/* NEW: 列表标记着色 */
-.post-content ul li::marker, .post-content ol li::marker {
-    color: var(--color-primary); 
-    font-weight: 600; 
-}
-.post-content li {
-    margin-bottom: 0.5em; 
-}
-
-/* NEW UX SUGGESTION 1: 增强文章内标题（H2）的视觉分隔 */
-.post-content h2 {
-    font-size: 1.8em; 
-    font-weight: 700;
-    margin-top: 2.5em; /* 增加与上文的间距 */
-    margin-bottom: 1em;
-    padding-left: 15px; 
-    border-left: 4px solid var(--color-primary); 
+/* H. 标题样式 */
+.post-main-content h1, 
+.post-main-content h2, 
+.post-main-content h3, 
+.post-main-content h4, 
+.post-main-content h5, 
+.post-main-content h6 {
+    color: var(--color-text);
+    margin-top: 1.5em;
+    margin-bottom: 0.5em;
+    padding-top: 5px; /* 顶部留白 */
     line-height: 1.3;
 }
-/* 确保 H3/H4 标题有足够的顶部间距 */
-.post-content h3, .post-content h4 {
-    margin-top: 2em;
-    margin-bottom: 0.8em;
+.post-main-content h1 {
+    font-size: 2.2em;
+    border-bottom: 2px solid var(--color-primary-light);
+    padding-bottom: 5px;
+}
+.post-main-content h2 {
+    font-size: 1.8em;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 4px;
+}
+.post-main-content h3 {
+    font-size: 1.4em;
 }
 
+/* I. 列表和段落 */
+.post-main-content p {
+    margin-bottom: 1.2em;
+}
+.post-main-content ul, 
+.post-main-content ol {
+    padding-left: 25px;
+    margin-bottom: 1.2em;
+}
+.post-main-content li {
+    margin-bottom: 0.5em;
+}
 
-/* NEW: 确保图片有独立间距和块级显示 (图片占位符/美化) */
+/* J. 文章内容内的链接样式 (更高优先级) */
+.post-content a:link, .post-content a:visited {
+    color: var(--color-primary);
+    /* 增加下划线，但使用虚线，提高可读性 */
+    border-bottom: 1px dotted var(--color-primary); 
+    transition: border-color 0.2s, color 0.2s;
+}
+.post-content a:hover {
+    color: #004d40;
+    border-bottom: 1px solid #004d40; 
+}
+
+/* K. 引用块 (Blockquote) */
+.post-content blockquote {
+    background-color: var(--color-quote-light);
+    border-left: 4px solid var(--color-primary);
+    padding: 15px 20px;
+    margin: 20px 0;
+    color: var(--color-quote-text-light);
+    font-style: italic;
+    border-radius: 0 4px 4px 0;
+}
+.post-content blockquote p {
+    margin: 0;
+}
+
+/* L. 代码块和行内代码 */
+.post-content pre {
+    background-color: var(--color-code-background);
+    padding: 15px;
+    border-radius: 6px;
+    overflow-x: auto;
+    border: 1px solid var(--color-border);
+    margin: 20px 0;
+}
+.post-content pre code {
+    background: none !important;
+    color: var(--color-text);
+    padding: 0;
+    font-size: 0.9em;
+    line-height: 1.5;
+    display: block; /* 确保代码块占据整行 */
+}
+.post-content code {
+    font-family: 'Consolas', 'Monaco', 'Courier New', monospace;
+}
+.post-content p code, 
+.post-content li code {
+    background-color: var(--color-inline-code-background);
+    color: var(--color-inline-code-text);
+    padding: 3px 6px;
+    border-radius: 4px;
+    white-space: nowrap;
+}
+
+/* M. 图像 */
 .post-content img {
     max-width: 100%;
     height: auto;
-    margin: 1.5em auto; 
-    display: block; 
-    border-radius: 8px; 
-    box-shadow: 0 1px 4px rgba(0,0,0,0.1); 
-    vertical-align: middle; 
-    min-height: 100px; /* Placeholder to prevent layout shift */
-    background-color: var(--color-background-light); /* Light placeholder background */
-    transition: transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease; /* 新增 border 过渡 */
-    border: 1px solid transparent; /* 确保浅色模式图片也有边框用于过渡 */
+    display: block;
+    margin: 20px auto;
+    border-radius: 8px;
+    box-shadow: var(--shadow);
+    transition: box-shadow 0.3s, transform 0.2s;
+    border: 1px solid var(--color-border);
+    background-color: var(--color-card);
 }
-/* NEW UX SUGGESTION 2: 图片悬停效果 */
 .post-content img:hover {
-    transform: scale(1.01); 
-    box-shadow: 0 4px 15px rgba(0,0,0,0.2); 
+    box-shadow: var(--shadow-hover);
 }
-
-/* NEW UX SUGGESTION 3: 图片说明（Caption）样式 */
+.post-content figure {
+    margin: 20px 0;
+    padding: 0;
+    text-align: center;
+}
 .post-content figcaption {
     font-size: 0.9em;
-    color: #777; /* Muted color */
-    text-align: center;
-    margin-top: -1em; /* Pull it closer to the image */
-    margin-bottom: 2em; /* Push it away from the next paragraph */
-    line-height: 1.4;
+    color: #888;
+    margin-top: 8px;
+    transition: color 0.3s;
 }
 
-/* NEW READABILITY SUGGESTION 1: 优化水平分割线 */
+/* N. 分割线 */
 .post-content hr {
-    margin: 3em auto;
-    border: 0;
-    height: 1px;
+    border: none;
     border-top: 1px solid var(--color-border); 
-    border-bottom: 1px solid var(--color-card); 
-    max-width: 50%; 
-    opacity: 0.7;
+    margin: 40px 0;
 }
 
-/* NEW: 表格样式优化 */
+/* O. 表格样式 */
 .post-content table {
     width: 100%;
-    border-collapse: collapse; 
-    margin: 2em 0;
-    overflow-x: auto; /* 确保移动端可滚动 */
-    display: block; /* 允许 overflow-x: auto 生效 */
-    background-color: var(--color-card); 
-    border-radius: 8px;
-    box-shadow: none; 
+    border-collapse: collapse;
+    margin: 20px 0;
+    font-size: 0.95em;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    overflow: hidden; /* 确保圆角生效 */
 }
-.post-content th, .post-content td {
+.post-content th, 
+.post-content td {
     padding: 12px 15px;
     border: 1px solid var(--color-border);
     text-align: left;
-    font-size: 0.95em;
 }
 .post-content th {
-    background-color: var(--color-primary-light);
-    color: #004d40;
+    background-color: var(--color-background-light);
     font-weight: 600;
-    text-align: center;
+    color: var(--color-text);
 }
+/* 斑马线效果 */
 .post-content tr:nth-child(even) {
-    background-color: var(--color-table-stripe-light); 
+    background-color: var(--color-table-stripe-light);
 }
 
-
-/* <<< 核心优化 1: 所有卡片默认样式 - 集中管理 */
-.toc-container, .tag-sidebar, table, blockquote, .callout, .hero-section, .post-nav, .cc-notice, footer, .post-header-info, nav, .post-list-item, .index-posts-list, .tag-page-header-card,
-.post-main-content 
-{ 
-    background-color: var(--color-card); 
-    border: 1px solid var(--color-border); 
-    box-shadow: var(--shadow); 
-    border-radius: 12px; 
-    transition: box-shadow 0.3s, background-color 0.3s, border-color 0.3s;
-}
-/* 移除不需要卡片样式的元素 */
-footer, nav, .index-posts-list {
-    background-color: transparent;
-    border: none;
-    box-shadow: none;
-}
-
-/* NEW UX SUGGESTION 1: 文章头部信息区（标题和元数据） */
-.post-header-info {
-    padding: 2.5rem 2.5rem 1.5rem 2.5rem; /* 底部间距略小 */
-    margin: -2.5rem -2.5rem 2rem -2.5rem; /* 负外边距撑满 post-main-content 宽度 */
-    background-color: var(--color-header-info-bg-light); /* 略有不同的背景色 */
-    border: none;
-    border-bottom: 1px solid var(--color-border); /* 底部边框与正文分隔 */
-    border-radius: 12px 12px 0 0; /* 顶部保持圆角，底部尖角 */
-    box-shadow: none;
-}
-/* 针对非文章页的 post-main-content 移除顶部边距 */
-.page-index .post-main-content, 
-.page-archive .post-main-content,
-.page-tags .post-main-content,
-.page-about .post-main-content {
-    /* 移除负外边距，以保持正常卡片样式 */
-    padding: 2.5rem;
-    margin-bottom: 2rem;
-}
-.page-index .post-header-info, 
-.page-archive .post-header-info,
-.page-tags .post-header-info,
-.page-about .post-header-info {
-    padding: 0;
-    margin: 0;
-    background-color: transparent;
-    border-bottom: none;
-    border-radius: 0;
-}
-
-
-/* NEW: 专门为文章主内容卡片添加内边距 */
-.post-main-content {
-    padding: 2.5rem; 
-    margin-bottom: 2rem; 
-    position: static !important; 
-}
-
-/* MODIFIED: 文章主标题 (H1) - 独立头部样式 */
-.post-header-info h1:first-child { 
-    font-size: 2.5em; 
-    font-weight: 800; 
-    color: var(--color-text); 
-    text-align: left; 
-    margin-top: 0; 
-    margin-bottom: 0.5rem; 
-    padding-bottom: 0;
-    border-bottom: none;
-    position: static !important; 
-}
-
-/* MODIFIED: 优化文章元数据样式（标题、日期、标签） */
-.post-meta {
-    text-align: left;
-    font-size: 0.95em; 
-    color: #6a6a6a; 
-    margin-top: 0; 
-    margin-bottom: 0; 
-    padding-bottom: 0; 
-    border-bottom: none; 
-    position: static !important; 
-}
-.post-meta > span, .post-meta > div {
-    display: inline-block; 
-    margin-right: 8px; 
-    color: #6a6a6a; 
-}
-.post-meta > span:not(:last-child)::after, 
-.post-meta > div:not(:last-child)::after { 
-    content: "•"; 
-    color: #aaa; 
-    margin-left: 8px; 
-    font-weight: bold; 
-}
-.post-meta .tags-list {
-    display: inline-block;
-    padding: 0;
+/* P. 文章列表和归档页样式 */
+.post-list {
     list-style: none;
-    margin: 0;
+    padding: 0;
 }
-.post-meta .tags-list li {
-    display: inline;
-    margin-bottom: 0;
+.post-item {
+    padding: 15px 0;
+    border-bottom: 1px solid var(--color-border);
 }
-.post-meta .tags-list .tag-badge {
-    margin-right: 5px;
-    margin-top: 0;
-    margin-bottom: 0;
+.post-item:last-child {
+    border-bottom: none;
+}
+.post-item a.post-title {
+    font-size: 1.3em;
+    font-weight: 600;
+    color: var(--color-text);
+    display: block;
+    margin-bottom: 5px;
+}
+.post-item a.post-title:hover {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+.post-item .post-excerpt {
+    color: #666;
+    font-size: 0.95em;
+    margin-bottom: 5px;
+}
+.post-item .post-date {
+    font-size: 0.85em;
+    color: #999;
 }
 
-/* NEW UX SUGGESTION 3: 标签徽章样式 */
+/* Q. 文章详情页头部信息 */
+.post-header-info {
+    background-color: var(--color-header-info-bg-light);
+    padding: 20px 25px;
+    border-radius: 8px;
+    margin-bottom: 30px;
+    box-shadow: var(--shadow);
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+.post-header-info h1 {
+    border-bottom: none;
+    margin-top: 0;
+    padding-bottom: 0;
+    font-size: 2.2em;
+}
+.post-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 15px;
+    font-size: 0.9em;
+    color: #777;
+}
+.meta-date {
+    white-space: nowrap;
+}
+.meta-tags {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.meta-tags-label {
+    font-weight: 500;
+    color: #555;
+}
+.tags-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+/* NEW: 标签徽章样式 */
 .tag-badge {
     display: inline-block;
     padding: 4px 10px;
+    border-radius: 12px;
     background-color: var(--color-tag-bg-light);
     color: var(--color-tag-text-light);
-    border-radius: 4px;
-    font-size: 0.8em;
+    font-size: 0.85em;
     font-weight: 500;
-    text-decoration: none !important;
-    border-bottom: none !important; /* 移除虚线下划线 */
-    white-space: nowrap;
-    transition: background-color 0.2s, box-shadow 0.2s, transform 0.2s;
-    /* 增加内嵌阴影模拟按钮效果 */
-    box-shadow: inset 0 1px 3px rgba(0,0,0,0.1); 
+    text-decoration: none;
+    transition: all 0.2s ease;
 }
 .tag-badge:hover {
     background-color: var(--color-primary);
     color: white;
-    transform: translateY(-1px); /* 轻微上浮 */
-    box-shadow: 0 2px 5px rgba(0, 121, 107, 0.3); /* 外阴影 */
-}
-
-
-/* NEW COMPONENT STYLES: Header/Navigation Optimization */
-header {
-    background-color: rgba(255, 255, 255, 0.95); 
-    padding: 0 1rem; 
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); 
-    position: sticky; 
-    top: 0;
-    z-index: 1000; 
-    transition: background-color 0.3s, box-shadow 0.3s, border-color 0.3s;
-    border-top-left-radius: 12px; 
-    border-top-right-radius: 12px; 
-    border-bottom-left-radius: 12px; 
-    border-bottom-right-radius: 12px; 
-    backdrop-filter: blur(5px);
-    -webkit-backdrop-filter: blur(5px); 
-}
-
-.header-inner {
-    max-width: 960px; 
-    margin: 0 auto;
-    display: flex; 
-    justify-content: space-between; 
-    align-items: center; 
-    padding: 1rem 0; 
-}
-
-/* NEW: 网站标题交互优化 */
-.site-title {
-    font-size: 1.5em; 
-    font-weight: 800; 
-    color: var(--color-primary); 
     text-decoration: none;
-    line-height: 1; 
-    transition: color 0.2s, transform 0.2s;
-}
-.site-title:hover {
-    color: #004d40; 
-    transform: scale(1.03); 
-}
-
-
-nav a {
-    margin-left: 1rem; 
-    padding: 8px 12px;
-    border-radius: 8px; 
-    font-size: 1em;
-    font-weight: 500;
-    color: var(--color-text); 
-    text-decoration: none;
-    transition: background-color 0.2s, color 0.2s, box-shadow 0.2s;
-}
-
-/* MODIFIED: 统一悬停和激活状态的样式 */
-nav a:hover {
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-}
-nav a.active-nav-link {
-    background-color: var(--color-primary);
-    color: white;
-    text-decoration: none;
-    font-weight: 600; 
-    box-shadow: 0 2px 5px rgba(0, 121, 107, 0.3); 
-}
-
-
-/* --- NEW COMPONENT STYLES (Indices & Hero) --- */
-
-/* NEW COMPONENT STYLES: Hero Section */
-.hero-section {
-    padding: 3rem 1rem;
-    margin-top: 1.5rem;
-    margin-bottom: 3rem;
-    background-color: var(--color-primary-light);
-    border-radius: 12px;
-    text-align: center;
-    border: 1px solid var(--color-primary-light);
-}
-.hero-section h1 {
-    font-size: 2.2em;
-    color: var(--color-primary);
-    margin-bottom: 0.5rem;
-}
-.hero-section p {
-    font-size: 1.1em;
-    color: #444;
-}
-
-/* 1. 首页文章列表卡片增强 - NEW CARD LAYOUT */
-.index-posts-list {
-    list-style: none; 
-    padding: 0;
-    margin-top: 2rem;
-    margin-bottom: 2rem;
-    background-color: transparent; 
-    border: none;
-    box-shadow: none;
-    /* NEW: 使用 Grid 布局替代旧的列表样式 */
-    display: grid; 
-    gap: 20px; 
-}
-/* 文章卡片样式 (使用现有类名 post-list-item) */
-.post-list-item {
-    /* 继承通用卡片样式 */
-    background-color: var(--color-card); 
-    border: 1px solid var(--color-border); 
-    box-shadow: var(--shadow); 
-    border-radius: 12px; 
-    padding: 25px; 
-    transition: all 0.3s ease;
-    display: block; 
-    margin-bottom: 0; /* 移除旧的底部外边距，由 Grid gap 控制 */
-}
-/* 列表卡片悬停反馈 */
-.post-list-item:hover {
-    transform: translateY(-3px); 
-    box-shadow: var(--shadow-hover);
-    border-color: var(--color-primary); 
-}
-/* 标题优化 */
-.post-list-item h2 { 
-    margin-top: 0; 
-    margin-bottom: 0.5em;
-    font-size: 1.5em; 
-    font-weight: 700; 
-    line-height: 1.4;
-    border-bottom: none; /* 确保移除旧样式 */
-    padding-bottom: 0; /* 确保移除旧样式 */
-}
-.post-list-item h2 a {
-    color: var(--color-text); 
-    text-decoration: none;
-    transition: color 0.2s;
-}
-.post-list-item h2 a:hover {
-    color: var(--color-primary); 
-}
-
-/* 元数据优化 (日期和标签) */
-.post-list-item .post-meta { 
-    display: flex; 
-    align-items: center;
-    justify-content: space-between; 
-    font-size: 0.85em;
-    color: #888;
-    margin-bottom: 1em;
-    padding-bottom: 0.5em;
-    border-bottom: 1px dashed var(--color-border); 
-}
-.post-list-item .post-meta > span:not(:last-child)::after, 
-.post-list-item .post-meta > div:not(:last-child)::after { 
-    /* 移除原有的元数据分隔符 */
-    content: ""; 
-    margin-left: 0; 
-}
-.post-list-item .meta-tags {
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
-    gap: 8px; 
-}
-
-/* 摘要优化 */
-.post-list-item p { 
-    color: var(--color-text); 
-    font-size: 1em;
-    line-height: 1.6;
-    margin-top: 0.5em;
-    margin-bottom: 0; 
-}
-
-/* 移动端适配 */
-@media (max-width: 768px) {
-    .post-list-item {
-        padding: 15px;
-    }
-    .post-list-item .post-meta {
-        flex-direction: column; 
-        align-items: flex-start;
-        gap: 5px;
-    }
-    .post-list-item .meta-tags {
-        justify-content: flex-start;
-    }
-}
-/* END NEW CARD LAYOUT */
-
-
-/* 2. 面包屑导航样式 (Breadcrumbs) */
-.breadcrumbs {
-    margin: 1.5em 0;
-    font-size: 0.9em;
-    color: #777;
-    overflow-x: hidden; 
-}
-.breadcrumbs ol {
-    display: flex;
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    
-    white-space: nowrap; 
-    overflow-x: auto; 
-    -webkit-overflow-scrolling: touch; 
-    padding-bottom: 5px; 
-}
-.breadcrumbs li {
-    margin-right: 0.5em;
-    flex-shrink: 0; 
-}
-.breadcrumbs li:not(:last-child)::after {
-    content: " / ";
-    margin-left: 0.5em;
-    color: #bbb;
-}
-.breadcrumbs a {
-    color: #777;
-    text-decoration: none;
-}
-.breadcrumbs a:hover {
-    color: var(--color-primary);
-    text-decoration: underline;
-}
-.breadcrumbs li[aria-current="page"] {
-    font-weight: bold;
-    color: var(--color-primary);
-}
-
-
-/* NEW FIX: Anchor Link Scroll Offset - 避免粘性导航栏遮挡跳转到的标题 */
-.post-content h1, 
-.post-content h2, 
-.post-content h3, 
-.post-content h4, 
-.post-content h5, 
-.post-content h6 {
-    scroll-margin-top: 5rem; 
-}
-
-
-/* NEW: 粘性目录 (TOC) 样式 (大屏幕) */
-@media (min-width: 1000px) {
-    /* NEW FIX: 实现双列布局 */
-    .content-layout-wrapper {
-        display: flex;
-        gap: 30px; 
-        justify-content: space-between;
-    }
-    .post-main-content {
-        flex-grow: 1; 
-        max-width: 70%; 
-        min-width: 50%;
-        margin-bottom: 0; 
-    }
-    .toc-container {
-        padding: 1.5rem;
-        position: sticky; 
-        top: calc(75px + 1rem); 
-        max-height: calc(100vh - 100px); 
-        overflow-y: auto; 
-        font-size: 0.9em;
-        flex-shrink: 0; 
-        width: 250px;
-        margin-bottom: 0; 
-    }
-}
-.toc-container { /* Base style, including mobile */
-    padding: 1.5rem;
-    margin-bottom: 2rem;
-}
-.toc-container ul {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-}
-.toc-container li a {
-    display: block;
-    padding: 8px 10px; /* 增加点击区域 */
-    margin: 2px 0; /* 增加行间距 */
-    border-radius: 4px; /* 增加圆角 */
-    color: var(--color-text);
-    text-decoration: none;
-    border-bottom: none;
-    transition: color 0.2s, border-left 0.2s, background-color 0.2s;
-}
-/* NEW UX SUGGESTION 2: 目录项悬停效果 */
-.toc-container li a:hover {
-    color: var(--color-primary);
-    background-color: var(--color-primary-light); /* 悬停背景色 */
-}
-.toc-container .toc-level-2 { padding-left: 0.5em; }
-.toc-container .toc-level-3 { padding-left: 1em; }
-.toc-container .toc-level-4 { padding-left: 1.5em; }
-/* NEW UX SUGGESTION 2: 目录激活状态效果增强 */
-.toc-container .toc-active { 
-    color: var(--color-primary) !important; 
-    font-weight: 700; /* 标题加粗 */
-    border-left: 3px solid var(--color-primary); 
-    padding-left: 10px;
-    margin-left: -13px;
-    background-color: var(--color-toc-active-bg-light); /* 激活背景色 */
-}
-/* 确保激活状态下的悬停背景不覆盖激活背景 */
-.toc-container .toc-active:hover {
-    background-color: var(--color-toc-active-bg-light); 
-}
-
-
-/* NEW: Mobile Optimization (响应式优化) */
-@media (max-width: 768px) {
-    body {
-        font-size: 16px; 
-        padding: 0.5rem;
-    }
-    
-    /* NEW UX SUGGESTION 4: 导航栏居中和堆叠 */
-    .header-inner {
-        flex-direction: column; 
-        align-items: center; 
-        padding: 0.5rem 0;
-    }
-    .site-title {
-        font-size: 1.3em; 
-        white-space: nowrap; 
-        margin-bottom: 0.5rem; 
-    }
-    nav {
-        display: flex; 
-        justify-content: center;
-        width: 100%;
-        overflow-x: auto; 
-        padding-bottom: 5px; 
-    }
-    /* MODIFIED: 确保导航链接在窄屏下保持紧凑 */
-    nav a {
-        margin: 0 0.5rem; 
-        padding: 4px 8px; 
-        font-size: 0.9em; 
-        flex-shrink: 0; 
-    }
-    
-    /* Unified Mobile Padding for Post Card */
-    .post-main-content {
-        padding: 1.5rem 1rem; 
-    }
-    /* 移动端文章头部信息区调整 */
-    .post-header-info {
-        padding: 1.5rem 1rem 1rem 1rem;
-        margin: -1.5rem -1rem 1.5rem -1rem; 
-        border-radius: 12px 12px 0 0;
-    }
-    
-    /* Mobile H1 font size micro-adjustment */
-    .post-header-info h1:first-child { 
-        font-size: 2em; 
-        margin-bottom: 0.3rem; 
-    }
-}
-
-
-/* Footer Convergence (页脚收敛) */
-footer {
-    font-size: 0.85em; 
-    color: #999; 
-    text-align: center; 
-    padding: 2rem 1rem; 
-    background-color: transparent; 
-    border: none;
-    box-shadow: none;
-}
-footer a {
-    color: #999;
-}
-footer a:hover {
-    color: var(--color-primary);
-}
-
-/* NEW: Footer structure optimization */
-.footer-content {
-    display: block;
-    max-width: 960px; 
-    margin: 0 auto;
-}
-.footer-content p {
-    margin: 0.5em 0; 
-    line-height: 1.2;
-}
-.build-info span {
-    color: #b0b0b0; 
-    font-size: 0.9em;
-}
-
-/* ------------------------------------------------------------------ */
-/* ----------- NEW UX SUGGESTION 2.2: Callout/提示框样式 ------------ */
-/* ------------------------------------------------------------------ */
-
-.post-content .callout {
-    padding: 1rem 1.5rem;
-    margin: 2em 0;
-    border-radius: 8px;
-    font-size: 1em;
-    line-height: 1.6;
-    border: 1px solid var(--color-callout-border-light);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    position: relative;
-    color: var(--color-text); /* 确保文本颜色正确 */
-}
-/* 解决 Callout 内部段落的 margin 问题 */
-.post-content .callout p {
-    margin-top: 1em;
-    margin-bottom: 1em;
-}
-.post-content .callout p:first-child {
-    margin-top: 0;
-}
-.post-content .callout p:last-child {
-    margin-bottom: 0;
-}
-.post-content .callout strong {
-    font-weight: 700;
-}
-/* 提示 Tip Callout (绿色) */
-.post-content .callout.callout-tip {
-    background-color: var(--color-tip-bg-light);
-    border-left: 5px solid var(--color-tip-text-light);
-}
-/* 警告 Warning Callout (黄色/橙色) */
-.post-content .callout.callout-warning {
-    background-color: var(--color-warning-bg-light);
-    border-left: 5px solid var(--color-warning-text-light);
-}
-/* 危险 Danger Callout (红色) */
-.post-content .callout.callout-danger {
-    background-color: var(--color-danger-bg-light);
-    border-left: 5px solid var(--color-danger-text-light);
-}
-/* 简易图标（使用 Unicode/Emoji 或假设 Font Awesome）*/
-.post-content .callout::before {
-    font-family: sans-serif; 
-    font-size: 1.1em;
-    line-height: 1;
-    margin-right: 10px;
-    vertical-align: middle;
-    display: inline-block;
-    font-weight: 900;
-}
-.post-content .callout.callout-tip::before { content: "💡"; color: var(--color-tip-text-light); }
-.post-content .callout.callout-warning::before { content: "⚠️"; color: var(--color-warning-text-light); }
-.post-content .callout.callout-danger::before { content: "❌"; color: var(--color-danger-text-light); }
-
-
-/* ------------------------------------------------------------------ */
-/* ----------- NEW UX SUGGESTION 2.3: 按钮视觉层次 ------------------ */
-/* ------------------------------------------------------------------ */
-
-.button-primary, .button-secondary {
-    display: inline-block;
-    padding: 10px 20px;
-    margin: 0.5em 0.5em 0.5em 0;
-    border: 2px solid transparent;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    text-align: center;
-    transition: all 0.2s ease;
-    text-decoration: none !important;
-    white-space: nowrap;
-    line-height: 1.2;
-}
-
-/* Primary Button Style (主操作按钮) */
-.button-primary {
-    background-color: var(--color-primary);
-    color: white;
-    border-color: var(--color-primary);
+    transform: translateY(-1px); 
     box-shadow: 0 2px 5px rgba(0, 121, 107, 0.3);
 }
-.button-primary:hover {
-    background-color: #004d40;
-    color: white;
-    border-color: #004d40;
-    box-shadow: 0 4px 10px rgba(0, 121, 107, 0.5);
-    transform: translateY(-1px);
-}
 
-/* Secondary Button Style (次要操作按钮) */
-.button-secondary {
-    background-color: transparent;
-    color: var(--color-primary);
-    border-color: var(--color-primary);
+/* R. 目录 (TOC) 侧边栏 */
+.toc {
+    width: 280px;
+    position: sticky;
+    top: 80px; /* 放在 Header 下面 */
+    align-self: flex-start; /* 粘性定位的关键 */
+    padding: 20px;
+    border-left: 1px solid var(--color-border);
+    max-height: calc(100vh - 100px); /* 限制高度，防止溢出 */
+    overflow-y: auto; /* 允许滚动 */
 }
-.button-secondary:hover {
+.toc-title {
+    font-size: 1.2em;
+    font-weight: 700;
+    margin-bottom: 15px;
+    color: var(--color-text);
+}
+.toc ul {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+    line-height: 1.5;
+}
+.toc ul li {
+    margin: 0;
+}
+.toc a {
+    display: block;
+    padding: 5px 0;
+    color: #666;
+    font-size: 0.9em;
+    text-decoration: none;
+    transition: color 0.2s, background-color 0.2s;
+    border-radius: 4px;
+}
+.toc ul ul {
+    padding-left: 15px; /* 子级缩进 */
+}
+.toc a:hover {
+    color: var(--color-primary);
     background-color: var(--color-primary-light);
+    text-decoration: none;
+}
+.toc a.active {
+    font-weight: 700;
     color: var(--color-primary);
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    background-color: var(--color-toc-active-bg-light);
 }
 
-/* Dark Mode Button Adaptation */
-@media (prefers-color-scheme: dark) {
-    .button-secondary {
-        color: var(--color-link-dark);
-        border-color: var(--color-link-dark);
+/* S. 页脚样式 */
+footer {
+    border-top: 1px solid var(--color-border);
+    padding: 20px 20px;
+    margin-top: 40px;
+    background-color: var(--color-background);
+    transition: background-color 0.3s;
+}
+.footer-content {
+    max-width: 1100px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    font-size: 0.85em;
+    color: #999;
+}
+.footer-content p {
+    margin: 5px 0;
+}
+.copyright-info a,
+.build-info a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+.build-info span {
+    color: #aaa;
+    transition: color 0.3s;
+}
+.build-info a:hover,
+.copyright-info a:hover {
+    text-decoration: underline;
+}
+
+/* T. 响应式调整 */
+@media (max-width: 900px) {
+    /* 侧边栏消失 */
+    .toc {
+        display: none;
     }
-    .button-secondary:hover {
-        background-color: rgba(128, 203, 196, 0.1);
-        color: var(--color-link-dark);
-        border-color: var(--color-link-dark);
+    .content-layout-wrapper {
+        flex-direction: column;
     }
-    /* Primary button remains consistent with theme color */
-    .button-primary:hover {
-        background-color: var(--color-primary); /* Stay primary, less dark */
-        box-shadow: 0 4px 10px rgba(0, 121, 107, 0.5);
+}
+@media (max-width: 768px) {
+    /* 导航栏堆叠 */
+    header .header-inner {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .site-title {
+        margin-bottom: 10px;
+    }
+    nav {
+        width: 100%;
+        display: flex;
+        justify-content: space-around;
+        gap: 0;
+    }
+    nav a {
+        margin: 0;
+        flex-grow: 1;
+        text-align: center;
+    }
+    main {
+        margin: 10px auto;
+        padding: 0 15px;
+    }
+    .footer-content {
+        flex-direction: column;
+        align-items: center;
+    }
+    .footer-content p {
+        text-align: center;
+    }
+    /* 详情页 meta 信息也堆叠 */
+    .post-meta {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 5px;
     }
 }
