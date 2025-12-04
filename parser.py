@@ -6,7 +6,29 @@ import yaml
 import markdown
 from datetime import datetime, timezone, date
 from typing import Dict, Any, Tuple
-import config # 修正 1: 导入 config 文件以使用统一的 Markdown 扩展配置
+import config 
+from markdown.extensions.toc import slugify as default_slugify # 导入默认的 slugify 函数
+
+# NEW: 辅助函数 - 将日期时间对象标准化为日期对象
+def standardize_date(dt_obj: Any) -> date:
+    """将 datetime 或 date 对象标准化为 date 对象。"""
+    if isinstance(dt_obj, datetime):
+        return dt_obj.date()
+    elif isinstance(dt_obj, date):
+        return dt_obj
+    # 如果是字符串或其他类型，则尝试解析（通常在 yaml.safe_load 中已经处理了）
+    return date.today() 
+
+# NEW: 辅助函数 - 针对中文的 slugify
+def my_custom_slugify(s, separator):
+    """一个简单的中文友好的 slugify 函数"""
+    # 尽可能保持中文原样，只替换空格和特殊字符
+    s = str(s).lower().strip()
+    # 替换常见的标点符号为空格或连接符
+    s = re.sub(r'[\s]+', separator, s) # 多个空格/空白符替换为 separator
+    s = re.sub(r'[^\w\s-]', '', s) # 移除所有非单词字符 (包括中文)
+    # 保持中文、数字、字母和连字符
+    return s.strip(separator)
 
 def tag_to_slug(tag_name: str) -> str:
     """将标签名转换为 URL 友好的 slug (小写，空格变'-')。"""
@@ -23,81 +45,59 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
             content = f.read()
     except Exception as e:
         print(f"Error reading file {md_file_path}: {e}")
-        # 修正：返回四个空值
         return {}, "", "", ""
 
     # 使用正则表达式分隔 Frontmatter (--- ... ---) 和内容
-    # 匹配 YAML Front Matter 块
-    match = re.match(r'---\\s*\\n(.*?)\\n---\\s*\\n', content, re.DOTALL)
+    match = re.match(r'---\s*\n(.*?)\n---\s*\n', content, re.DOTALL)
 
     if match:
         yaml_data = match.group(1)
         content_markdown = content[len(match.group(0)):]
         try:
             metadata = yaml.safe_load(yaml_data) or {}
-        except yaml.YAMLError as e:
-            print(f"Error parsing YAML frontmatter in {md_file_path}: {e}")
+        except yaml.YAMLError as exc:
+            print(f"Error parsing YAML frontmatter in {md_file_path}: {exc}")
             metadata = {}
     else:
+        # 如果没有 frontmatter，整个文件内容都是 markdown
         metadata = {}
         content_markdown = content
 
-    # --- 核心元数据处理和规范化 ---
     
-    # 1. 处理 date: 确保 date 是一个带时区的 datetime 对象
-    if 'date' in metadata and isinstance(metadata['date'], date) and not isinstance(metadata['date'], datetime):
-        # 将 date 对象转换为 UTC 时区的 datetime
-        metadata['date'] = datetime.combine(metadata['date'], datetime.min.time(), tzinfo=timezone.utc)
-    elif 'date' not in metadata:
-        # 如果没有 date 字段，使用文件的最后修改时间 (mtime) 作为默认值
-        try:
-            # 获取文件的最后修改时间戳
-            mtime_timestamp = os.path.getmtime(md_file_path)
-            # 转换为带 UTC 时区的 datetime 对象
-            mtime_datetime = datetime.fromtimestamp(mtime_timestamp, tz=timezone.utc)
-            metadata['date'] = mtime_datetime
-        except Exception as e:
-            print(f"Warning: Could not get mtime for {md_file_path}: {e}")
-            # 如果获取 mtime 失败，使用当前时间作为保底
-            metadata['date'] = datetime.now(timezone.utc)
-            
-    # NEW: 添加 'date_formatted_full' 字段，供前端页面展示使用
-    # 格式化日期为 'YYYY年MM月DD日 HH:MM' (例如: 2023年12月04日 17:22)
-    # 使用strftime进行格式化
-    if 'date' in metadata and isinstance(metadata['date'], datetime):
-        # 注意：使用本地化格式 YYYY年MM月DD日
-        metadata['date_formatted_full'] = metadata['date'].strftime('%Y年%m月%d日 %H:%M')
+    # --- 元数据处理和标准化 ---
+    
+    # 1. 处理 date
+    raw_date = metadata.get('date')
+    if raw_date:
+        metadata['date'] = standardize_date(raw_date)
+        metadata['date_formatted'] = metadata['date'].strftime('%Y-%m-%d')
     else:
-        # 保底值
-        metadata['date_formatted_full'] = "未知日期"
+        # 如果没有日期，使用当前日期并发出警告
+        metadata['date'] = date.today()
+        metadata['date_formatted'] = metadata['date'].strftime('%Y-%m-%d')
+        print(f"Warning: Missing 'date' in {md_file_path}. Using today's date.")
         
-    # 2. 处理 tags：确保 tags 字段是一个列表，并转换为 slug
-    if 'tags' in metadata:
-        if isinstance(metadata['tags'], str):
-            # 如果是逗号分隔的字符串，分割成列表
-            tags_list = [t.strip() for t in metadata['tags'].split(',') if t.strip()]
-        elif isinstance(metadata['tags'], list):
-            tags_list = [t.strip() for t in metadata['tags'] if isinstance(t, str) and t.strip()]
-        else:
-            tags_list = []
-            
-        metadata['tags'] = [
-            {'name': t, 'slug': tag_to_slug(t)} 
-            for t in tags_list
-        ]
-    else:
-        metadata['tags'] = [] # 确保 tag 始终是列表
+    # 2. 处理 tags
+    tags_list = metadata.get('tags', [])
+    if isinstance(tags_list, str):
+        tags_list = [t.strip() for t in tags_list.split(',')]
+        
+    # 将标签转换为包含 name 和 slug 的字典列表
+    metadata['tags'] = [
+        {'name': t, 'slug': tag_to_slug(t)} 
+        for t in tags_list
+        if t # 过滤空字符串
+    ]
 
     # 3. 处理 slug
     if 'slug' not in metadata:
         # 尝试从文件名生成 slug
         file_name = os.path.basename(md_file_path)
         base_name = os.path.splitext(file_name)[0]
-        # 假设文件名是日期+标题的组合，例如 2023-12-04-my-post.md
         # 移除日期前缀，使用剩余部分作为 slug
-        slug_match = re.match(r'^\d{4}-\d{2}-\d{2}-(.*)$', base_name)
-        if slug_match:
-            metadata['slug'] = slug_match.group(1).lower()
+        slug_match = re.match(r'^(\d{4}-\d{2}-\d{2}-)?(.*)$', base_name)
+        if slug_match and slug_match.group(2):
+            metadata['slug'] = slug_match.group(2).lower()
         else:
              # 如果文件名不是标准格式，使用整个文件名
             metadata['slug'] = base_name.lower()
@@ -105,29 +105,34 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     # 4. 处理 title
     if 'title' not in metadata:
         metadata['title'] = metadata['slug'].replace('-', ' ').title() # 简单的标题化
-
+        if not metadata['title'] and content_markdown:
+             # 从内容中获取第一行作为标题
+             metadata['title'] = content_markdown.split('\n', 1)[0].strip()
+    
     # 5. 处理 description/excerpt
-    # 如果没有 description 或 excerpt，留空，交给调用方处理 KeyError (已在 generator.py 中修复)
-    # metadata['excerpt'] = metadata.get('excerpt', metadata.get('description', ''))
+    # 如果没有 description 或 excerpt，留空
+    metadata['excerpt'] = metadata.get('excerpt', metadata.get('description', ''))
     
     # --- Markdown 渲染 ---
     
-# 位于 parser.py 约 120 行附近
-# --- Markdown 渲染 ---
-
-# 1. 设置 Markdown 扩展
-md = markdown.Markdown(
-    extensions=config.MARKDOWN_EXTENSIONS, # 使用配置中的扩展列表
-    extension_configs=config.MARKDOWN_EXTENSION_CONFIGS, # 使用配置中的扩展设置
-    output_format='html5',
-)
-# ...
-# 2. 渲染内容
-content_html = md.convert(content_markdown)
-# ...
+    # 1. 设置 Markdown 扩展 (注意：需要动态配置 slugify)
     
-    # 3. 提取目录 (TOC) HTML
-    # md.toc 是 toc 扩展生成的内容
+    # 复制配置，以便动态修改 TOC 的 slugify 
+    extension_configs = config.MARKDOWN_EXTENSION_CONFIGS.copy()
+    # 将自定义的 slugify 函数注入到 TOC 配置中
+    extension_configs['markdown.extensions.toc']['slugify'] = my_custom_slugify
+    
+    md = markdown.Markdown(
+        extensions=config.MARKDOWN_EXTENSIONS, 
+        extension_configs=extension_configs, # 使用包含 slugify 的配置
+        output_format='html5',
+    )
+    
+    # 2. 渲染内容
+    content_html = md.convert(content_markdown)
+    
+    # 3. 获取 TOC HTML
+    # ！！！关键修复：确保缩进正确，toc_html = md.toc or "" 必须与上面对齐 ！！！
     toc_html = md.toc or ""
 
     return metadata, content_markdown, content_html, toc_html
