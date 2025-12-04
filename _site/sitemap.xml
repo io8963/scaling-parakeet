@@ -54,25 +54,13 @@
     </url>
 
     <url>
-        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/bug.html</loc>
+        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/ui/ux.html</loc>
         <changefreq>monthly</changefreq>
         <priority>0.4</priority>
     </url>
 
     <url>
-        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/markdown.html</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.4</priority>
-    </url>
-
-    <url>
-        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/建站.html</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.4</priority>
-    </url>
-
-    <url>
-        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/python.html</loc>
+        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/样式.html</loc>
         <changefreq>monthly</changefreq>
         <priority>0.4</priority>
     </url>
@@ -84,7 +72,25 @@
     </url>
 
     <url>
-        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/待办事项.html</loc>
+        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/建站.html</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+
+    <url>
+        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/markdown.html</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+
+    <url>
+        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/python.html</loc>
+        <changefreq>monthly</changefreq>
+        <priority>0.4</priority>
+    </url>
+
+    <url>
+        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/测试.html</loc>
         <changefreq>monthly</changefreq>
         <priority>0.4</priority>
     </url>
@@ -102,19 +108,13 @@
     </url>
 
     <url>
-        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/测试.html</loc>
+        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/bug.html</loc>
         <changefreq>monthly</changefreq>
         <priority>0.4</priority>
     </url>
 
     <url>
-        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/ui/ux.html</loc>
-        <changefreq>monthly</changefreq>
-        <priority>0.4</priority>
-    </url>
-
-    <url>
-        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/样式.html</loc>
+        <loc>https://scaling-parakeet-138.pages.devhttps://scaling-parakeet-138.pages.dev/tags/待办事项.html</loc>
         <changefreq>monthly</changefreq>
         <priority>0.4</priority>
     </url>
