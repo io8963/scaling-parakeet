@@ -27,6 +27,10 @@ MAX_POSTS_ON_INDEX = 5
 BUILD_DIR = '_site'         # 构建输出目录
 MD_DIR = 'markdown'         # 源文件目录
 
+# NEW: 特殊页面配置
+ABOUT_MD_PATH = os.path.join(MD_DIR, 'about.md') # about.md 的源路径
+ABOUT_OUTPUT_FILE = 'about.html' # about 页面的输出文件名 (在 BUILD_DIR 根目录)
+
 # 内部目录名
 POSTS_DIR = 'posts'
 TAGS_DIR = 'tags'
@@ -36,31 +40,8 @@ MEDIA_DIR = 'media' # 确保此配置存在，以避免 autobuild.py 中的 Attr
 # 输出文件/目录路径 (使用 os.path.join 组合)
 POSTS_OUTPUT_DIR = os.path.join(BUILD_DIR, POSTS_DIR)
 TAGS_OUTPUT_DIR = os.path.join(BUILD_DIR, TAGS_DIR)
-
-# 静态文件目录
-STATIC_DIR = 'static'
-# 静态文件构建输出路径
-STATIC_OUTPUT_DIR = os.path.join(BUILD_DIR, STATIC_DIR)
-
-# 特殊文件
-ROBOTS_FILE = 'robots.txt'
+INDEX_FILE = 'index.html'
+ARCHIVE_FILE = 'archive.html'
+TAGS_LIST_FILE = 'tags.html'
 SITEMAP_FILE = 'sitemap.xml'
 RSS_FILE = 'rss.xml'
-
-# --- Markdown 扩展配置 ---
-
-# 使用字典配置来确保 TOC (目录) 和 Pygments (代码高亮) 正常工作
-MARKDOWN_EXTENSION_CONFIGS = {
-    # 配置 Pygments
-    'codehilite': {
-        'css_class': CODE_HIGHLIGHT_CLASS,
-        'linenums': False, # 不显示行号
-        'guess_lang': True,
-        'use_pygments': True,
-    },
-    # 配置 TOC (目录)
-    'toc': {
-        'baselevel': 2,       # 从 H2 (##) 开始生成目录
-        'permalink': True,    # 为标题生成永久链接锚点
-    },
-}
