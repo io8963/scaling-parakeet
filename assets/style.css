@@ -101,20 +101,20 @@ li { margin-bottom: 0.4em; }
 /* =========================================
    F & G. 布局与头部
    ========================================= */
-.container { max-width: 800px; margin: 0 auto; padding: 0 20px; } 
-
 header {
-    background-color: rgba(255, 255, 255, 0.85);
+    /* 优化 1: 提高 Header 背景不透明度，增强对比度 */
+    background-color: rgba(255, 255, 255, 0.95); /* 从 0.85 提高到 0.95 */
     padding: 20px 0;
     position: sticky;
     top: 0;
     z-index: 100;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--color-main-border); /* 优化: 始终可见的底部边框 */
+    border-bottom: 1px solid var(--color-main-border); 
 }
 @media (prefers-color-scheme: dark) {
-    header { background-color: rgba(18, 18, 18, 0.85); }
+    /* 优化 1: 提高 Header 背景不透明度，增强对比度 */
+    header { background-color: rgba(18, 18, 18, 0.95); } /* 从 0.85 提高到 0.95 */
 }
 
 .header-inner {
@@ -276,6 +276,17 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     -ms-hyphens: auto;
     text-rendering: optimizeLegibility; 
 }
+/* 优化 2: 增强文章内容中嵌套列表的视觉层次 */
+.post-content ul ul, .post-content ol ol {
+    padding-left: 15px;
+    border-left: 1px dotted var(--color-main-border); 
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+.post-content ul ul ul, .post-content ol ol ol {
+    border-left: none; /* 3级以上取消虚线，避免过于复杂 */
+}
+
 .post-content img {
     max-width: 100%; height: auto; border-radius: 4px;
     display: block; margin: 30px auto; 
@@ -299,10 +310,21 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     background-color: var(--color-code-bg);
     border-radius: 6px; margin: 25px 0; padding: 15px;
     overflow-x: auto; font-size: 0.9rem; border: 1px solid var(--color-main-border);
+    /* 优化 3: 为可滚动代码块添加视觉反馈 */
+    transition: box-shadow 0.2s;
+    box-shadow: 0 0 0 0 transparent;
+}
+
+/* 优化 3: hover 时显示阴影，提示可滚动 */
+.post-content pre:hover {
+    box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.1); 
 }
 @media (prefers-color-scheme: dark) {
     .post-content code:not(pre code) { background-color: rgba(255,255,255,0.1); }
     .post-content pre { background-color: var(--color-code-bg-dark); }
+    .post-content pre:hover {
+        box-shadow: 0 4px 8px -2px rgba(255, 255, 255, 0.1); 
+    }
 }
 
 .table-wrapper { width: 100%; overflow-x: auto; margin: 30px 0; border: 1px solid var(--color-main-border); border-radius: 6px; }
@@ -742,7 +764,7 @@ button:focus,
    --------------------------------------------------------- */
 .post-license {
     margin: 40px 0 0; 
-    padding: 15px 25px 15px 20px; /* 调整内边距 */
+    padding: 15px 25px 15px 20px; 
     border: none; /* 移除所有标准边框 */
     border-left: 4px solid var(--color-primary); /* 保留主题色左侧指示条 */
     border-radius: 0; /* 移除圆角 */
@@ -783,6 +805,18 @@ button:focus,
     line-height: 1.5;
     vertical-align: middle;
     transition: all 0.2s;
+}
+
+/* 暗色模式下 CC 徽章颜色 */
+@media (prefers-color-scheme: dark) {
+    .license-icon i {
+        border-color: var(--color-link-dark);
+        color: var(--color-link-dark);
+    }
+    .post-license a:hover .license-icon i {
+        background-color: var(--color-link-dark);
+        color: var(--color-background-dark); /* 悬停时反色 */
+    }
 }
 
 .post-license a:hover .license-icon i {
