@@ -7,7 +7,7 @@ import hashlib
 from typing import List, Dict, Any
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta 
-import subprocess # [新增] 导入 subprocess 用于执行 Git 命令
+import subprocess # 导入 subprocess 用于执行 Git 命令
 
 import config
 from parser import get_metadata_and_content
@@ -32,9 +32,9 @@ def hash_file(filepath: str) -> str:
     except FileNotFoundError:
         return 'nohash'
 
-# [修改 FUNCTION] 获取文件的最后修改时间 (优先使用 Git Commit Time) 并格式化为 UTC+8
+# [修复 FUNCTION] 获取文件的最后修改时间 (强制使用 Git Commit Time) 并格式化为 UTC+8
 def format_file_mod_time(filepath: str) -> str:
-    """获取文件的最后修改时间 (优先使用 Git Commit Time) 并格式化为中文构建时间 (UTC+8)。"""
+    """获取文件的最后修改时间 (强制使用 Git Commit Time) 并格式化为中文构建时间 (UTC+8)。"""
     
     # 尝试获取 Git 最后提交时间
     try:
@@ -42,6 +42,7 @@ def format_file_mod_time(filepath: str) -> str:
         git_command = ['git', 'log', '-1', '--pretty=format:%cI', '--', filepath]
         
         # 捕获输出，确保在当前工作目录执行
+        # check=True 会在命令失败时抛出异常
         result = subprocess.run(git_command, capture_output=True, text=True, check=True, cwd=os.getcwd())
         git_time_str = result.stdout.strip()
 
@@ -54,24 +55,16 @@ def format_file_mod_time(filepath: str) -> str:
             
             return f"本文构建时间: {mtime_dt_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8 - Git)"
 
-        # 如果 Git 成功运行但没有输出（例如文件未被追踪），则走 fallback
-        raise Exception("Git time not found, falling back to filesystem mtime.") 
+        # Git 成功运行但文件未被追踪，进入回退
+        raise Exception("Git time not found for tracked file, falling back.") 
 
     except (subprocess.CalledProcessError, FileNotFoundError, Exception) as e:
-        # Git 命令失败（不在仓库中、文件不存在或未被追踪）时，回退到文件系统 mtime
-        try:
-            mtime_timestamp = os.path.getmtime(filepath)
-            # 1. 获取 UTC datetime 对象 (从时间戳)
-            mtime_dt_utc = datetime.fromtimestamp(mtime_timestamp, timezone.utc)
-            # 2. 转换为 UTC+8
-            mtime_dt_utc8 = mtime_dt_utc.astimezone(TIMEZONE_INFO)
-            # 3. 格式化并标记时区
-            return f"本文构建时间: {mtime_dt_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8 - Filesystem)"
-        except:
-            # 最终安全回退
-            now_utc = datetime.now(timezone.utc)
-            now_utc8 = now_utc.astimezone(TIMEZONE_INFO)
-            return f"最新构建时间: {now_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8 - Fallback)"
+        # Git 命令失败（不在仓库中、文件不存在或未被追踪）时，使用当前的构建时间作为文章的 fallback 时间。
+        # 此处不使用 os.path.getmtime 来避免 CI/CD 环境的时间污染。
+        now_utc = datetime.now(timezone.utc)
+        now_utc8 = now_utc.astimezone(TIMEZONE_INFO)
+        # 标记为 Fallback，表示未能获取到历史修改时间
+        return f"本文构建时间: {now_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8 - Fallback)"
 
 
 def build_site():
@@ -194,7 +187,7 @@ def build_site():
             'content_html': content_html,
             'toc_html': toc_html,
             'link': os.path.join(config.POSTS_DIR_NAME, f"{slug}.html").replace('\\', '/'),
-            'footer_time_info': mod_time_cn # [NEW] 注入构建时间
+            'footer_time_info': mod_time_cn # [NEW] 注入构建时间 (文章的 Git 时间)
         }
         
         # 收集标签
@@ -244,18 +237,18 @@ def build_site():
     
     # 生成普通文章详情页
     for post in final_parsed_posts:
-        generator.generate_post_page(post) # Post 已经带有 footer_time_info
+        generator.generate_post_page(post) # Post 已经带有 footer_time_info (文章的 Git 时间)
 
     # [MODIFIED] 列表页现在需要 global_build_time_cn 参数
-    generator.generate_index_html(final_parsed_posts, global_build_time_cn)
-    generator.generate_archive_html(final_parsed_posts, global_build_time_cn)
-    generator.generate_tags_list_html(tag_map, global_build_time_cn)
+    generator.generate_index_html(final_parsed_posts, global_build_time_cn) # 列表页使用全局时间
+    generator.generate_archive_html(final_parsed_posts, global_build_time_cn) # 列表页使用全局时间
+    generator.generate_tags_list_html(tag_map, global_build_time_cn) # 列表页使用全局时间
 
     # 生成标签页
     for tag, posts in tag_map.items():
         sorted_tag = sorted(posts, key=lambda p: p['date'], reverse=True)
         # [MODIFIED] 标签详情页也使用 global_build_time_cn
-        generator.generate_tag_page(tag, sorted_tag, global_build_time_cn)
+        generator.generate_tag_page(tag, sorted_tag, global_build_time_cn) # 列表页使用全局时间
 
     generator.generate_robots_txt()
     
