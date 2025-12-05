@@ -622,11 +622,6 @@ button:focus,
     opacity: 0.7;
 }
 
-
-
-
-
-/* ... (前面内容不变) ... */
 /* ---------------------------------------------------------
    [新增样式] Q. 文章上/下导航 (Post Navigation)
    --------------------------------------------------------- */
@@ -648,6 +643,10 @@ button:focus,
     border-radius: 6px;
     text-decoration: none !important;
     transition: border-color 0.2s, background-color 0.2s;
+    /* 确保文本不会溢出或被强制换行，让它截断 */
+    overflow: hidden;
+    white-space: nowrap; 
+    text-overflow: ellipsis;
 }
 
 .nav-link:hover {
@@ -678,18 +677,22 @@ button:focus,
     color: var(--color-main-text);
     transition: color 0.2s;
     scroll-margin-top: 0; /* 导航卡片内的 h3 不需要锚点边距 */
+    /* 确保标题在卡片内截断 */
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
 }
 
 .nav-link:hover h3 { 
     color: var(--color-primary); 
 }
 
-/* 左侧 Newer Post 居左对齐 */
+/* 左侧 Newer Post / 上一篇 居左对齐 */
 .nav-link.nav-prev { 
     text-align: left; 
 }
 
-/* 右侧 Older Post 居右对齐 */
+/* 右侧 Older Post / 下一篇 居右对齐 */
 .nav-link.nav-next { 
     text-align: right; 
 }
@@ -714,9 +717,16 @@ button:focus,
         text-align: left; 
     }
     
+    /* 移动端，长标题可能需要显示两行 */
+    .nav-link h3 {
+        white-space: normal;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        height: auto;
+    }
+
     .nav-link small {
         margin-bottom: 3px;
     }
 }
-
-
