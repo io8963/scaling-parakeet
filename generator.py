@@ -1,4 +1,3 @@
-
 # generator.py (完整内容，包含所有修复)
 
 import os
@@ -89,6 +88,10 @@ def generate_post_page(post: Dict[str, Any]):
             'post_date': post.get('date_formatted', ''), # 404 可能没有 date_formatted
             'post_tags': post.get('tags', []),
             'toc_html': post.get('toc_html'),
+            # NEW: 传递导航数据
+            'prev_post_nav': post.get('prev_post_nav'),
+            'next_post_nav': post.get('next_post_nav'),
+            # END NEW
             'site_root': get_site_root_prefix(),
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
@@ -329,15 +332,7 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
         <priority>0.8</priority>
     </url>""")
     
-    # 4. 关于页 (仅在文件存在且非 hidden 时才加入)
-    # 鉴于 autobuild.py 已经处理了 about.html 的生成，这里直接判断文件是否存在
-    about_path = os.path.join(config.MARKDOWN_DIR, config.ABOUT_PAGE)
-    # 由于 about.md 示例是 hidden: true，它应该不会被加入。
-    # 为了保证逻辑一致性，这里假设如果文件存在且内容不标记 hidden: true，则加入。
-    # 因为 parsed_posts 列表只包含 *非隐藏* 的文章，我们依赖它。
-    # 但是 about.html/404.html 等是特殊页面，必须手动加入。
-    # 检查 about.html 是否生成（即 about.md 存在）且没有被 hidden 标记，但由于 about.md 默认 hidden: true，这里不应该直接添加
-    # 简单的做法是：如果 about.html 文件在 BUILD_DIR 中存在，则加入 (因为 autobuild.py 决定了是否生成)
+    # 4. 关于页 (仅在文件存在时加入)
     if os.path.exists(os.path.join(config.BUILD_DIR, 'about.html')):
         urls.append(f"""
     <url>
