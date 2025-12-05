@@ -1,0 +1,96 @@
+---
+title: 🛠️ 解决静态博客构建中的两大陷阱：时间戳不一致与增量构建失效
+date: 2025-12-06
+tags: [建站日志, 公告]
+summary: 在自建静态博客（如使用 Python 脚本生成 HTML）的过程中，我们可能会遇到两个棘手的问题：文章底部的修改时间总是相同，以及 CI/CD 每次都进行完整重建，导致构建速度缓慢。
+---
+
+## 一、Bug 1：文章时间戳不一致（都停留在同一秒） ⏰
+
+### 现象
+网站每篇文章底部显示的“本文构建时间”总是相同，或者只显示到秒，但在一次构建中，大量文件的时间戳完全一样。
+
+### 根本原因分析：精度不足
+您的构建脚本在获取文件的修改时间时，通常会遵循以下优先级：
+1. **Git Author Time**：文件在 Git 历史中最后一次提交的时间。
+2. **Filesystem Modify Time**：文件在文件系统上最后一次被修改的时间（例如，`os.path.getmtime()`）。
+
+当 Git 历史不完整（例如，浅克隆 `fetch-depth: 1`）时，系统会回退到 Filesystem Modify Time。在 CI/CD 或脚本执行环境中，一次 `git checkout` 或 `cp -R` 操作可能在**同一秒内**修改数十个文件的文件系统时间戳。
+
+如果时间格式化字符串只显示到秒（`%Y-%m-%d %H:%M:%S`），所有在 `01:30:15.000000` 到 `01:30:15.999999` 之间修改的文件，最终都会被截断显示为 `01:30:15`。
+
+### 解决方案：引入微秒精度
+在获取文件时间的代码中，将时间格式化字符串修改为包含微秒的格式（或至少确保时间获取函数具有纳秒/微秒精度）：
+
+| 旧格式 | 新格式 (推荐) |
+| :--- | :--- |
+| `%Y-%m-%d %H:%M:%S` | `%Y-%m-%d %H:%M:%S.%f` |
+
+通过在 `autobuild.py` 的 `format_file_mod_time` 函数中使用微秒 (`%f`)，即使文件在同一秒内被修改，它们也会因微秒级的差异而拥有独特的、可区分的时间戳。
+
+---
+
+## 二、Bug 2：增量构建失效（每次都完整重建） 🔄
+
+### 现象
+无论是否修改了 Markdown 源文件，CI/CD 每次运行都会重新生成所有 HTML 文件。日志中通常显示所有文件都是 `[CHANGED/NEW]`，而不是 `[SKIPPED HTML]`。
+
+### 根本原因分析：Manifest 文件丢失
+增量构建依赖于一个 **Manifest 文件**（例如 `.build_manifest.json`），它记录了上次构建时每篇文章的内容哈希值（SHA256）。
+
+这个问题通常发生在 CI/CD 环境中，有两个原因：
+1. **致命清理**：旧版构建脚本可能在开头使用了 `shutil.rmtree('_site')` **同时删除了 Manifest 文件**，强制进行完整重建。
+2. **CI 缺乏持久化**：CI/CD 环境通常是临时的。脚本虽然生成了新的 `.build_manifest.json`，但在本次构建结束后，该文件会被丢弃，**没有被提交回 Git 仓库**，导致下一次构建时仍找不到它。
+
+### 解决方案：三步实现持久化的增量构建
+要彻底解决这个问题，我们必须在构建逻辑和 CI/CD 流程中进行同步修改：
+
+**1. 移除脚本中的暴力清理**
+确保 `autobuild.py` 不会删除整个 `_site` 目录，而是只检查目录是否存在并创建：
+```python
+# autobuild.py - 移除 shutil.rmtree(config.BUILD_DIR)
+os.makedirs(config.BUILD_DIR, exist_ok=True) # ... (其余目录也使用 exist_ok=True)
+```
+
+## 二、Bug 2：增量构建失效（每次都完整重建） 🔄 (续)
+
+### 解决方案：三步实现持久化的增量构建 (续)
+
+**2. 在 CI/CD 中开启 Git 完整历史**
+Git 时间依赖于完整的历史记录。在 GitHub Actions 中，必须设置 `fetch-depth: 0`。
+```yaml
+- name: Checkout Repository (Full History)
+  uses: actions/checkout@v4
+  with:
+      fetch-depth: 0 # 必须获取完整的 Git 历史
+
+```
+在构建成功后，使用 GitHub Actions 的机器人身份将更新后的 `.build_manifest.json` 提交回仓库，从而实现跨构建的持久化。
+
+```yaml
+# .github/workflows/autobuild.yml
+# ...
+jobs:
+  build:
+    # 必须赋予写入权限
+    permissions:
+      contents: write 
+
+    steps:
+    # ... (安装依赖和运行构建脚本) ...
+    
+    - name: Commit Build Manifest for Incremental Build
+      run: |
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+        git add .build_manifest.json        
+        # 仅在文件有实际变动时才推送
+        if git diff --cached --exit-code; then
+            echo "Manifest file unchanged. Skipping commit."
+        else
+            git commit -m "chore: [CI] Update build manifest for incremental builds"
+            git push
+        fi
+
+
+```
