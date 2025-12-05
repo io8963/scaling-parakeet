@@ -20,6 +20,9 @@
 
 </head>
 <body class="page-{{page_id}}">
+    <!-- 优化: 1.1 A11Y: Skip Link 跳到主内容 -->
+    <a href="#main-content" class="skip-link">跳到主内容</a> 
+
     <header>
         <div class="header-inner">
             <a href="{{site_root}}/" class="site-title">{{blog_title}}</a>
@@ -75,8 +78,13 @@
                 {%- if page_id == 'index' or page_id == 'tag' or page_id == 'archive' -%} 
                     
                     {%- if page_id == 'tag' -%}
-                        <h1 class="page-list-title"># {{tag}}</h1>
-                        <p style="color: var(--color-main-subtext); margin-bottom: 40px; font-size: 0.9rem;">共 {{posts | length}} 篇文章</p>
+                        <!-- 优化: 3.3 标签页导航增强 -->
+                        <div class="tag-meta-info">
+                            <h1 class="page-list-title"># {{tag}}</h1>
+                            <p style="color: var(--color-main-subtext); margin-bottom: 20px; font-size: 0.9rem;">共 {{posts | length}} 篇文章</p>
+                            <a href="{{site_root}}/tags.html" class="button button-secondary button-small">← 所有标签</a>
+                        </div>
+                        <hr style="border: none; border-top: 1px solid var(--color-main-border); margin: 30px 0;">
                     {%- elif page_id == 'archive' -%}
                         <!-- 归档页由 generator 直接生成 HTML -->
                     {%- endif -%}
