@@ -1,4 +1,4 @@
-# autobuild.py
+# autobuild.py - Fixed 404 Logic
 
 import os
 import shutil
@@ -28,11 +28,11 @@ def hash_file(filepath: str) -> str:
 
 def build_site():
     print("\n" + "="*40)
-    print("   🚀 STARTING BUILD PROCESS (With 404 Support)")
+    print("   🚀 STARTING BUILD PROCESS (Fix 404 List Issue)")
     print("="*40 + "\n")
     
     # -------------------------------------------------------------
-    # 1. 强力清理
+    # 1. 清理工作区
     # -------------------------------------------------------------
     print("[1/4] Cleaning Workspace...")
     if os.path.exists(config.BUILD_DIR):
@@ -59,12 +59,11 @@ def build_site():
         new_css = f"style.{css_hash}.css"
         config.CSS_FILENAME = new_css
         shutil.copy2(css_source, os.path.join(assets_dir, new_css))
-        print(f"   -> CSS Hashed: {new_css}")
     else:
         config.CSS_FILENAME = 'style.css'
 
     # -------------------------------------------------------------
-    # 3. 解析 Markdown (核心修改部分)
+    # 3. 解析 Markdown (关键修复部分)
     # -------------------------------------------------------------
     print("\n[3/4] Parsing Markdown Files...")
     
@@ -77,34 +76,54 @@ def build_site():
     for md_file in md_files:
         metadata, content_md, content_html, toc_html = get_metadata_and_content(md_file)
         
-        # 必须要有 slug
-        if 'slug' not in metadata: continue
-        
-        slug = metadata['slug']
-        
-        # --- [新增逻辑] 特殊处理 404 页面 ---
-        if slug == '404':
-            # 1. 构造特殊路径：直接在根目录，不是 posts/
+        # 自动补全 slug
+        if 'slug' not in metadata:
+            # 如果没有 slug，用文件名
+            filename_slug = os.path.splitext(os.path.basename(md_file))[0]
+            metadata['slug'] = filename_slug
+
+        slug = str(metadata['slug']).lower()
+        file_name = os.path.basename(md_file)
+
+        # -------------------------------------------------------
+        # [关键修复] 404 页面拦截器
+        # 只要 slug 是 404 或者文件名是 404.md，立即单独处理
+        # -------------------------------------------------------
+        if slug == '404' or file_name == '404.md':
+            print(f"   -> [Special] Generating 404.html (Excluded from list)")
+            
+            # 构造特殊数据对象
             special_post = {
                 **metadata, 
                 'content_markdown': content_md,
                 'content_html': content_html,
-                'toc_html': '', # 404页面一般不需要目录
-                'link': '404.html' # 关键：生成到根目录
+                'toc_html': '', 
+                'link': '404.html' # 强制指定输出到根目录
             }
-            # 2. 立即生成文件
+            # 立即生成文件
             generator.generate_post_page(special_post)
-            print("   -> Generated specialized page: 404.html")
-            # 3. continue，不把它加入文章列表
-            continue
-        # ----------------------------------
-
-        # 普通文章处理：跳过 hidden
-        if metadata.get('hidden') is True: continue
-        
-        # 检查必要字段
-        if not all(k in metadata for k in ['date', 'title']): continue
             
+            # ！！！关键：continue 跳过，绝对不加入 parsed_posts 列表！！！
+            continue 
+        # -------------------------------------------------------
+
+        # 过滤 hidden 标记的文章 (双重保险)
+        if metadata.get('hidden') is True: 
+            # 如果是 hidden 或者是 about 页面，我们可以选择生成它但不加入列表
+            # 这里为了简单，如果想生成 about.html 但不加入列表，可以在这里加逻辑
+            # 目前逻辑是 hidden 的直接忽略，或者如果你想生成单页：
+            if slug == 'about':
+                 special_post = { **metadata, 'content_html': content_html, 'toc_html': '', 'link': 'about.html' }
+                 generator.generate_post_page(special_post)
+                 print(f"   -> [Special] Generating about.html")
+            
+            continue 
+
+        # 检查普通文章的必要字段
+        if not all(k in metadata for k in ['date', 'title']): 
+            continue
+            
+        # 普通文章处理
         post = {
             **metadata, 
             'content_markdown': content_md,
@@ -113,26 +132,31 @@ def build_site():
             'link': os.path.join(config.POSTS_DIR_NAME, f"{slug}.html").replace('\\', '/')
         }
         
+        # 收集标签
         for tag_data in post.get('tags', []):
             tag_map[tag_data['name']].append(post)
             
         parsed_posts.append(post)
 
+    # 排序
     final_parsed_posts = sorted(parsed_posts, key=lambda p: p['date'], reverse=True)
-    print(f"   -> Parsed {len(final_parsed_posts)} blog posts.")
+    print(f"   -> Successfully parsed {len(final_parsed_posts)} blog posts.")
 
     # -------------------------------------------------------------
     # 4. 生成 HTML
     # -------------------------------------------------------------
     print("\n[4/4] Generating HTML...")
     
+    # 生成普通文章详情页
     for post in final_parsed_posts:
         generator.generate_post_page(post)
     
+    # 生成列表页 (此时 final_parsed_posts 里绝对没有 404)
     generator.generate_index_html(final_parsed_posts)
     generator.generate_archive_html(final_parsed_posts)
     generator.generate_tags_list_html(tag_map)
 
+    # 生成标签页
     for tag, posts in tag_map.items():
         sorted_tag = sorted(posts, key=lambda p: p['date'], reverse=True)
         generator.generate_tag_page(tag, sorted_tag)
