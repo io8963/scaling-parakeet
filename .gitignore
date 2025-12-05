@@ -4,6 +4,7 @@
 _site/
 posts/
 tags/
+.build_manifest.json  # [新增] 忽略构建清单文件
 
 # 忽略 Python 缓存
 __pycache__/
