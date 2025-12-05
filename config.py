@@ -28,7 +28,8 @@ MARKDOWN_EXTENSIONS = [
     'toc',                # 目录
     'admonition',         # 提示块
     'sane_lists',         # 更好的列表
-    'pymdownx.tasklist',  # [新增] 任务列表支持 (- [ ])
+    'pymdownx.tasklist',  # 任务列表支持 (- [ ])
+    'pymdownx.tilde',     # [新增] 删除线支持 (~~text~~)
 ]
 
 # 2. 扩展具体配置 (！！！关键修复：使用短名称作为键！！！)
@@ -44,7 +45,6 @@ MARKDOWN_EXTENSION_CONFIGS = {
         'noclasses': True,             # True = 使用内联样式 (直接生成带颜色的 HTML)
         'guess_lang': True,            # 自动猜测语言
     },
-    # [新增] 任务列表配置
     'pymdownx.tasklist': {
         'custom_checkbox': True,      # 允许使用 CSS 自定义样式
         'clickable_checkbox': False,  # 静态页面通常设为不可点击
