@@ -1,4 +1,4 @@
-# autobuild.py
+# autobuild.py - Final Strict Version
 
 import os
 import shutil
@@ -15,96 +15,80 @@ import generator
 try:
     import pygments
 except ImportError:
-    print("!!!! WARNING: Pygments not found. Code highlighting will be disabled. !!!!")
-
+    pass
 
 def hash_file(filepath: str) -> str:
-    """计算文件的 SHA256 哈希值的前8位"""
     hasher = hashlib.sha256()
     try:
         with open(filepath, 'rb') as f:
-            buf = f.read()
-            hasher.update(buf)
+            hasher.update(f.read())
         return hasher.hexdigest()[:8]
     except FileNotFoundError:
         return 'nohash'
 
-
 def build_site():
-    print("\n========================================")
-    print("   🚀 Starting Fresh Build Process")
-    print("========================================\n")
+    print("\n" + "="*40)
+    print("   🚀 STARTING STRICT BUILD PROCESS")
+    print("="*40 + "\n")
     
     # -------------------------------------------------------------
-    # 1. 暴力清理 (Aggressive Clean)
+    # 1. 强力清理 (Force Clean)
     # -------------------------------------------------------------
-    # Cloudflare 环境中有时会保留缓存，这里我们强制删除整个构建目录
-    # 确保没有任何“僵尸”文件残留。
-    # -------------------------------------------------------------
-    print("--- 1. Cleaning Workspace ---")
+    print("[1/4] Cleaning Workspace...")
     
+    # 只要存在 _site 目录，无论里面有什么，全部铲除
     if os.path.exists(config.BUILD_DIR):
-        print(f"   [Clean] Removing entire build directory: {config.BUILD_DIR}")
-        try:
-            shutil.rmtree(config.BUILD_DIR)
-        except Exception as e:
-            print(f"   [Error] Failed to clean build dir: {e}")
-            # 如果删除失败（极少见），尝试手动清空内容
-            for item in os.listdir(config.BUILD_DIR):
-                path = os.path.join(config.BUILD_DIR, item)
-                if item not in ['.git', 'CNAME']: # 保护 GitHub Pages 相关文件
-                    if os.path.isdir(path): shutil.rmtree(path, ignore_errors=True)
-                    else: os.remove(path)
+        print(f"   -> Removing directory: {config.BUILD_DIR}")
+        shutil.rmtree(config.BUILD_DIR)
     
-    # 重新创建空目录
-    os.makedirs(config.BUILD_DIR, exist_ok=True)
-    os.makedirs(config.POSTS_OUTPUT_DIR, exist_ok=True)
-    os.makedirs(config.TAGS_OUTPUT_DIR, exist_ok=True)
-    os.makedirs(config.STATIC_OUTPUT_DIR, exist_ok=True) 
-    
-    print("   [Init] Build directories created.")
+    # 重新建立空目录
+    os.makedirs(config.BUILD_DIR)
+    os.makedirs(config.POSTS_OUTPUT_DIR)
+    os.makedirs(config.TAGS_OUTPUT_DIR)
+    os.makedirs(config.STATIC_OUTPUT_DIR)
+    print("   -> Workspace is now empty and clean.")
 
     # -------------------------------------------------------------
-    # 2. 资源处理 (CSS Hash)
+    # 2. 资源处理
     # -------------------------------------------------------------
-    print("\n--- 2. Processing Assets ---")
+    print("\n[2/4] Processing Assets...")
     assets_dir = os.path.join(config.BUILD_DIR, 'assets')
     os.makedirs(assets_dir, exist_ok=True)
     
-    # 复制静态资源
     if os.path.exists(config.STATIC_DIR):
         shutil.copytree(config.STATIC_DIR, config.STATIC_OUTPUT_DIR, dirs_exist_ok=True)
     
-    # 处理 CSS
-    css_source_path = 'assets/style.css'
-    if os.path.exists(css_source_path):
-        css_hash = hash_file(css_source_path)
-        new_css_filename = f"style.{css_hash}.css"
-        config.CSS_FILENAME = new_css_filename # 更新配置
-        
-        shutil.copy2(css_source_path, os.path.join(assets_dir, new_css_filename))
-        print(f"   [Asset] CSS hashed: {new_css_filename}")
+    css_source = 'assets/style.css'
+    if os.path.exists(css_source):
+        css_hash = hash_file(css_source)
+        new_css = f"style.{css_hash}.css"
+        config.CSS_FILENAME = new_css
+        shutil.copy2(css_source, os.path.join(assets_dir, new_css))
+        print(f"   -> CSS Hashed: {new_css}")
     else:
         config.CSS_FILENAME = 'style.css'
-        print("   [Warn] style.css not found, using default name.")
+        print("   -> Warning: style.css not found.")
 
     # -------------------------------------------------------------
-    # 3. 解析 Markdown (Core Logic)
+    # 3. 解析 Markdown (Parsing)
     # -------------------------------------------------------------
-    print("\n--- 3. Parsing Markdown ---")
+    print("\n[3/4] Parsing Markdown Files...")
     
+    # 获取所有 md 文件
     md_files = glob.glob(os.path.join(config.MARKDOWN_DIR, '*.md'))
-    if not md_files: md_files = glob.glob('*.md') # 兼容模式
+    if not md_files: md_files = glob.glob('*.md')
     
-    parsed_posts: List[Dict[str, Any]] = []
+    parsed_posts = []
     tag_map = defaultdict(list)
     
+    # 记录解析到的文件名，用于调试
+    parsed_slugs = []
+
     for md_file in md_files:
         metadata, content_md, content_html, toc_html = get_metadata_and_content(md_file)
         
-        # 过滤隐藏文章
+        # 跳过 hidden 或无效文件
         if metadata.get('hidden') is True: continue
-        # 过滤无效文章
         if not all(k in metadata for k in ['date', 'title', 'slug']): continue
             
         post = {
@@ -112,51 +96,51 @@ def build_site():
             'content_markdown': content_md,
             'content_html': content_html,
             'toc_html': toc_html,
-            # 统一路径分隔符，防止 Windows/Linux 路径差异
             'link': os.path.join(config.POSTS_DIR_NAME, f"{metadata['slug']}.html").replace('\\', '/')
         }
         
-        tag_map_entries = post.get('tags', [])
-        for tag_data in tag_map_entries:
+        for tag_data in post.get('tags', []):
             tag_map[tag_data['name']].append(post)
             
         parsed_posts.append(post)
+        parsed_slugs.append(metadata['slug'])
 
-    # 按日期排序
     final_parsed_posts = sorted(parsed_posts, key=lambda p: p['date'], reverse=True)
-    print(f"   [Parsed] Processed {len(final_parsed_posts)} valid articles.")
+    print(f"   -> Parsed {len(final_parsed_posts)} articles.")
+    print(f"   -> Valid Slugs found: {parsed_slugs}") 
+    # ^ 在 Cloudflare 日志里看这一行，确保删除的文章确实没出现在这里
 
     # -------------------------------------------------------------
-    # 4. 生成 HTML (Generation)
+    # 4. 生成与验证 (Generation & Verification)
     # -------------------------------------------------------------
-    print("\n--- 4. Generating Pages ---")
+    print("\n[4/4] Generating HTML...")
     
-    # 文章详情页
+    # 生成文章
     for post in final_parsed_posts:
         generator.generate_post_page(post)
     
-    # 列表页 (传入的列表中绝对不包含已删除的 MD 文件)
+    # 生成列表
     generator.generate_index_html(final_parsed_posts)
     generator.generate_archive_html(final_parsed_posts)
     generator.generate_tags_list_html(tag_map)
 
-    # 标签详情页
+    # 生成标签页
     for tag, posts in tag_map.items():
         sorted_tag = sorted(posts, key=lambda p: p['date'], reverse=True)
         generator.generate_tag_page(tag, sorted_tag)
 
-    # 站点地图与RSS
+    # 生成 Sitemap/RSS
     generator.generate_robots_txt()
-    
     with open(os.path.join(config.BUILD_DIR, config.SITEMAP_FILE), 'w', encoding='utf-8') as f:
         f.write(generator.generate_sitemap(final_parsed_posts))
-        
     with open(os.path.join(config.BUILD_DIR, config.RSS_FILE), 'w', encoding='utf-8') as f:
         f.write(generator.generate_rss(final_parsed_posts))
         
-    print(f"\n✅ Build Complete! Output directory: {config.BUILD_DIR}/")
-    print("========================================\n")
-
+    print("\n" + "="*40)
+    print(f"   ✅ BUILD SUCCESSFUL")
+    print(f"   Output: {config.BUILD_DIR}/")
+    print(f"   Total Generated: {len(final_parsed_posts)} posts")
+    print("="*40 + "\n")
 
 if __name__ == '__main__':
     build_site()
