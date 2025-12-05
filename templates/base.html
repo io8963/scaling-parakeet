@@ -1,3 +1,4 @@
+
 <!DOCTYPE html>
 <html lang="zh-cn"> <!-- FIXED: Replaced {{lang}} with "zh-cn" for Chinese site -->
 <head>
@@ -44,6 +45,7 @@
                                 <!-- [优化 1] 日期显示强化 -->
                                 <span class="meta-date">
                                     {{post_date}}
+                                
                                 </span>
                                 
                                 <!-- [优化 1] 标签列表容器调整 -->
@@ -91,8 +93,22 @@
                     {% for post in posts %}
                         <a href="{{site_root}}/{{post.link}}" class="post-list-item">
                             
-                            <!-- 1. 日期前置 -->
-                            <span class="meta-date">{{post.date_formatted}}</span>
+                            <!-- 1. 新的元数据顶部容器 -->
+                            <div class="post-list-meta-top">
+                                <!-- 日期 -->
+                                <span class="meta-date">{{post.date_formatted}}</span>
+
+                                <!-- 标签 -->
+                                {% if post.tags %}
+                                <div class="post-meta-list">
+                                    <ul class="tags-list">
+                                    {% for tag in post.tags %}
+                                        <li><span class="tag-badge">{{tag.name}}</span></li>
+                                    {% endfor %}
+                                    </ul>
+                                </div>
+                                {% endif %}
+                            </div>
 
                             <!-- 2. 标题 -->
                             <h2 class="post-title">{{post.title}}</h2>
@@ -102,17 +118,6 @@
                                 <p class="post-excerpt">{{post.excerpt}}</p>
                             {% endif %}
                             
-                            <!-- 4. 底部标签 (Hashtag 风格) -->
-                            {% if post.tags %}
-                            <div class="post-meta-list">
-                                <ul class="tags-list">
-                                {% for tag in post.tags %}
-                                    <!-- [优化 1] 列表页标签也移除硬编码的 # 符号 -->
-                                    <li><span class="tag-badge">{{tag.name}}</span></li>
-                                {% endfor %}
-                                </ul>
-                            </div>
-                            {% endif %}
                         </a>
                     {% endfor %}
                     </div>
