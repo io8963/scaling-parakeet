@@ -6,11 +6,15 @@ import glob
 import hashlib
 from typing import List, Dict, Any
 from collections import defaultdict
-from datetime import datetime # [NEW] 导入 datetime
+from datetime import datetime, timezone, timedelta # [修改] 导入 timezone, timedelta
 
 import config
 from parser import get_metadata_and_content
 import generator
+
+# [新增] 定义 UTC+8 时区信息
+TIMEZONE_OFFSET = timedelta(hours=8)
+TIMEZONE_INFO = timezone(TIMEZONE_OFFSET)
 
 # --- 检查依赖 ---
 try:
@@ -27,18 +31,25 @@ def hash_file(filepath: str) -> str:
     except FileNotFoundError:
         return 'nohash'
 
-# [NEW FUNCTION] 获取文件的最后修改时间并格式化
+# [修改 FUNCTION] 获取文件的最后修改时间并格式化为 UTC+8
 def format_file_mod_time(filepath: str) -> str:
-    """获取文件的最后修改时间并格式化为中文构建时间。"""
+    """获取文件的最后修改时间并格式化为中文构建时间 (UTC+8)。"""
     try:
         mtime_timestamp = os.path.getmtime(filepath)
-        mtime_dt = datetime.fromtimestamp(mtime_timestamp)
-        return f"本文构建时间: {mtime_dt.strftime('%Y-%m-%d %H:%M:%S')} UTC"
+        # 1. 获取 UTC datetime 对象 (从时间戳)
+        mtime_dt_utc = datetime.fromtimestamp(mtime_timestamp, timezone.utc)
+        # 2. 转换为 UTC+8
+        mtime_dt_utc8 = mtime_dt_utc.astimezone(TIMEZONE_INFO)
+        # 3. 格式化并标记时区
+        return f"本文构建时间: {mtime_dt_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8)"
     except FileNotFoundError:
-        # 对于非Markdown生成的页面（如 index, archive），需要一个通用时间
-        return f"最新构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC"
+        # 对于非Markdown生成的页面（如 index, archive），使用当前构建时间
+        now_utc = datetime.now(timezone.utc)
+        now_utc8 = now_utc.astimezone(TIMEZONE_INFO)
+        return f"最新构建时间: {now_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8)"
     except Exception:
-         return f"最新构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC"
+         # 异常时的安全回退
+         return f"最新构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
 
 
 def build_site():
@@ -204,8 +215,10 @@ def build_site():
     # -------------------------------------------------------------
     print("\n[4/4] Generating HTML...")
     
-    # [NEW] 为列表/静态页面生成一个通用的网站构建时间
-    global_build_time_cn = f"网站构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    # [修改] 为列表/静态页面生成一个通用的网站构建时间 (UTC+8)
+    now_utc = datetime.now(timezone.utc)
+    now_utc8 = now_utc.astimezone(TIMEZONE_INFO)
+    global_build_time_cn = f"网站构建时间: {now_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8)"
     
     # 生成普通文章详情页
     for post in final_parsed_posts:
