@@ -6,6 +6,7 @@ import glob
 import hashlib
 from typing import List, Dict, Any
 from collections import defaultdict
+from datetime import datetime # [NEW] 导入 datetime
 
 import config
 from parser import get_metadata_and_content
@@ -25,6 +26,20 @@ def hash_file(filepath: str) -> str:
         return hasher.hexdigest()[:8]
     except FileNotFoundError:
         return 'nohash'
+
+# [NEW FUNCTION] 获取文件的最后修改时间并格式化
+def format_file_mod_time(filepath: str) -> str:
+    """获取文件的最后修改时间并格式化为中文构建时间。"""
+    try:
+        mtime_timestamp = os.path.getmtime(filepath)
+        mtime_dt = datetime.fromtimestamp(mtime_timestamp)
+        return f"生成自文件修改时间: {mtime_dt.strftime('%Y-%m-%d %H:%M:%S')}"
+    except FileNotFoundError:
+        # 对于非Markdown生成的页面（如 index, archive），需要一个通用时间
+        return f"网站构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    except Exception:
+         return f"网站构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+
 
 def build_site():
     print("\n" + "="*40)
@@ -84,6 +99,9 @@ def build_site():
 
         slug = str(metadata['slug']).lower()
         file_name = os.path.basename(md_file)
+        
+        # [NEW] 获取当前 MD 文件的修改时间
+        mod_time_cn = format_file_mod_time(md_file)
 
         # -------------------------------------------------------
         # [关键修复] 404 页面拦截器
@@ -98,7 +116,8 @@ def build_site():
                 'content_markdown': content_md,
                 'content_html': content_html,
                 'toc_html': '', 
-                'link': '404.html' # 强制指定输出到根目录
+                'link': '404.html', # 强制指定输出到根目录
+                'footer_time_info': mod_time_cn # [NEW] 注入构建时间
             }
             # 立即生成文件
             generator.generate_post_page(special_post)
@@ -111,8 +130,21 @@ def build_site():
         if metadata.get('hidden') is True: 
             # 如果是 hidden，检查是否是 about 页面
             if slug == 'about' or file_name == config.ABOUT_PAGE:
-                 special_post = { **metadata, 'content_html': content_html, 'toc_html': '', 'link': 'about.html' }
-                 generator.generate_page_html(special_post['content_html'], special_post['title'], 'about', 'about.html')
+                 special_post = { 
+                     **metadata, 
+                     'content_html': content_html, 
+                     'toc_html': '', 
+                     'link': 'about.html',
+                     'footer_time_info': mod_time_cn # [NEW] 注入构建时间
+                 }
+                 # [MODIFIED] generate_page_html 现在需要 footer_time_info 参数
+                 generator.generate_page_html(
+                     special_post['content_html'], 
+                     special_post['title'], 
+                     'about', 
+                     'about.html',
+                     special_post['footer_time_info']
+                 )
                  print(f"   -> [Special] Generating about.html (Hidden)")
             
             # Hidden 页面不加入列表
@@ -128,7 +160,8 @@ def build_site():
             'content_markdown': content_md,
             'content_html': content_html,
             'toc_html': toc_html,
-            'link': os.path.join(config.POSTS_DIR_NAME, f"{slug}.html").replace('\\', '/')
+            'link': os.path.join(config.POSTS_DIR_NAME, f"{slug}.html").replace('\\', '/'),
+            'footer_time_info': mod_time_cn # [NEW] 注入构建时间
         }
         
         # 收集标签
@@ -171,19 +204,23 @@ def build_site():
     # -------------------------------------------------------------
     print("\n[4/4] Generating HTML...")
     
+    # [NEW] 为列表/静态页面生成一个通用的网站构建时间
+    global_build_time_cn = f"网站构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    
     # 生成普通文章详情页
     for post in final_parsed_posts:
-        generator.generate_post_page(post)
-    
-    # 生成列表页 (此时 final_parsed_posts 里绝对没有 404/hidden)
-    generator.generate_index_html(final_parsed_posts)
-    generator.generate_archive_html(final_parsed_posts)
-    generator.generate_tags_list_html(tag_map)
+        generator.generate_post_page(post) # Post 已经带有 footer_time_info
+
+    # [MODIFIED] 列表页现在需要 global_build_time_cn 参数
+    generator.generate_index_html(final_parsed_posts, global_build_time_cn)
+    generator.generate_archive_html(final_parsed_posts, global_build_time_cn)
+    generator.generate_tags_list_html(tag_map, global_build_time_cn)
 
     # 生成标签页
     for tag, posts in tag_map.items():
         sorted_tag = sorted(posts, key=lambda p: p['date'], reverse=True)
-        generator.generate_tag_page(tag, sorted_tag)
+        # [MODIFIED] 标签详情页也使用 global_build_time_cn
+        generator.generate_tag_page(tag, sorted_tag, global_build_time_cn)
 
     generator.generate_robots_txt()
     
