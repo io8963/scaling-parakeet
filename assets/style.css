@@ -692,7 +692,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     padding-top: 15px;
     
     /* [优化 2] 整体使用等宽字体，增加卡片感 */
-    font-family: monospace; 
+    /* 移除 font-family: monospace; 避免它对 flex 元素的高度产生不可预测影响 */
 }
 
 /* [新增] 确保文章内容区的第一个 H2 顶部间距较小 */
@@ -708,20 +708,21 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     gap: 15px; 
 }
 
-/* [优化 1] 强化日期显示效果 */
+/* [最终修复] 强化日期显示效果并确保对齐 */
 .meta-date {
-    /* [优化] 作为一个卡片显示 */
-    padding: 2px 6px; /* 调整内边距，使其更窄 */
-    border-radius: 4px; /* [修复 1] 统一圆角 */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; /* 统一字体 */
+    font-size: 0.9rem; /* 统一字体大小 */
+    
+    padding: 3px 6px; /* 调整内边距，与标签保持一致 */
+    border-radius: 4px; 
     background-color: var(--color-code-bg); 
     border: 1px solid var(--color-main-border);
-    opacity: 1; /* 确保日期清晰可见 */
+    opacity: 1; 
     
-    /* [修复 1] 确保垂直对齐 */
     display: flex;
     align-items: center;
-    line-height: 1.2; /* 紧凑行高 */
-    /* [修复] 移除固定高度，让内容和内边距决定高度，以实现与标签完美对齐 */
+    line-height: 1.2; 
+    /* 移除固定高度/行高，让 Flexbox 自然居中 */
 }
 @media (prefers-color-scheme: dark) {
     .meta-date {
@@ -732,10 +733,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 
 .meta-tags {
-    /* [优化 1] 移除冗余 div，直接使用 flex 布局 */
     display: flex;
     align-items: center;
-    /* [修复 1] 确保标签列表也继承 flexbox 的对齐 */
     line-height: 1.2;
 }
 
@@ -747,24 +746,23 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0;
     list-style: none;
 }
-/* [修改 - 标签与日期对齐] 增强徽章视觉效果，使其成为卡片，并与日期卡片统一高度 */
+/* [最终修复] 标签徽章样式 - 完美对齐日期 */
 .meta-tags .tag-badge {
     color: var(--color-main-subtext);
     text-decoration: none;
-    transition: all 0.2s ease; /* 简化过渡 */
+    transition: all 0.2s ease; 
     
-    /* [新增/修复] 增强徽章视觉效果，使其与日期卡片风格统一 */
-    padding: 2px 6px; /* 调整内边距，与 meta-date 保持一致 */
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; /* 统一字体 */
+    font-size: 0.9rem; /* 统一字体大小 */
+    padding: 3px 6px; /* 调整内边距，与日期保持一致 */
     border-radius: 4px; 
     background-color: var(--color-code-bg);
-    border: 1px solid var(--color-main-border); /* 与 meta-date 统一边框 */
+    border: 1px solid var(--color-main-border); /* 与日期统一边框 */
     font-weight: 500;
     
-    /* [修复] 确保垂直对齐和高度一致 - 使用 Flexbox 实现精确居中 */
-    display: flex; /* 关键修复：改为 flex 容器 */
-    align-items: center; /* 关键修复：垂直居中文本 */
+    display: flex; /* 关键：使用 Flexbox 实现完美垂直居中 */
+    align-items: center; /* 关键：垂直居中文本 */
     line-height: 1.2;
-    /* [修复] 移除固定高度，让内容和内边距决定高度，以实现与日期完美对齐 */
 }
 .meta-tags .tag-badge:hover {
     color: var(--color-primary);
