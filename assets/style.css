@@ -144,7 +144,7 @@ header nav a::after {
 h1, h2, h3, h4, h5, h6 {
     /* [优化 3] 标题行高略低，增加紧凑感 */
     line-height: 1.25; 
-    margin-top: 1.5em;
+    margin-top: 1.5em; /* 默认大间距 */
     margin-bottom: 0.6em;
     font-weight: 700;
     color: var(--color-main-text);
@@ -169,6 +169,13 @@ h3 {
     h1, h2, h3, h4, h5, h6 {
         color: #ededed;
     }
+}
+
+/* [优化 1] 标题紧随标题时，减少顶部间距，强调结构紧凑 */
+.post-content h2 + h3,
+.post-content h3 + h4,
+.post-content h4 + h5 {
+    margin-top: 0.8em; /* 减小到默认的一半多一点 */
 }
 
 
@@ -426,12 +433,23 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 .post-content ul li,
 .post-content ol li {
-    padding: 3px 0;
+    padding: 3px 5px; /* [优化 2] 增加左右内边距，留给悬停背景空间 */
     /* 列表项之间添加一个非常浅的虚线分隔 */
     border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
     margin-bottom: 0.8em;
     /* 覆盖回列表文字的颜色 */
     color: var(--color-main-text); 
+    
+    /* [优化 2] 悬停过渡 */
+    transition: background-color 0.2s;
+    margin-left: -5px; /* 略微负边距，让背景铺满 */
+    width: calc(100% + 5px); /* 弥补负边距 */
+}
+
+/* [优化 2] 列表项悬停反馈 */
+.post-content ul li:hover,
+.post-content ol li:hover {
+    background-color: rgba(0, 0, 0, 0.015); /* 极浅的背景色 */
 }
 
 /* 最后一个列表项移除分隔线 */
@@ -455,6 +473,10 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     .post-content ul li::marker,
     .post-content ol li::marker {
         color: var(--color-link-dark);
+    }
+    .post-content ul li:hover,
+    .post-content ol li:hover {
+        background-color: rgba(255, 255, 255, 0.03);
     }
 }
 
@@ -484,10 +506,23 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 
+/* [优化 3] 图片说明文字的风格化 */
 .post-content img + em {
-    display: block; text-align: center; font-size: 0.85rem;
-    color: var(--color-main-subtext); margin-top: -20px; margin-bottom: 30px; font-style: normal;
+    display: block; 
+    text-align: center; 
+    font-size: 0.85rem;
+    color: var(--color-main-subtext); 
+    
+    /* [新增] 风格化说明文字 */
+    font-family: monospace; /* 等宽字体增强元数据感 */
+    border-top: 1px solid var(--color-main-border);
+    border-bottom: 1px solid var(--color-main-border);
+    padding: 5px 0;
+    margin-top: -20px; 
+    margin-bottom: 30px; 
+    font-style: normal;
 }
+
 
 /* [优化 2] Blockquote 优化 */
 .post-content blockquote {
@@ -673,7 +708,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 .meta-date {
-    /* font-family: monospace; 已移至 .post-meta */
+    /* [优化 2] 移除冗余的字体声明，继承自 .post-meta */
 }
 
 .meta-tags .tags-list {
