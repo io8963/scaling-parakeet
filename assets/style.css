@@ -516,7 +516,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     /* [新增] 风格化说明文字 */
     font-family: monospace; /* 等宽字体增强元数据感 */
     border-top: 1px solid var(--color-main-border);
-    border-bottom: 13px solid var(--color-main-border);
+    border-bottom: 1px solid var(--color-main-border);
     padding: 5px 0;
     margin-top: -20px; 
     margin-bottom: 30px; 
@@ -721,7 +721,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     display: flex;
     align-items: center;
     line-height: 1.2; /* 紧凑行高 */
-    height: 1.8em; /* 确保高度一致，弥补无 border-box 的行高差异 */
+    /* [修复] 移除固定高度，让内容和内边距决定高度，以实现与标签完美对齐 */
 }
 @media (prefers-color-scheme: dark) {
     .meta-date {
@@ -760,10 +760,11 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border: 1px solid var(--color-main-border); /* 与 meta-date 统一边框 */
     font-weight: 500;
     
-    /* [修复] 确保垂直对齐和高度一致 */
-    display: inline-block; /* 确保能设置高度和内边距 */
+    /* [修复] 确保垂直对齐和高度一致 - 使用 Flexbox 实现精确居中 */
+    display: flex; /* 关键修复：改为 flex 容器 */
+    align-items: center; /* 关键修复：垂直居中文本 */
     line-height: 1.2;
-    height: 1.8em; /* 与 meta-date 高度一致 */
+    /* [修复] 移除固定高度，让内容和内边距决定高度，以实现与日期完美对齐 */
 }
 .meta-tags .tag-badge:hover {
     color: var(--color-primary);
