@@ -712,16 +712,13 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .meta-date {
     /* [新增] 作为一个卡片显示 */
     padding: 4px 8px;
-    border-radius: 4px; /* [修复 1] 统一圆角为 4px */
+    border-radius: 4px;
     background-color: var(--color-code-bg); 
     border: 1px solid var(--color-main-border);
     opacity: 1; /* 确保日期清晰可见 */
     
     /* [优化 2] 移除冗余的字体声明，继承自 .post-meta */
     padding-right: 0; 
-    
-    /* [修复 2] 确保与标签垂直居中对齐 */
-    line-height: 1; 
 }
 @media (prefers-color-scheme: dark) {
     .meta-date {
@@ -745,7 +742,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0;
     list-style: none;
 }
-/* [优化 1 & 修复 1] 增强徽章视觉效果，使其成为统一圆角的卡片 */
+/* [优化 1] 增强徽章视觉效果，使其成为药丸卡片 */
 .meta-tags .tag-badge {
     color: var(--color-main-subtext);
     text-decoration: none;
@@ -753,13 +750,10 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     
     /* [新增] 增强徽章视觉效果 */
     padding: 2px 8px; /* 略微增加水平内边距 */
-    border-radius: 4px; /* [修复 1] 统一圆角为 4px */
+    border-radius: 12px; /* 药丸形状 */
     background-color: var(--color-code-bg);
     border: 1px solid var(--color-main-border);
     font-weight: 500;
-    
-    /* [修复 2] 确保与日期垂直居中对齐 */
-    line-height: 1.5; 
 }
 .meta-tags .tag-badge:hover {
     color: var(--color-primary);
