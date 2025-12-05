@@ -136,13 +136,13 @@
                 {%- endif -%}
                 
                 {# ------------------------------------------------------------------------ #}
-                {# [新增] 文章上下导航 #}
+                {# [新增] 文章上/下导航 (已改为汉字) #}
                 {%- if page_id == 'post' and (prev_post_nav or next_post_nav) -%}
                 <nav class="post-navigation">
                     {# Newer Article (时间上更近, 列表中的前一个) #}
                     {% if prev_post_nav %}
                     <a href="{{site_root}}/{{prev_post_nav.link}}" class="nav-link nav-prev">
-                        <small>← Newer Article</small>
+                        <small>← 上一篇 (较新)</small>
                         <h3>{{prev_post_nav.title}}</h3>
                     </a>
                     {% else %}
@@ -152,7 +152,7 @@
                     {# Older Article (时间上更远, 列表中的后一个) #}
                     {% if next_post_nav %}
                     <a href="{{site_root}}/{{next_post_nav.link}}" class="nav-link nav-next">
-                        <small>Older Article →</small>
+                        <small>下一篇 (较旧) →</small>
                         <h3>{{next_post_nav.title}}</h3>
                     </a>
                     {% else %}
@@ -178,7 +178,6 @@
             <p class="copyright-info">&copy; {{current_year}} {{blog_author}}.</p>
             <p class="footer-links">
                 <a href="{{site_root}}/rss.xml">RSS</a>
-                <a href="{{site_root}}/archive.html">Archive</a>
                 <a href="#main-content" class="back-to-top">Top</a>
             </p>
         </div>
