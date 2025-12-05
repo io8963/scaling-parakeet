@@ -704,14 +704,34 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     display: flex;
     justify-content: flex-start; /* [优化 1] 靠左对齐 */
     flex-wrap: wrap; 
-    align-items: baseline; 
+    align-items: center; /* [优化 1] 垂直居中对齐 */
     gap: 15px; 
 }
 
+/* [优化 1] 强化日期显示效果 */
 .meta-date {
-    /* 继承自 .post-meta 的 monospace */
-    /* [优化 1] 移除日期后的分隔符样式 */
+    /* [新增] 作为一个卡片显示 */
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: var(--color-code-bg); 
+    border: 1px solid var(--color-main-border);
+    opacity: 1; /* 确保日期清晰可见 */
+    
+    /* [优化 2] 移除冗余的字体声明，继承自 .post-meta */
     padding-right: 0; 
+}
+@media (prefers-color-scheme: dark) {
+    .meta-date {
+        background-color: var(--color-code-bg-dark);
+        border-color: var(--color-border-light);
+    }
+}
+
+
+.meta-tags {
+    /* [优化 1] 移除冗余 div，直接使用 flex 布局 */
+    display: flex;
+    align-items: center;
 }
 
 .meta-tags .tags-list {
@@ -729,10 +749,11 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     transition: color 0.2s, background-color 0.2s, border-color 0.2s;
     
     /* [新增] 增强徽章视觉效果 */
-    padding: 2px 6px;
+    padding: 2px 8px; /* 略微增加水平内边距 */
     border-radius: 12px; /* 药丸形状 */
     background-color: var(--color-code-bg);
     border: 1px solid var(--color-main-border);
+    font-weight: 500;
 }
 .meta-tags .tag-badge:hover {
     color: var(--color-primary);
@@ -744,6 +765,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 @media (prefers-color-scheme: dark) {
     .meta-tags .tag-badge {
         background-color: var(--color-code-bg-dark);
+        border-color: var(--color-border-light);
     }
     .meta-tags .tag-badge:hover {
         color: var(--color-link-dark);
