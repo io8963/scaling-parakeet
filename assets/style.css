@@ -549,7 +549,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 /* [优化 1] 行内代码优化 */
 .post-content code:not(pre code) {
     /* [优化] 增加字重，使用更柔和的背景色 */
-    background-color: var(--color-code-bg); /* 使用代码块的柔和背景色 */
     color: var(--color-text); /* 使用主文本颜色或深色 */
     font-weight: 500; /* 轻微加粗 */
     padding: 2px 4px; 
@@ -557,6 +556,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     font-size: 0.9em;
     /* [新增] 增加一个轻微的边框，以明确代码边界 */
     border: 1px solid rgba(0, 0, 0, 0.05);
+    background-color: var(--color-code-bg); /* 使用代码块的柔和背景色 */
 }
 
 /* [优化 1] 行内代码暗色模式优化 */
@@ -878,22 +878,52 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     .tag-cloud-item:hover { background-color: rgba(255,255,255,0.05); }
 }
 
+/* [优化 1] 归档页样式 - 与 post-meta 风格统一 */
 .page-archive .post-content h2 {
     font-size: 1.4rem;
-    margin-top: 40px; margin-bottom: 15px;
+    margin-top: 2.5em; /* 顶部间距加大，强化年份分隔 */
+    margin-bottom: 0.6em; /* 底部间距不变 */
     color: var(--color-main-text);
 }
-.page-archive .post-content ul { list-style: none; padding-left: 0; }
+.page-archive .post-content ul { 
+    list-style: none; 
+    padding-left: 0; 
+    font-family: monospace; /* 统一元数据字体 */
+    font-size: 0.9rem;
+}
 .page-archive .post-content li {
-    padding: 6px 0;
-    border-bottom: 1px dashed var(--color-main-border);
+    padding: 8px 0; /* 增加垂直间距 */
+    border-bottom: 1px dashed var(--color-main-border); /* 统一虚线分隔 */
     display: flex;
     align-items: baseline;
-    font-size: 1rem;
+    font-size: 1rem; /* 保持一致性 */
+    transition: background-color 0.2s, border-left 0.2s;
+    
+    /* [新增] 悬停分层效果 */
+    padding-left: 15px; 
+    margin-left: -15px;
+    width: calc(100% + 15px);
+    border-left: 4px solid transparent;
 }
 .page-archive .post-content li:last-child { border-bottom: none; }
-.page-archive .post-content li a { color: var(--color-main-text); margin-right: auto; }
+.page-archive .post-content li:hover {
+    background-color: rgba(0, 0, 0, 0.015);
+    border-left-color: var(--color-primary);
+}
+.page-archive .post-content li a { 
+    color: var(--color-main-text); 
+    margin-right: auto; 
+    font-family: 'Inter', sans-serif; /* 链接文字恢复为非等宽字体，以便阅读 */
+    font-size: 1rem;
+}
 .page-archive .post-content li a:hover { color: var(--color-primary); }
+
+@media (prefers-color-scheme: dark) {
+    .page-archive .post-content li:hover {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-left-color: var(--color-link-dark);
+    }
+}
 
 /* =========================================
    L. 底部 (修改)
