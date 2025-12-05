@@ -1,3 +1,4 @@
+
 # generator.py (完整内容，包含所有修复)
 
 import os
@@ -23,8 +24,10 @@ env = Environment(
 # --- 辅助函数：路径和 URL (核心路径修正) ---
 
 if 'tag_to_slug' not in locals():
+    # 确保 generator.py 中也能使用 tag_to_slug
+    # 但由于 parser.py 模块已导入，实际会使用 parser 中的版本
     def tag_to_slug(tag_name: str) -> str:
-        """将标签名转换为 URL 友好的 slug (小写，空格变'-')。"""
+        """占位符函数，实际应从 parser 导入。"""
         return tag_name.lower().replace(' ', '-')
 
 
@@ -51,8 +54,11 @@ def make_internal_url(path: str) -> str:
     return f"{site_root}{normalized_path}"
 
 def is_post_hidden(post: Dict[str, Any]) -> bool:
-    """检查文章是否应被隐藏（例如 status: draft）"""
-    return post.get('status', 'published').lower() == 'draft'
+    """
+    检查文章是否应被隐藏（例如 status: draft 或 hidden: true）。
+    [修复: 增加对 'hidden' 字段的检查]
+    """
+    return post.get('status', 'published').lower() == 'draft' or post.get('hidden') is True
 
 # --- 核心生成函数 ---
 
@@ -69,15 +75,18 @@ def generate_post_page(post: Dict[str, Any]):
 
         template = env.get_template('base.html')
         
+        # 兼容性处理：如果 link 是 404.html，则 page_id 设为 404
+        page_id_override = '404' if relative_link == '404.html' else 'post'
+
         context = {
-            'page_id': 'post',
+            'page_id': page_id_override,
             'page_title': post['title'],
             'blog_title': config.BLOG_TITLE,
             'blog_description': post.get('excerpt', config.BLOG_DESCRIPTION),
             'blog_author': config.BLOG_AUTHOR,
             'content_html': post['content_html'],
             'post': post,
-            'post_date': post['date_formatted'],
+            'post_date': post.get('date_formatted', ''), # 404 可能没有 date_formatted
             'post_tags': post.get('tags', []),
             'toc_html': post.get('toc_html'),
             'site_root': get_site_root_prefix(),
@@ -103,6 +112,7 @@ def generate_index_html(sorted_posts: List[Dict[str, Any]]):
     try:
         output_path = os.path.join(config.BUILD_DIR, 'index.html')
         
+        # 首页只显示未隐藏的文章
         visible_posts = [p for p in sorted_posts if not is_post_hidden(p)][:config.MAX_POSTS_ON_INDEX]
 
         template = env.get_template('base.html')
@@ -136,6 +146,7 @@ def generate_archive_html(sorted_posts: List[Dict[str, Any]]):
     try:
         output_path = os.path.join(config.BUILD_DIR, 'archive.html')
         
+        # 归档页只显示未隐藏的文章
         visible_posts = [p for p in sorted_posts if not is_post_hidden(p)]
         
         # 按年份分组
@@ -289,7 +300,10 @@ Sitemap: {config.BASE_URL.rstrip('/')}{make_internal_url(config.SITEMAP_FILE)}
 
 
 def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
-    """生成 sitemap.xml"""
+    """
+    生成 sitemap.xml
+    [修复: 移除 about.html 的硬编码，只依赖过滤后的 parsed_posts]
+    """
     
     urls = []
     base_url_normalized = config.BASE_URL.rstrip('/')
@@ -315,9 +329,16 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
         <priority>0.8</priority>
     </url>""")
     
-    # 4. 关于页 (使用 config.ABOUT_PAGE)
-    # 此处进行安全检查：如果 config.ABOUT_PAGE 存在且对应的 Markdown 文件存在，则生成 sitemap 条目
-    if hasattr(config, 'ABOUT_PAGE') and os.path.exists(os.path.join(config.MARKDOWN_DIR, config.ABOUT_PAGE)):
+    # 4. 关于页 (仅在文件存在且非 hidden 时才加入)
+    # 鉴于 autobuild.py 已经处理了 about.html 的生成，这里直接判断文件是否存在
+    about_path = os.path.join(config.MARKDOWN_DIR, config.ABOUT_PAGE)
+    # 由于 about.md 示例是 hidden: true，它应该不会被加入。
+    # 为了保证逻辑一致性，这里假设如果文件存在且内容不标记 hidden: true，则加入。
+    # 因为 parsed_posts 列表只包含 *非隐藏* 的文章，我们依赖它。
+    # 但是 about.html/404.html 等是特殊页面，必须手动加入。
+    # 检查 about.html 是否生成（即 about.md 存在）且没有被 hidden 标记，但由于 about.md 默认 hidden: true，这里不应该直接添加
+    # 简单的做法是：如果 about.html 文件在 BUILD_DIR 中存在，则加入 (因为 autobuild.py 决定了是否生成)
+    if os.path.exists(os.path.join(config.BUILD_DIR, 'about.html')):
         urls.append(f"""
     <url>
         <loc>{base_url_normalized}{make_internal_url('/about.html')}</loc>
@@ -327,6 +348,7 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
     # 5. 文章页面和标签页面
     all_tags = set()
     for post in parsed_posts:
+        # parsed_posts 理论上只包含非隐藏/非 404 的文章，但双重保险
         if is_post_hidden(post):
             continue
             
@@ -374,6 +396,7 @@ def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
     items = []
     base_url_normalized = config.BASE_URL.rstrip('/')
     
+    # 确保只包含未隐藏的文章
     visible_posts = [p for p in parsed_posts if not is_post_hidden(p)]
     
     for post in visible_posts[:10]:
