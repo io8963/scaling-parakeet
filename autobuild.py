@@ -33,29 +33,32 @@ def hash_file(filepath: str) -> str:
     except FileNotFoundError:
         return 'nohash'
 
-# [核心修复 FUNCTION] 获取文件的最后修改时间 (强制使用 Git Commit Time) 并格式化为 UTC+8
+# [最终修复 FUNCTION] 获取文件的最后修改时间 (强制使用 Git Author Time) 并格式化为 UTC+8
 def format_file_mod_time(filepath: str) -> str:
-    """获取文件的最后修改时间 (强制使用 Git Commit Time) 并格式化为中文构建时间 (UTC+8)。"""
+    """获取文件的最后修改时间 (强制使用 Git Author Time) 并格式化为中文构建时间 (UTC+8)。"""
     
     # 尝试获取 Git 最后提交时间 (使用 Author Date %aI，通常更接近实际修改日期)
-    # 使用 shlex.quote 来保护文件路径中的空格或特殊字符
-    quoted_filepath = shlex.quote(filepath)
-    # 使用 os.popen 代替 subprocess.run 以简化在各种 CI 环境下的执行
-    git_command = f'git log -1 --pretty=format:%aI -- {quoted_filepath}'
-    
-    git_time_str = ''
     try:
-        # cwd=os.getcwd() 应该确保命令在项目根目录执行
-        with os.popen(git_command) as f:
-            git_time_str = f.read().strip()
+        # 使用 subprocess.run 代替 os.popen，提供更精细的错误控制
+        git_command = ['git', 'log', '-1', '--pretty=format:%aI', '--', filepath]
+        
+        # check=False: 不在命令失败时抛异常，我们手动检查 returncode
+        result = subprocess.run(git_command, capture_output=True, text=True, cwd=os.getcwd())
+        
+        if result.returncode != 0:
+             # 如果 Git 命令执行失败 (如：文件不存在, 不在 Git 仓库, 或文件未追踪)
+             # 打印错误信息辅助排查
+             print(f"   [WARNING] Git failed for {filepath}: {result.stderr.strip()}")
+             raise Exception("Git command failed or file is untracked.")
 
+        git_time_str = result.stdout.strip()
+        
         if git_time_str:
             # 解析 ISO 时间字符串，datetime.fromisoformat 会正确处理时区偏移
-            # 在某些 Python 版本/环境中，需要手动去除冒号后的时区部分，但我们先按标准处理
             try:
                 mtime_dt_tz = datetime.fromisoformat(git_time_str)
             except ValueError:
-                # 处理如 'Z' 结尾或时区格式问题
+                # 再次尝试处理常见的时区格式问题
                 if git_time_str.endswith('Z'):
                     git_time_str = git_time_str.replace('Z', '+00:00')
                 mtime_dt_tz = datetime.fromisoformat(git_time_str)
@@ -66,14 +69,14 @@ def format_file_mod_time(filepath: str) -> str:
             return f"本文构建时间: {mtime_dt_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8 - Git)"
 
         # Git 成功运行但文件未被追踪/无历史记录，进入回退
-        raise Exception("Git history not found, falling back.") 
+        raise Exception("Git time not found (no history).") 
 
     except Exception as e:
-        # Git 命令失败（不在仓库中、文件不存在或未被追踪）时，使用当前的构建时间作为文章的 fallback 时间。
-        # 此处强制使用当前构建时间作为回退，以避免文件系统时间污染。
+        # 所有 Git 相关错误的回退逻辑
+        # 强制使用当前的构建时间作为文章的 fallback 时间。
         now_utc = datetime.now(timezone.utc)
         now_utc8 = now_utc.astimezone(TIMEZONE_INFO)
-        # 标记为 Fallback，表示未能获取到历史修改时间
+        # 标记为 Fallback，表示未能获取到历史修改时间，该时间是当前构建时间
         return f"本文构建时间: {now_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8 - Fallback)"
 
 
