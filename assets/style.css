@@ -357,17 +357,12 @@ main { flex-grow: 1; padding: 40px 0 80px; }
    ========================================= */
 .tag-cloud { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
 
-/* 
-   [修改点] 重塑标签云样式：
-   - 移除 50px 大圆角，改为 4px 微圆角，适配整体风格
-   - 调整内边距，使其更紧凑
-*/
 .tag-cloud-item {
     display: inline-block;
     padding: 6px 12px;
     background-color: transparent; /* 默认背景透明 */
     border: 1px solid var(--color-main-border);
-    border-radius: 4px; /* 这里改为 4px */
+    border-radius: 4px; 
     color: var(--color-main-text);
     text-decoration: none;
     font-size: 0.9rem !important;
@@ -462,4 +457,31 @@ footer {
     
     h1 { font-size: 1.7rem; }
     .post-title { font-size: 1.3rem; }
+}
+
+/* =========================================
+   Task List (任务列表) 修复样式
+   ========================================= */
+/* 移除任务列表项默认的圆点 */
+.task-list-item {
+    list-style-type: none !important;
+    position: relative;
+    padding-left: 0;
+}
+
+/* 调整复选框与文字的间距 */
+.task-list-item input[type="checkbox"] {
+    margin: 0 0.5em 0.2em -1.3em; /* 负边距让复选框悬挂在左侧，对齐文本 */
+    vertical-align: middle;
+}
+
+/* 适配 pymdownx 生成的 label 结构 */
+.task-list-item label {
+    font-weight: inherit;
+}
+
+/* 禁用状态下的复选框样式优化 */
+.task-list-item input[type="checkbox"]:disabled {
+    cursor: default;
+    opacity: 0.7;
 }
