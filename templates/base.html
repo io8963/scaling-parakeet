@@ -132,14 +132,36 @@
                 {%- endif -%}
                 
                 {# ------------------------------------------------------------------------ #}
-                {# [新增] 版权声明 (License Notice) - 仅在文章页显示 #}
+                {# [新增] 版权声明 (License Notice) - 仅在文章页显示，增加转载格式 #}
                 {%- if page_id == 'post' -%}
                 <div class="post-license">
                     <p>
-                        <span class="license-icon">📜</span> 本文遵循 <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-NC 4.0</a> 协议。
-                        <br>
-                        <strong>转载请注明出处，并保留本协议链接。</strong>
+                        <span class="license-icon">
+                            <i title="Creative Commons">CC</i> 
+                            <i title="Attribution">BY</i> 
+                            <i title="Non-Commercial">NC</i>
+                        </span>
+                        本作品采用 <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="license noopener noreferrer">署名-非商业性使用 4.0 国际 (CC BY-NC 4.0)</a> 许可协议进行许可。
                     </p>
+                    <p>如需转载，请遵循协议，并使用以下标准格式：</p>
+                    
+                    <div style="
+                        margin-top: 10px; 
+                        padding: 8px 12px; 
+                        background-color: var(--color-main-background); 
+                        border: 1px solid var(--color-main-border); 
+                        border-radius: 4px;
+                        overflow-x: auto;
+                        font-size: 0.9em;
+                    ">
+                        <code>
+                            本文标题：{{post.title}}
+                            <br>
+                            作者：{{blog_author}}
+                            <br>
+                            原文链接：<a href="{{canonical_url}}">{{canonical_url}}</a>
+                        </code>
+                    </div>
                 </div>
                 {%- endif -%}
                 {# ------------------------------------------------------------------------ #}
