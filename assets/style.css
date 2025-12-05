@@ -621,3 +621,102 @@ button:focus,
     cursor: default;
     opacity: 0.7;
 }
+
+
+
+
+
+/* ... (前面内容不变) ... */
+/* ---------------------------------------------------------
+   [新增样式] Q. 文章上/下导航 (Post Navigation)
+   --------------------------------------------------------- */
+.post-navigation {
+    /* 使用 Flexbox 实现左右布局和间距 */
+    display: flex;
+    justify-content: space-between;
+    gap: 30px;
+    margin-top: 60px;
+    padding-top: 30px;
+    border-top: 1px solid var(--color-main-border); /* 分隔线 */
+}
+
+.nav-link {
+    display: block;
+    flex: 1; /* 使两侧链接平分空间 */
+    padding: 15px;
+    border: 1px solid var(--color-main-border);
+    border-radius: 6px;
+    text-decoration: none !important;
+    transition: border-color 0.2s, background-color 0.2s;
+}
+
+.nav-link:hover {
+    border-color: var(--color-primary);
+    background-color: rgba(0, 0, 0, 0.02); /* 浅色模式下的微弱背景 */
+}
+
+@media (prefers-color-scheme: dark) {
+    .nav-link:hover { 
+        background-color: rgba(255, 255, 255, 0.05); 
+    }
+}
+
+.nav-link small {
+    display: block;
+    color: var(--color-main-subtext);
+    font-size: 0.8rem;
+    margin-bottom: 5px;
+    font-weight: 500;
+}
+
+.nav-link h3 {
+    /* 重置 h3 的默认样式以符合导航卡片要求 */
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin: 0;
+    line-height: 1.4;
+    color: var(--color-main-text);
+    transition: color 0.2s;
+    scroll-margin-top: 0; /* 导航卡片内的 h3 不需要锚点边距 */
+}
+
+.nav-link:hover h3 { 
+    color: var(--color-primary); 
+}
+
+/* 左侧 Newer Post 居左对齐 */
+.nav-link.nav-prev { 
+    text-align: left; 
+}
+
+/* 右侧 Older Post 居右对齐 */
+.nav-link.nav-next { 
+    text-align: right; 
+}
+
+/* 占位符确保另一侧链接能贴边 */
+.nav-link-placeholder { 
+    flex: 1; 
+    min-width: 10px; /* 确保在 flex 布局中占位 */
+} 
+
+/* 响应式调整：移动端改为上下堆叠 */
+@media (max-width: 600px) {
+    .post-navigation {
+        flex-direction: column;
+        gap: 15px;
+        margin-top: 40px;
+        padding-top: 20px;
+    }
+    
+    /* 移动端移除右对齐，全部居左 */
+    .nav-link.nav-next { 
+        text-align: left; 
+    }
+    
+    .nav-link small {
+        margin-bottom: 3px;
+    }
+}
+
+
