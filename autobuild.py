@@ -1,29 +1,28 @@
-# autobuild.py - Fixed Build Time Microsecond Precision
+# autobuild.py - 启用增量构建并修复独立时间
 
 import os
 import shutil
 import glob
 import hashlib
-from typing import List, Dict, Any
+import json
+from typing import List, Dict, Any, Set
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta 
-import subprocess # 用于执行 Git 命令
-import shlex      # 用于安全处理命令字符串
-import json
-from typing import Dict, Any
+import subprocess 
+import shlex      
 
 import config
 from parser import get_metadata_and_content
 import generator
 
-# [新增] 定义清单文件路径
+# [恢复] 定义清单文件路径
 MANIFEST_FILE = os.path.join(os.path.dirname(__file__), '.build_manifest.json')
 
-# [新增] 定义 UTC+8 时区信息
+# 定义 UTC+8 时区信息
 TIMEZONE_OFFSET = timedelta(hours=8)
 TIMEZONE_INFO = timezone(TIMEZONE_OFFSET)
 
-# --- Manifest 和其他辅助函数 (保持不变) ---
+# --- Manifest 辅助函数 (增量构建所需) ---
 def load_manifest() -> Dict[str, Any]:
     """加载上一次的构建清单文件。"""
     try:
@@ -54,6 +53,12 @@ def get_full_content_hash(filepath: str) -> str:
         return ""
     return h.hexdigest()
 
+# --- 检查依赖 & Hash 文件 (保持不变) ---
+try:
+    import pygments
+except ImportError:
+    pass
+
 def hash_file(filepath: str) -> str:
     """计算文件的 SHA256 哈希值前 8 位。用于 CSS 文件名。"""
     hasher = hashlib.sha256()
@@ -64,7 +69,7 @@ def hash_file(filepath: str) -> str:
     except FileNotFoundError:
         return 'nohash'
 
-# [最终修复 FUNCTION] 获取文件的最后修改时间 (引入微秒精度)
+# [修复后的 FUNCTION] 获取文件的最后修改时间 (Git -> Filesystem -> Fallback with Microseconds)
 def format_file_mod_time(filepath: str) -> str:
     """
     获取文件的最后修改时间。
@@ -72,13 +77,11 @@ def format_file_mod_time(filepath: str) -> str:
     并确保输出包含微秒以保证唯一性。
     """
     
-    # 辅助函数：将 datetime 转换为中文格式的 UTC+8 字符串
     def format_dt(dt: datetime, source: str) -> str:
         # 确保 datetime 对象带有正确的时区信息
         if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
-            # 如果没有时区信息，假设它是 UTC (如 os.path.getmtime)，并调整时区
-            # 注意：datetime.fromtimestamp 在某些系统上返回本地时间，我们在这里将其视为无时区，让 astimezone 统一处理
-            dt = dt.astimezone(TIMEZONE_INFO) 
+            # 假设时间戳来自 os.path.getmtime 是本地时间，先转换为带时区对象
+            dt = datetime.fromtimestamp(dt.timestamp(), tz=TIMEZONE_INFO) 
         else:
             # 否则直接转换为 UTC+8
             dt = dt.astimezone(TIMEZONE_INFO)
@@ -109,7 +112,7 @@ def format_file_mod_time(filepath: str) -> str:
                 return format_dt(mtime_dt_tz, 'Git')
 
     except Exception as e:
-        pass
+        pass 
     
     # --- 2. 尝试获取文件系统修改时间 (次级回退) ---
     try:
@@ -134,23 +137,27 @@ def build_site():
     print("="*40 + "\n")
     
     # -------------------------------------------------------------------------
-    # [1/5] 准备工作 & 增量构建初始化
+    # [1/5] 准备工作 & 增量构建初始化 (启用增量构建)
     # -------------------------------------------------------------------------
     print("[1/5] Preparing build directory and loading manifest...")
     
+    # [关键修复: 移除 shutil.rmtree] 确保目录存在，不清理，从而保留上次的构建文件
     os.makedirs(config.BUILD_DIR, exist_ok=True) 
     os.makedirs(config.POSTS_OUTPUT_DIR, exist_ok=True)
     os.makedirs(config.TAGS_OUTPUT_DIR, exist_ok=True)
     os.makedirs(config.STATIC_OUTPUT_DIR, exist_ok=True)
 
+    # 加载上次的构建清单
     old_manifest = load_manifest()
     new_manifest = {}
     
+    # 存储需要重新生成 HTML 的文章对象
     posts_to_build: List[Dict[str, Any]] = [] 
+    # 标志位：文章集合信息是否变化 (影响列表页、RSS、Sitemap)
     posts_data_changed = False      
     
     # -------------------------------------------------------------------------
-    # [2/5] 资源处理 (保持不变)
+    # [2/5] 资源处理
     # -------------------------------------------------------------------------
     print("\n[2/5] Processing Assets...")
     assets_dir = os.path.join(config.BUILD_DIR, 'assets')
@@ -159,6 +166,7 @@ def build_site():
     if os.path.exists(config.STATIC_DIR):
         shutil.copytree(config.STATIC_DIR, config.STATIC_OUTPUT_DIR, dirs_exist_ok=True)
     
+    # CSS 哈希和复制 (保持不变)
     css_source = 'assets/style.css'
     if os.path.exists(css_source):
         css_hash = hash_file(css_source)
@@ -169,7 +177,7 @@ def build_site():
         config.CSS_FILENAME = 'style.css'
 
     # -------------------------------------------------------------------------
-    # [3/5] 解析 Markdown (保持不变，但使用了新的 format_file_mod_time)
+    # [3/5] 解析 Markdown (增量构建核心)
     # -------------------------------------------------------------------------
     print("\n[3/5] Parsing Markdown Files...")
     
@@ -184,6 +192,7 @@ def build_site():
         relative_path = os.path.relpath(md_file, os.path.dirname(__file__)).replace('\\', '/')
         source_md_paths.add(relative_path)
         
+        # [增量逻辑] 检查内容哈希
         current_hash = get_full_content_hash(md_file)
         old_item = old_manifest.get(relative_path, {})
         old_hash = old_item.get('hash')
@@ -196,13 +205,13 @@ def build_site():
             posts_data_changed = True
         else:
             print(f"   -> [SKIPPED HTML] {os.path.basename(md_file)}")
-
+            
+        # 解析内容 (即使跳过 HTML，也要解析元数据来构建列表页)
         metadata, content_md, content_html, toc_html = get_metadata_and_content(md_file)
         
-        # 使用修正后的函数获取时间
-        mod_time_cn = format_file_mod_time(md_file)
+        mod_time_cn = format_file_mod_time(md_file) # 使用修复后的时间获取逻辑
 
-        # 自动补全 slug
+        # 自动补全 slug 和特殊页面处理 (保持不变)
         if 'slug' not in metadata:
             filename_slug = os.path.splitext(os.path.basename(md_file))[0]
             metadata['slug'] = filename_slug
@@ -210,7 +219,6 @@ def build_site():
         slug = str(metadata['slug']).lower()
         file_name = os.path.basename(md_file)
         
-        # 404/Hidden Pages Logic (特殊页面处理)
         if slug == '404' or file_name == '404.md':
             special_post = { 
                 **metadata, 'content_html': content_html, 'toc_html': '', 
@@ -232,11 +240,9 @@ def build_site():
                          special_post['content_html'], special_post['title'], 
                          'about', 'about.html', special_post['footer_time_info']
                      )
-            
             new_manifest[relative_path] = {'hash': current_hash, 'link': 'hidden'}
             continue 
 
-        # 检查普通文章的必要字段
         if not all(k in metadata for k in ['date', 'title']): 
             continue
             
@@ -254,9 +260,7 @@ def build_site():
         # 检查 Slug 是否变化
         if old_link and old_link != post_link and not needs_full_build:
             posts_data_changed = True
-            print(f"   -> [SLUG CHANGED] {os.path.basename(md_file)}. Rebuilding all list pages.")
             
-        # 收集标签
         for tag_data in post.get('tags', []):
             tag_map[tag_data['name']].append(post)
             
@@ -314,22 +318,21 @@ def build_site():
                 'link': next_post_data['link']
             }
 
-    # 为列表/静态页面生成一个通用的网站构建时间 (UTC+8) (基于当前时间)
     now_utc = datetime.now(timezone.utc)
     now_utc8 = now_utc.astimezone(TIMEZONE_INFO)
-    # [列表页使用不带微秒的简洁格式]
+    # 列表页使用不带微秒的简洁格式
     global_build_time_cn = f"网站构建时间: {now_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8)"
     
     # -------------------------------------------------------------------------
-    # [5/5] 生成 HTML
+    # [5/5] 生成 HTML (应用增量逻辑)
     # -------------------------------------------------------------------------
     print("\n[5/5] Generating HTML...")
     
-    # 1. 生成普通文章详情页 (使用 post 中独特的 footer_time_info)
+    # 1. 生成普通文章详情页 (只生成变动的)
     for post in posts_to_build:
         generator.generate_post_page(post) 
 
-    # 2. 生成列表页 (使用 global_build_time_cn)
+    # 2. 生成列表页 (应用增量逻辑)
     if not old_manifest or posts_data_changed:
         print("   -> [REBUILDING] Index, Archive, Tags, RSS (Post data changed)")
         
@@ -352,14 +355,10 @@ def build_site():
         print("   -> [SKIPPED] Index, Archive, Tags, RSS (No post data change)")
 
     # 3. 保存新的构建清单
-# autobuild.py (已修复最后一行语法错误)
-# ... (文件的所有其他内容保持不变)
-
-    # 3. 保存新的构建清单
     save_manifest(new_manifest)
     print("   -> Manifest file updated.")
     
     print("\n✅ BUILD COMPLETE")
 
-if __name__ == '__main__': # <-- 关键修复：添加了冒号 (:) 和第二个下划线 (__)
+if __name__ == '__main__':
     build_site()
