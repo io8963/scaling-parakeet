@@ -176,6 +176,8 @@
     <footer>
         <div class="footer-content">
             <p class="copyright-info">&copy; {{current_year}} {{blog_author}}.</p>
+            {# [新增] 显示构建时间 #}
+            <p class="build-info">{{footer_time_info}}</p>
             <p class="footer-links">
                 <a href="{{site_root}}/rss.xml">RSS</a>
                 <a href="#main-content" class="back-to-top">Top</a>
