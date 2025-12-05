@@ -135,6 +135,33 @@
                     </div>
                 {%- endif -%}
                 
+                {# ------------------------------------------------------------------------ #}
+                {# [新增] 文章上下导航 #}
+                {%- if page_id == 'post' and (prev_post_nav or next_post_nav) -%}
+                <nav class="post-navigation">
+                    {# Newer Article (时间上更近, 列表中的前一个) #}
+                    {% if prev_post_nav %}
+                    <a href="{{site_root}}/{{prev_post_nav.link}}" class="nav-link nav-prev">
+                        <small>← Newer Article</small>
+                        <h3>{{prev_post_nav.title}}</h3>
+                    </a>
+                    {% else %}
+                    <div class="nav-link-placeholder"></div>
+                    {% endif %}
+
+                    {# Older Article (时间上更远, 列表中的后一个) #}
+                    {% if next_post_nav %}
+                    <a href="{{site_root}}/{{next_post_nav.link}}" class="nav-link nav-next">
+                        <small>Older Article →</small>
+                        <h3>{{next_post_nav.title}}</h3>
+                    </a>
+                    {% else %}
+                    <div class="nav-link-placeholder"></div>
+                    {% endif %}
+                </nav>
+                {%- endif -%}
+                {# ------------------------------------------------------------------------ #}
+                
             </div>
             
             {%- if page_id == 'post' and toc_html -%}
