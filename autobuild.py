@@ -33,12 +33,12 @@ def format_file_mod_time(filepath: str) -> str:
     try:
         mtime_timestamp = os.path.getmtime(filepath)
         mtime_dt = datetime.fromtimestamp(mtime_timestamp)
-        return f"生成自文件修改时间: {mtime_dt.strftime('%Y-%m-%d %H:%M:%S')}"
+        return f"本文构建时间: {mtime_dt.strftime('%Y-%m-%d %H:%M:%S')} UTC"
     except FileNotFoundError:
         # 对于非Markdown生成的页面（如 index, archive），需要一个通用时间
-        return f"网站构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+        return f"最新构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC"
     except Exception:
-         return f"网站构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+         return f"最新构建时间: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')} UTC"
 
 
 def build_site():
