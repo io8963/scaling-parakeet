@@ -1,39 +1,42 @@
-# autobuild.yml
+# .github/workflows/autobuild.yml
 
-name: Build Blog
+name: Build Blog and Deploy
 
-# 【关键修复】触发条件：推送到 main 或任何其他分支时执行，以及 PR 动作
+# 定义触发条件
 on:
   push:
     branches:
-      - main
-      - '*' # 确保此行存在：捕获所有分支的推送事件，包括您的测试分支
+      - main  # 主分支推送时触发
+      - '*'   # 所有其他分支推送时也触发 (用于测试)
   pull_request:
     branches:
-      - main
+      - main  # PR 合并到主分支时触发
 
 jobs:
   build:
     runs-on: ubuntu-latest
     
-    # 关键修复：添加 contents: write 权限，允许 GITHUB_TOKEN 推送更改
+    # 【关键修复】授权 GITHUB_TOKEN 写入权限
+    # 允许机器人将 .build_manifest.json 提交回仓库
     permissions:
       contents: write
 
     steps:
+    
     - name: Checkout Repository (Full History)
+      # 【关键修复】必须使用 fetch-depth: 0 获取完整的 Git 历史
+      # 这对于 autobuild.py 中获取 Git Author Time 至关重要
       uses: actions/checkout@v4
       with:
           fetch-depth: 0
       
     - name: Set up Python
-      # 2. 设置 Python 环境
       uses: actions/setup-python@v5
       with:
         python-version: '3.x' 
         
-    # 优化建议 6: 启用 Pip 缓存以加速 CI/CD
     - name: Cache Python dependencies
+      # 启用 Pip 缓存以加速后续构建
       uses: actions/cache@v4
       with:
         path: ~/.cache/pip
@@ -42,18 +45,35 @@ jobs:
           ${{ runner.os }}-pip-
         
     - name: Install Python Dependencies
-      # 3. 关键修复：安装所需的 Python 库，包括 Jinja2
-      run: |
-        pip install -r requirements.txt
+      run: pip install -r requirements.txt
         
-    - name: Create Posts Directory (if not exists)
-      # 4. 确保 posts 目录存在
-      # 注意：根据您的 config.py，Markdown 源文件目录是 'markdown'
+    - name: Run Autobuild Script (and generate manifest)
+      # 运行您的构建脚本。它会生成 _site/ 目录和 .build_manifest.json 文件
+      run: python "autobuild.py"
+
+    # ------------------------------------------------------------------
+    # 【关键步骤】提交增量清单文件回仓库
+    # ------------------------------------------------------------------
+    - name: Commit Build Manifest for Incremental Build
       run: |
-        mkdir -p markdown
+        # 1. 配置 Git 机器人身份
+        git config user.name 'github-actions[bot]'
+        git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+        # 2. 追踪并暂存 manifest 文件
+        git add .build_manifest.json
         
-    - name: Run Autobuild Script (Generate all static files)
-      # 5. 运行 Python 脚本，执行 Markdown 转换
-      run: python autobuild.py
-      
-    # 6. Cloudflare Pages 会自动检测 _site 目录并部署
+        # 3. 检查是否有实际变动。如果没有变动，`git diff` 返回 0
+        if git diff --cached --exit-code; then
+            echo "Manifest file unchanged. Skipping commit."
+        else
+            # 4. 如果有变动，提交并推送
+            git commit -m "chore: [CI] Update build manifest for incremental builds"
+            git push
+        fi
+
+    # ------------------------------------------------------------------
+    # 部署步骤 (Cloudflare Pages 或其他部署服务)
+    # ------------------------------------------------------------------
+    # ⚠️ 请确保您的部署服务能自动识别并使用 _site 目录作为输出
+    # 如果您使用的是 Cloudflare Pages，以下步骤可能是可选或不同的。
