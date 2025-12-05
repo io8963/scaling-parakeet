@@ -1,7 +1,9 @@
+--- START OF FILE scaling-parakeet-main/templates/base.html ---
+
 <!-- --- START OF FILE scaling-parakeet-main/templates/base.html --- -->
 
 <!DOCTYPE html>
-<html lang="{{lang}}">
+<html lang="zh-cn"> <!-- FIXED: Replaced {{lang}} with "zh-cn" for Chinese site -->
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -85,8 +87,6 @@
                             <a href="{{site_root}}/tags.html" class="button button-secondary button-small">← 所有标签</a>
                         </div>
                         <hr style="border: none; border-top: 1px solid var(--color-main-border); margin: 30px 0;">
-                    {%- elif page_id == 'archive' -%}
-                        <!-- 归档页由 generator 直接生成 HTML -->
                     {%- endif -%}
                     
                     {%- if page_id != 'archive' -%}
