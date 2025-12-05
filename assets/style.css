@@ -761,23 +761,29 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border-bottom: 1px solid var(--color-main-border); 
     text-decoration: none;
     color: inherit;
-    transition: opacity 0.2s, background-color 0.2s; /* [优化 2] 增加背景色过渡 */
+    /* [优化 2] 移除 opacity 动画，转而使用 border-left 动画 */
+    transition: background-color 0.2s, border-left 0.2s ease-out;
     
-    /* [优化 2] 基础焦点样式重置 */
-    outline: none; 
+    /* [新增] 列表项分层：左右留出空间，准备添加左侧边线 */
+    padding-left: 20px;
+    margin-left: -20px;
+    width: calc(100% + 20px);
+    
+    /* [新增] 列表项分层：默认的左侧边线 */
+    border-left: 4px solid transparent; 
+    outline: none; /* 确保无默认轮廓 */
 }
 
-/* [优化 2] Hover 和 Focus 时提供背景反馈 */
+/* [新增] 列表项 Hover/Focus 效果：激活主题色左侧边线和背景 */
 .post-list-item:hover,
 .post-list-item:focus { 
-    opacity: 1; /* 保持不透明 */
-    /* 增加一个非常浅的背景色作为焦点指示 */
+    opacity: 1; 
     background-color: rgba(0, 0, 0, 0.015);
+    border-left-color: var(--color-primary);
 }
 
 /* [优化 2] 更好的焦点可见性 */
 .post-list-item:focus {
-    /* 使用 box-shadow 作为外部轮廓，替代浏览器默认轮廓 */
     box-shadow: 0 0 0 2px var(--color-primary-light), 0 0 0 4px var(--color-primary);
     border-radius: 4px;
 }
@@ -787,6 +793,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     .post-list-item:hover,
     .post-list-item:focus {
         background-color: rgba(255, 255, 255, 0.03);
+        border-left-color: var(--color-link-dark);
     }
     .post-list-item:focus {
         box-shadow: 0 0 0 2px rgba(0, 121, 107, 0.3), 0 0 0 4px var(--color-link-dark);
@@ -798,6 +805,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 .post-list-item .meta-date {
     display: block;
+    /* [优化 1] 统一使用等宽字体 */
     font-family: monospace;
     font-size: 0.8rem;
     color: var(--color-main-subtext);
@@ -815,6 +823,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .post-list-item:hover .post-title { color: var(--color-primary); }
 
 .post-list-item .post-excerpt {
+    /* [优化 1] 弱化摘要，颜色使用次要文本色 */
     color: var(--color-main-subtext);
     font-size: 0.95rem;
     line-height: 1.6;
@@ -823,6 +832,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    /* [优化 1] 统一使用等宽字体 */
+    font-family: monospace; 
 }
 
 .post-list-item .tags-list {
