@@ -347,15 +347,27 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 /* =========================================
    J. 文章正文 (Content)
    ========================================= */
+/* [优化 1] 增强正文可读性 */
 .post-content p { 
+    /* 使用略微柔和的主文本颜色，避免纯黑带来的疲劳 */
+    color: #333; /* 比 #2c3e50 (var(--color-text)) 稍微柔和 */
+    letter-spacing: 0.005em; /* 轻微收紧字间距，提升印刷感 */
+    line-height: 1.75; /* 略微增加行高，提升阅读舒适度 */
     margin-bottom: 1.6em; 
-    color: var(--color-main-text); 
+    
     /* 优化: 微观排版 */
     hyphens: auto;
     -webkit-hyphens: auto;
     -ms-hyphens: auto;
     text-rendering: optimizeLegibility; 
 }
+/* [优化 1] 暗色模式下的正文颜色 */
+@media (prefers-color-scheme: dark) {
+    .post-content p {
+        color: var(--color-main-text); /* 暗色模式下使用主文本颜色 */
+    }
+}
+
 /* 优化 2: 增强文章内容中嵌套列表的视觉层次 */
 .post-content ul ul, .post-content ol ol {
     padding-left: 15px;
@@ -367,13 +379,21 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border-left: none; /* 3级以上取消虚线，避免过于复杂 */
 }
 
-/* [新增] 增强列表项的可读性 */
+/* [优化 3] 增强列表项的可读性 */
+.post-content ul, 
+.post-content ol {
+    /* 适用于旧浏览器的颜色 hack */
+    color: var(--color-primary); 
+}
+
 .post-content ul li,
 .post-content ol li {
     padding: 3px 0;
     /* 列表项之间添加一个非常浅的虚线分隔 */
     border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
     margin-bottom: 0.8em;
+    /* 覆盖回列表文字的颜色 */
+    color: var(--color-main-text); 
 }
 
 /* 最后一个列表项移除分隔线 */
@@ -382,11 +402,21 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border-bottom: none;
 }
 
-/* 暗色模式下的分隔线 */
+/* 针对现代浏览器的标记颜色优化 */
+.post-content ul li::marker,
+.post-content ol li::marker {
+    color: var(--color-primary);
+}
+
+/* 暗色模式下的分隔线和标记颜色 */
 @media (prefers-color-scheme: dark) {
     .post-content ul li,
     .post-content ol li {
         border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+    }
+    .post-content ul li::marker,
+    .post-content ol li::marker {
+        color: var(--color-link-dark);
     }
 }
 
@@ -463,7 +493,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
         color: var(--color-link-dark); /* 暗色模式下使用主题色文字 */
         border: 1px solid rgba(255, 255, 255, 0.1);
     }
-    /* ... (其他 pre 优化保持不变) ... */
 }
 
 
@@ -494,7 +523,38 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     }
 }
 
-.table-wrapper { width: 100%; overflow-x: auto; margin: 30px 0; border: 1px solid var(--color-main-border); border-radius: 6px; }
+/* [优化 1] Table Wrapper 焦点样式 */
+.table-wrapper { 
+    width: 100%; 
+    overflow-x: auto; 
+    margin: 30px 0; 
+    border: 1px solid var(--color-main-border); 
+    border-radius: 6px; 
+    /* [新增] 增强交互反馈 */
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none; /* 移除默认的焦点轮廓 */
+}
+
+/* [新增] Hover 或 Focus 时强调表格 */
+.table-wrapper:hover {
+    border-color: var(--color-primary); /* 边框使用主题色 */
+}
+
+/* [新增] 键盘聚焦时的清晰轮廓 */
+.table-wrapper:focus-within { /* 聚焦内部元素或自身时激活 */
+    border-color: var(--color-primary);
+    box-shadow: 0 0 0 2px var(--color-primary-light), 0 0 0 4px var(--color-primary);
+}
+
+/* [新增] 暗色模式下的焦点轮廓 */
+@media (prefers-color-scheme: dark) {
+    .table-wrapper:hover,
+    .table-wrapper:focus-within {
+        border-color: var(--color-link-dark);
+        box-shadow: 0 0 0 2px rgba(0, 121, 107, 0.3), 0 0 0 4px var(--color-link-dark);
+    }
+}
+
 .post-content table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
 .post-content th, .post-content td { padding: 12px 15px; border-bottom: 1px solid var(--color-main-border); text-align: left; }
 .post-content th { background-color: rgba(0,0,0,0.02); font-weight: 600; }
@@ -550,8 +610,21 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .post-meta {
     font-size: 0.9rem;
     color: var(--color-main-subtext);
-    margin-bottom: 40px;
+    /* [优化 2] 减少底部间距，让内容更紧凑 */
+    margin-bottom: 25px; 
     padding-bottom: 0; 
+    
+    /* [优化 2] 将 meta 区域作为一个信息块进行处理 */
+    border-top: 1px solid var(--color-main-border);
+    padding-top: 15px;
+    
+    /* [优化 2] 整体使用等宽字体，增加卡片感 */
+    font-family: monospace; 
+}
+
+/* [新增] 确保文章内容区的第一个 H2 顶部间距较小 */
+.post-content h2:first-of-type {
+    margin-top: 0.8em; /* 保持一定的间距，但比默认 1.5em 小 */
 }
 
 .meta-container {
@@ -562,7 +635,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 .meta-date {
-    font-family: monospace;
+    /* font-family: monospace; 已移至 .post-meta */
 }
 
 .meta-tags .tags-list {
@@ -732,15 +805,48 @@ footer {
     margin: 5px 0;
 }
 
-.footer-links a { color: var(--color-main-subtext); margin: 0 8px; }
-.footer-links a:hover { color: var(--color-primary); }
+/* [优化 3] Footer 链接的视觉整合 */
+.footer-links a { 
+    color: var(--color-main-subtext); 
+    margin: 0 8px; 
+    /* [新增] 增强点击区域 */
+    display: inline-block;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background-color: rgba(0, 0, 0, 0.02);
+    transition: all 0.2s;
+}
+.footer-links a:hover { 
+    color: var(--color-primary); 
+    background-color: rgba(0, 121, 107, 0.08); /* 主题色背景 */
+    /* [优化 4] 悬停时轻微上浮 */
+    transform: translateY(-1px);
+}
+
+/* [新增] 暗色模式下的 Footer 链接 */
+@media (prefers-color-scheme: dark) {
+    .footer-links a {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    .footer-links a:hover {
+        color: var(--color-link-dark);
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+}
+
 
 /* =========================================
    M. 按钮
    ========================================= */
 .button {
-    display: inline-block; padding: 8px 16px; border-radius: 4px;
-    font-size: 0.9rem; text-decoration: none !important; cursor: pointer;
+    display: inline-block; 
+    padding: 8px 16px; 
+    border-radius: 4px;
+    font-size: 0.9rem; 
+    text-decoration: none !important; 
+    cursor: pointer;
+    /* [新增] 增加动画过渡 */
+    transition: all 0.2s ease;
 }
 .button-secondary {
     border: 1px solid var(--color-main-border);
@@ -749,8 +855,17 @@ footer {
 .button-secondary:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
+    /* [优化 4] 悬停时轻微上浮 */
+    transform: translateY(-1px); 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
-.read-more-link-area { text-align: center; margin-top: 40px; }
+
+/* [新增] 按钮的按下效果 (激活或聚焦) */
+.button:active,
+.button-secondary:focus {
+    transform: translateY(1px); /* 模拟按下 */
+    box-shadow: none;
+}
 
 /* 优化: 小型按钮 */
 .button-small {
