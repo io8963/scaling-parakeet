@@ -11,6 +11,12 @@ import json
 import config
 from parser import tag_to_slug 
 
+# --- Global Build Time Generation (新增或修改) ---
+# 在模块加载时记录一次构建时间，用作所有页面的统一“构建时间”戳。
+CURRENT_BUILD_TIME = datetime.now()
+# 格式化为中文的构建时间字符串
+BUILD_DATETIME_CN = f"构建时间: {CURRENT_BUILD_TIME.strftime('%Y-%m-%d %H:%M:%S')}" 
+
 # --- Jinja2 环境配置配置 ---
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
 env = Environment(
@@ -96,7 +102,7 @@ def generate_post_page(post: Dict[str, Any]):
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
             'canonical_url': f"{config.BASE_URL.rstrip('/')}{make_internal_url(relative_link)}",
-            'footer_time_info': f"Build time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            'footer_time_info': BUILD_DATETIME_CN, # 使用中文构建时间变量
         }
 
         html_content = template.render(context)
@@ -131,7 +137,7 @@ def generate_index_html(sorted_posts: List[Dict[str, Any]]):
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
             'canonical_url': f"{config.BASE_URL.rstrip('/')}{get_site_root_prefix()}/",
-            'footer_time_info': f"Build time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            'footer_time_info': BUILD_DATETIME_CN, # 使用中文构建时间变量
         }
         
         html_content = template.render(context)
@@ -183,7 +189,7 @@ def generate_archive_html(sorted_posts: List[Dict[str, Any]]):
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
             'canonical_url': f"{config.BASE_URL.rstrip('/')}{get_site_root_prefix()}/archive.html",
-            'footer_time_info': f"Build time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            'footer_time_info': BUILD_DATETIME_CN, # 使用中文构建时间变量
         }
         
         html_content = template.render(context)
@@ -231,7 +237,7 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]]):
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
             'canonical_url': f"{config.BASE_URL.rstrip('/')}{get_site_root_prefix()}/tags.html",
-            'footer_time_info': f"Build time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            'footer_time_info': BUILD_DATETIME_CN, # 使用中文构建时间变量
         }
         
         html_content = template.render(context)
@@ -269,7 +275,7 @@ def generate_tag_page(tag_name: str, sorted_tag_posts: List[Dict[str, Any]]):
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
             'canonical_url': f"{config.BASE_URL.rstrip('/')}{make_internal_url(f'{config.TAGS_DIR_NAME}/{filename}')}",
-            'footer_time_info': f"Build time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            'footer_time_info': BUILD_DATETIME_CN, # 使用中文构建时间变量
         }
         
         html_content = template.render(context)
@@ -447,7 +453,7 @@ def generate_page_html(content_html: str, page_title: str, page_id: str, canonic
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
             'canonical_url': f"{config.BASE_URL.rstrip('/')}{make_internal_url(canonical_path)}",
-            'footer_time_info': f"Build time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}",
+            'footer_time_info': BUILD_DATETIME_CN, # 使用中文构建时间变量
         }
         
         html_content = template.render(context)
