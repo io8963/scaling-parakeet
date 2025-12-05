@@ -25,7 +25,7 @@
     --color-text-secondary-dark: #888;
     --color-background-dark: #121212; 
     --color-card-dark: #1e1e1e; 
-    --color-border-light: #eee;
+    --color-border-light: #333; /* 暗色模式边框稍微深一点 */
     --color-border-dark: #2a2a2a;
 
     --color-code-bg: #f8f9fa;
@@ -47,7 +47,7 @@
         --color-main-subtext: var(--color-text-secondary-dark);
         --color-main-background: var(--color-background-dark);
         --color-main-card: var(--color-card-dark);
-        --color-main-border: var(--color-border-dark);
+        --color-main-border: var(--color-border-light); /* 使用稍微明显的边框 */
     }
 }
 
@@ -247,7 +247,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 
 /* =========================================
-   K. [修复] 文章页头部元数据对齐
+   K. 文章页头部元数据
    ========================================= */
 .page-header h1 {
     margin-top: 0;
@@ -263,7 +263,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     padding-bottom: 0; 
 }
 
-/* 核心修复：使用 baseline 对齐，解决文字高低不平问题 */
 .meta-container {
     display: flex;
     flex-wrap: wrap; 
@@ -275,9 +274,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     font-family: monospace;
 }
 
-/* 标签列表容器 */
 .meta-tags .tags-list {
-    display: inline-flex; /* 让标签也呈流式排列 */
+    display: inline-flex; 
     flex-wrap: wrap;
     gap: 10px;
     padding: 0;
@@ -355,23 +353,33 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .post-list-item:hover .tag-badge { opacity: 1; }
 
 /* =========================================
-   P. 特殊页面样式
+   P. 特殊页面样式 (Tag Cloud & Archive)
    ========================================= */
 .tag-cloud { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+
+/* 
+   [修改点] 重塑标签云样式：
+   - 移除 50px 大圆角，改为 4px 微圆角，适配整体风格
+   - 调整内边距，使其更紧凑
+*/
 .tag-cloud-item {
     display: inline-block;
-    padding: 6px 14px;
-    background-color: var(--color-main-card);
+    padding: 6px 12px;
+    background-color: transparent; /* 默认背景透明 */
     border: 1px solid var(--color-main-border);
-    border-radius: 50px;
+    border-radius: 4px; /* 这里改为 4px */
     color: var(--color-main-text);
     text-decoration: none;
     font-size: 0.9rem !important;
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 .tag-cloud-item:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
+    background-color: rgba(0,0,0,0.02); /* 悬停时加一点微弱背景 */
+}
+@media (prefers-color-scheme: dark) {
+    .tag-cloud-item:hover { background-color: rgba(255,255,255,0.05); }
 }
 
 .page-archive .post-content h2 {
@@ -423,31 +431,29 @@ footer {
 .read-more-link-area { text-align: center; margin-top: 40px; }
 
 /* =========================================
-   Z. 响应式布局 [修复：Header 对齐]
+   Z. 响应式布局
    ========================================= */
 @media (max-width: 900px) {
-    /* 1. Header 修复：左对齐，去除默认边距 */
     .header-inner { 
         flex-direction: column; 
-        align-items: flex-start; /* 强制左对齐 */
+        align-items: flex-start; 
         gap: 15px;
-        padding: 0 20px; /* 保持与 container 一致的 padding */
+        padding: 0 20px; 
     }
 
     header nav {
         display: flex;
-        flex-wrap: wrap; /* 允许换行 */
-        margin-left: 0;  /* 移除之前的负 margin hack */
+        flex-wrap: wrap; 
+        margin-left: 0;  
         width: 100%;
     }
 
     header nav a {
-        margin-left: 0;   /* 移除桌面端的左边距 */
-        margin-right: 20px; /* 改用右边距，保证第一个链接紧贴左侧 */
+        margin-left: 0;   
+        margin-right: 20px; 
         padding: 5px 0;
     }
     
-    /* 2. 其他适配 */
     .main-layout { flex-direction: column; gap: 30px; }
     .toc-area { display: none !important; }
     .mobile-toc { display: block; }
