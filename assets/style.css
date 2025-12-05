@@ -78,6 +78,7 @@ a {
     /* [新增] 基础设置用于链接悬停动画 */
     position: relative; 
     display: inline-block; /* 确保能容纳伪元素 */
+    outline: none; /* [优化 2] 移除默认 outline */
 }
 
 /* [新增] 链接下划线伪元素 */
@@ -101,6 +102,12 @@ a:hover {
 a:hover::after {
     transform: scaleX(1);
     transform-origin: bottom left;
+}
+/* [优化 2] 链接默认焦点：使用主题色边框 */
+a:focus {
+    outline: 2px solid var(--color-primary); 
+    outline-offset: 2px; /* 略微偏移 */
+    border-radius: 2px;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -347,7 +354,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 /* =========================================
    J. 文章正文 (Content)
    ========================================= */
-/* [优化 1] 增强正文可读性 */
+/* [优化 1] 增强正文可读性 (已包含上一轮调整) */
 .post-content p { 
     /* 使用略微柔和的主文本颜色，避免纯黑带来的疲劳 */
     color: #333; /* 比 #2c3e50 (var(--color-text)) 稍微柔和 */
@@ -355,18 +362,30 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     line-height: 1.75; /* 略微增加行高，提升阅读舒适度 */
     margin-bottom: 1.6em; 
     
+    /* [新增] 避免正文内容过于贴边 */
+    text-align: justify; /* 尝试两端对齐，使文本边缘更整齐 */
+    text-justify: inter-word;
+    
     /* 优化: 微观排版 */
     hyphens: auto;
     -webkit-hyphens: auto;
     -ms-hyphens: auto;
     text-rendering: optimizeLegibility; 
 }
-/* [优化 1] 暗色模式下的正文颜色 */
+/* [优化 1] 增强正文可读性 - 暗色模式下的正文颜色 */
 @media (prefers-color-scheme: dark) {
     .post-content p {
         color: var(--color-main-text); /* 暗色模式下使用主文本颜色 */
     }
 }
+
+/* [新增] 确保段落前的块级元素（如 H2/H3）不会导致过度空白 */
+.post-content h2 + p,
+.post-content h3 + p,
+.post-content h4 + p {
+    margin-top: 0.8em; /* 标题后紧跟的段落减少顶部空间 */
+}
+
 
 /* 优化 2: 增强文章内容中嵌套列表的视觉层次 */
 .post-content ul ul, .post-content ol ol {
@@ -646,13 +665,34 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0;
     list-style: none;
 }
+/* [优化 3] 增强徽章视觉效果 */
 .meta-tags .tag-badge {
     color: var(--color-main-subtext);
     text-decoration: none;
-    transition: color 0.2s;
+    transition: color 0.2s, background-color 0.2s, border-color 0.2s;
+    
+    /* [新增] 增强徽章视觉效果 */
+    padding: 2px 6px;
+    border-radius: 12px; /* 药丸形状 */
+    background-color: var(--color-code-bg);
+    border: 1px solid var(--color-main-border);
 }
 .meta-tags .tag-badge:hover {
     color: var(--color-primary);
+    background-color: var(--color-primary-light);
+    border-color: var(--color-primary);
+}
+
+/* [新增] 暗色模式下的徽章 */
+@media (prefers-color-scheme: dark) {
+    .meta-tags .tag-badge {
+        background-color: var(--color-code-bg-dark);
+    }
+    .meta-tags .tag-badge:hover {
+        color: var(--color-link-dark);
+        background-color: rgba(0, 121, 107, 0.15);
+        border-color: var(--color-link-dark);
+    }
 }
 
 
@@ -766,6 +806,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border-color: var(--color-primary);
     color: var(--color-primary);
     background-color: rgba(0,0,0,0.02); /* 悬停时加一点微弱背景 */
+    /* [优化 4] 悬停时轻微上浮 */
+    transform: translateY(-1px);
 }
 @media (prefers-color-scheme: dark) {
     .tag-cloud-item:hover { background-color: rgba(255,255,255,0.05); }
@@ -814,7 +856,7 @@ footer {
     padding: 2px 6px;
     border-radius: 4px;
     background-color: rgba(0, 0, 0, 0.02);
-    transition: all 0.2s;
+    transition: all 0.2s ease;
 }
 .footer-links a:hover { 
     color: var(--color-primary); 
@@ -896,14 +938,15 @@ footer {
 }
 
 /* 优化: 1.2 统一焦点轮廓 (Focus Outline) */
-/* 列表项的焦点轮廓已经在 N. 极简文章列表 中单独处理 */
+/* [优化] 移除复杂的 box-shadow，使用简洁 outline */
 a:focus,
 button:focus,
 .tag-cloud-item:focus {
     outline: none; 
-    /* 使用主题色作为清晰的轮廓 */
-    box-shadow: 0 0 0 3px var(--color-primary-light), 0 0 0 5px var(--color-primary);
-    border-radius: 4px; 
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+    border-radius: 2px;
+    box-shadow: none; /* 确保移除 box-shadow */
 }
 /* 修正代码块/输入框等元素的焦点样式 */
 .post-content pre a:focus, 
