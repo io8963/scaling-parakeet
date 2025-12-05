@@ -75,13 +75,64 @@ a {
     color: var(--color-primary);
     text-decoration: none;
     transition: color 0.2s;
+    /* [新增] 基础设置用于链接悬停动画 */
+    position: relative; 
+    display: inline-block; /* 确保能容纳伪元素 */
 }
-a:hover { color: #004d40; }
+
+/* [新增] 链接下划线伪元素 */
+a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    transform: scaleX(0);
+    height: 1px; /* 细下划线 */
+    bottom: 0;
+    left: 0;
+    background-color: var(--color-primary);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease-out;
+}
+
+/* [优化] 悬停时展开下划线 */
+a:hover { 
+    color: #004d40; /* 悬停颜色不变 */
+}
+a:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+}
 
 @media (prefers-color-scheme: dark) {
     a { color: var(--color-link-dark); }
     a:hover { color: #b2dfdb; }
+    
+    /* [新增] 暗色模式下划线颜色 */
+    a::after {
+        background-color: var(--color-link-dark);
+    }
 }
+
+/* [例外处理] 确保 Header Nav Link 保持简洁 */
+header nav a::after {
+    content: none;
+}
+.post-license a::after {
+    content: none; /* 版权声明中的链接保持默认下划线，避免干扰 */
+}
+
+/* [例外处理] 避免文章标题（H1-H6）中的链接被干扰 */
+.post-content h1 a::after,
+.post-content h2 a::after,
+.post-content h3 a::after {
+    content: none;
+}
+
+/* [例外处理] Tag Badge/Button 链接 */
+.tag-badge a::after, .button a::after, .button-secondary a::after {
+    content: none;
+}
+
 
 h1, h2, h3, h4, h5, h6 {
     line-height: 1.3;
@@ -101,6 +152,8 @@ li { margin-bottom: 0.4em; }
 /* =========================================
    F & G. 布局与头部
    ========================================= */
+.container { max-width: 800px; margin: 0 auto; padding: 0 20px; } 
+
 header {
     /* 优化 1: 提高 Header 背景不透明度，增强对比度 */
     background-color: rgba(255, 255, 255, 0.95); /* 从 0.85 提高到 0.95 */
@@ -110,7 +163,7 @@ header {
     z-index: 100;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--color-main-border); 
+    border-bottom: 1px solid var(--color-main-border); /* 优化: 始终可见的底部边框 */
 }
 @media (prefers-color-scheme: dark) {
     /* 优化 1: 提高 Header 背景不透明度，增强对比度 */
@@ -288,19 +341,57 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 .post-content img {
-    max-width: 100%; height: auto; border-radius: 4px;
-    display: block; margin: 30px auto; 
+    max-width: 100%; 
+    height: auto; 
+    border-radius: 4px;
+    display: block; 
+    margin: 30px auto; 
     border: 1px solid var(--color-main-border);
+    /* [新增] 动画基础 */
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
+
+/* [新增] 图片悬停效果 */
+.post-content img:hover {
+    transform: scale(1.01); /* 轻微放大 */
+    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* 增加浮动阴影 */
+}
+
+/* [新增] 暗色模式下的图片悬停阴影 */
+@media (prefers-color-scheme: dark) {
+    .post-content img:hover {
+        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08); 
+    }
+}
+
+
 .post-content img + em {
     display: block; text-align: center; font-size: 0.85rem;
     color: var(--color-main-subtext); margin-top: -20px; margin-bottom: 30px; font-style: normal;
 }
+
+/* [优化 2] Blockquote 优化 */
 .post-content blockquote {
     border-left: 3px solid var(--color-primary);
-    padding: 5px 20px; margin: 25px 0;
-    color: var(--color-main-subtext); font-style: italic;
+    padding: 5px 20px; 
+    margin: 25px 0;
+    color: var(--color-main-subtext); 
+    font-style: italic;
+    /* [新增] 轻微的内阴影 */
+    background-color: rgba(0, 0, 0, 0.01); /* 极浅的背景色 */
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.03); /* 轻微内阴影 */
+    border-radius: 3px;
 }
+
+/* [新增] 暗色模式下的引文优化 */
+@media (prefers-color-scheme: dark) {
+    .post-content blockquote {
+        background-color: rgba(255, 255, 255, 0.01);
+        box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.03);
+    }
+}
+
+
 .post-content code:not(pre code) {
     background-color: rgba(0, 0, 0, 0.04);
     color: var(--color-primary);
