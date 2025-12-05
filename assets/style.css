@@ -738,18 +738,26 @@ button:focus,
 }
 
 /* ---------------------------------------------------------
-   [新增样式] R. 版权声明 (License Notice) - 优化后更简洁的样式
+   [新增样式] R. 版权声明 (License Notice) - 优化后简洁样式
    --------------------------------------------------------- */
 .post-license {
     margin: 40px 0 0; 
-    padding: 15px 25px 15px 25px;
-    border-top: 1px solid var(--color-main-border); /* 顶部细线分隔 */
-    border-left: 4px solid var(--color-primary); /* 使用主题色强调 */
-    border-radius: 0 6px 6px 0; /* 仅右侧圆角 */
-    background-color: transparent; 
+    padding: 15px 25px 15px 20px; /* 调整内边距 */
+    border: none; /* 移除所有标准边框 */
+    border-left: 4px solid var(--color-primary); /* 保留主题色左侧指示条 */
+    border-radius: 0; /* 移除圆角 */
+    background-color: var(--color-primary-light); /* 浅色模式下的柔和背景 */
     font-size: 0.9rem;
     color: var(--color-main-subtext);
     line-height: 1.6;
+}
+
+/* 暗色模式下覆盖背景和指示条颜色 */
+@media (prefers-color-scheme: dark) {
+    .post-license {
+        background-color: rgba(0, 121, 107, 0.15); /* 暗色下的柔和主题色背景 */
+        border-left-color: var(--color-link-dark); /* 使用暗色模式的主题色链接颜色作为指示条 */
+    }
 }
 
 .post-license p {
@@ -761,7 +769,7 @@ button:focus,
     text-decoration: underline; 
 }
 
-/* 模拟 CC/BY/NC 徽章样式 */
+/* CC 徽章样式 */
 .license-icon i {
     display: inline-block;
     font-style: normal;
@@ -782,10 +790,28 @@ button:focus,
     color: var(--color-background); /* 悬停时反色 */
 }
 
+/* 针对标准格式块的新样式 - 保持简洁的代码块外观 */
+.license-format-code {
+    margin-top: 10px;
+    padding: 8px 12px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 0.9em;
+    color: var(--color-main-text); 
+    background-color: var(--color-code-bg); /* 使用标准的代码块背景 */
+}
+
+/* 暗色模式下的标准格式块背景 */
+@media (prefers-color-scheme: dark) {
+    .license-format-code {
+        background-color: var(--color-code-bg-dark);
+    }
+}
+
 /* 移动端调整 */
 @media (max-width: 600px) {
     .post-license {
-        padding: 15px 20px;
+        padding: 15px 15px 15px 15px;
         margin: 30px 0 0; 
     }
 }
