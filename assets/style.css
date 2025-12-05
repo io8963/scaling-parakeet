@@ -440,7 +440,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 /* =========================================
-   N. 极简文章列表 (列表流风格 - List Stream)
+   N. 极简文章列表 (Archive Style - 左侧竖线交互)
    ========================================= */
 .post-list { 
     list-style: none; 
@@ -452,30 +452,41 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 .post-list-item {
     display: block; 
-    /* 关键：使用大的垂直 Padding 和虚线边框，营造呼吸感 */
-    padding: 25px 20px; 
-    border-bottom: 1px dashed var(--color-main-border); 
-    background-color: transparent; /* 默认透明 */
-    border-radius: 8px; /* 保留圆角，为了 Hover 效果 */
+    /* 关键: 内边距较大，但利用负边距向左延伸，模拟Archive效果 */
+    padding: 20px 20px 20px 25px; /* 左侧留出更多空间给hover背景 */
     
+    /* 1. 下面是一条虚线 */
+    border-bottom: 1px dashed var(--color-main-border); 
+    
+    /* 2. 默认左侧是透明的边框 (占位) */
+    border-left: 4px solid transparent; 
+    
+    /* 3. 利用负边距向左拉伸盒子 */
+    margin-left: -25px; 
+    width: calc(100% + 25px);
+    
+    background-color: transparent; 
     text-decoration: none;
     color: inherit;
-    transition: all 0.2s ease-in-out;
-    position: relative; 
-    /* 移除卡片阴影 */
+    transition: all 0.2s ease;
+    
+    /* 移除所有卡片相关的阴影和圆角 */
+    border-radius: 0;
     box-shadow: none;
 }
 
-/* Hover/Focus 效果：极简风格 */
+/* Hover/Focus 效果：模仿 Archive 页 */
 .post-list-item:hover,
 .post-list-item:focus { 
-    /* 悬停时显示极淡的背景 */
+    /* 悬停时背景微灰 */
     background-color: rgba(0, 0, 0, 0.02); 
-    /* 移除位移和阴影，保持平稳，或者极其轻微的位移 */
-    transform: translateY(-2px);
+    
+    /* 4. 高亮后左边是一条竖线 (主题色) */
+    border-left-color: var(--color-primary);
+    
     outline: none;
-    /* 隐藏底部边框，让背景更整体? 不，保留边框作为结构 */
-    border-bottom-color: transparent; /* 悬停时隐藏底线，让圆角背景更突出 */
+    /* 不上浮，保持稳重 */
+    transform: none; 
 }
 
 /* 最后一个元素移除底边框 */
@@ -483,7 +494,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 /* --- 列表项内部排版 --- */
 
-/* 1. 标题优先 (Title First) */
+/* 1. 标题 */
 .post-list-item .post-title {
     margin: 0 0 10px 0;
     font-size: 1.6rem; 
@@ -492,56 +503,36 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     line-height: 1.3;
     transition: color 0.2s;
 }
-
-/* 悬停时标题变色 */
 .post-list-item:hover .post-title { 
     color: var(--color-primary); 
 }
 
-/* 2. 元数据行 (Meta Line) - 位于标题下方 */
+/* 2. 元数据行 */
 .post-list-meta-line {
     display: flex;
     align-items: center;
-    gap: 15px; /* 日期和标签之间的间距 */
+    gap: 15px; 
     margin-bottom: 15px;
     font-size: 0.85rem;
     color: var(--color-main-subtext);
 }
 
-/* 2a. 日期样式 */
 .post-list-item .meta-date {
-    /* 简化日期样式，纯文本 */
     font-family: monospace;
     opacity: 0.8;
-    margin: 0;
-    padding: 0;
-    border: none;
-    background: none;
-    display: inline;
-    height: auto;
+    margin: 0; padding: 0; border: none; background: none; display: inline; height: auto;
 }
 
-/* 2b. 标签列表 */
 .post-list-item .tags-list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 0;
-    margin: 0;
-    list-style: none;
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none;
 }
-.post-list-item .tags-list li {
-    padding: 0;
-    margin: 0;
-    border: none;
-}
+.post-list-item .tags-list li { padding: 0; margin: 0; border: none; }
 
-/* 2c. 标签徽章：更轻量化，无边框，仅文字或极淡背景 */
 .post-list-item .tag-badge {
     font-size: 0.8rem;
     color: var(--color-main-subtext);
-    background-color: rgba(0,0,0,0.03); /* 极淡背景 */
-    border: none; /* 移除边框 */
+    background-color: rgba(0,0,0,0.03); 
+    border: none; 
     padding: 2px 6px;
     border-radius: 4px;
     line-height: 1.2;
@@ -549,19 +540,17 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     display: inline-block;
     vertical-align: middle;
 }
-/* 悬停列表项时，标签稍微明显一点 */
 .post-list-item:hover .tag-badge { 
     color: var(--color-primary);
     background-color: var(--color-primary-light);
 }
 
-/* 3. 摘要样式 */
+/* 3. 摘要 */
 .post-list-item .post-excerpt {
-    color: var(--color-main-subtext); /* 使用次要文本色 */
+    color: var(--color-main-subtext); 
     font-size: 1rem;
     line-height: 1.65;
     margin: 0;
-    /* 限制行数 */
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -575,6 +564,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     .post-list-item:hover,
     .post-list-item:focus {
         background-color: rgba(255, 255, 255, 0.03);
+        border-left-color: var(--color-link-dark); /* 暗色模式竖线颜色 */
     }
     .post-list-item .tag-badge {
         background-color: rgba(255, 255, 255, 0.05);
@@ -588,7 +578,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 
 /* =========================================
-   P. 特殊页面样式
+   P. 特殊页面样式 (Archive & Tags)
    ========================================= */
 .tag-cloud { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
 
@@ -613,11 +603,13 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     .tag-cloud-item:hover { background-color: rgba(255,255,255,0.05); }
 }
 
+/* Archive 页面 (保持原样，因其风格已与新首页统一) */
 .page-archive .post-content h2 { font-size: 1.4rem; margin-top: 2.5em; margin-bottom: 0.6em; color: var(--color-main-text); }
 .page-archive .post-content ul { list-style: none; padding-left: 0; font-family: monospace; font-size: 0.9rem; }
 .page-archive .post-content li {
     padding: 8px 0; border-bottom: 1px dashed var(--color-main-border); 
     display: flex; align-items: baseline; font-size: 1rem; transition: background-color 0.2s, border-left 0.2s;
+    /* Archive页面的左侧交互逻辑 */
     padding-left: 15px; margin-left: -15px; width: calc(100% + 15px); border-left: 4px solid transparent;
 }
 .page-archive .post-content li:last-child { border-bottom: none; }
@@ -690,10 +682,10 @@ a:focus, button:focus, .tag-cloud-item:focus {
     .mobile-toc { display: block; }
     .page-post .content-area { flex-basis: 100%; max-width: 100%; }
     h1 { font-size: 1.7rem; }
-    .post-list-item .post-title { font-size: 1.4rem; } /* 移动端标题稍小 */
+    .post-list-item .post-title { font-size: 1.4rem; } 
     h1, h2, h3, h4, h5, h6 { scroll-margin-top: 130px; }
     
-    .post-list-item { padding: 20px 15px; } /* 移动端减小Padding */
+    .post-list-item { padding: 20px 15px; } 
 }
 
 /* =========================================
