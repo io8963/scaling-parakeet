@@ -453,7 +453,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .post-list-item {
     display: block; 
     /* 关键: 内边距和负边距调整，使其左侧距离与归档页列表项一致 (15px) */
-    padding: 20px 20px 20px 15px; /* 左侧内边距改为 15px */
+    padding: 20px 20px 20px 15px; /* 左侧内边距改为 15px (与归档页一致) */
     
     /* 1. 下面是一条虚线 */
     border-bottom: 1px dashed var(--color-main-border); 
@@ -523,6 +523,13 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0; padding: 0; border: none; background: none; display: inline; height: auto;
 }
 
+/* === 优化点 1: 悬停时日期颜色也变为主题色 === */
+.post-list-item:hover .meta-date {
+    color: var(--color-primary); 
+    opacity: 1; 
+}
+/* ========================================= */
+
 .post-list-item .tags-list {
     display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none;
 }
@@ -566,6 +573,13 @@ main { flex-grow: 1; padding: 40px 0 80px; }
         background-color: rgba(255, 255, 255, 0.03);
         border-left-color: var(--color-link-dark); /* 暗色模式竖线颜色 */
     }
+    
+    /* === 优化点 1: 暗色模式悬停时日期颜色也变为主题色 === */
+    .post-list-item:hover .meta-date {
+        color: var(--color-link-dark); 
+    }
+    /* ========================================= */
+    
     .post-list-item .tag-badge {
         background-color: rgba(255, 255, 255, 0.05);
         color: var(--color-text-secondary-dark);
