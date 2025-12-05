@@ -111,7 +111,7 @@ header {
     z-index: 100;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid transparent; 
+    border-bottom: 1px solid var(--color-main-border); /* 优化: 始终可见的底部边框 */
 }
 @media (prefers-color-scheme: dark) {
     header { background-color: rgba(18, 18, 18, 0.85); }
@@ -245,8 +245,17 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border: 1px solid var(--color-main-border);
     border-radius: 6px;
     font-size: 0.9rem;
+    transition: border-color 0.2s; /* 优化: 添加过渡 */
+}
+.mobile-toc:hover {
+    border-color: var(--color-primary); /* 优化: 悬停强调 */
 }
 .mobile-toc summary { padding: 10px 15px; cursor: pointer; color: var(--color-main-subtext); }
+.mobile-toc[open] > summary {
+    border-bottom: 1px solid var(--color-main-border); /* 优化: 展开后分割 */
+    padding-bottom: 10px;
+    margin-bottom: 10px;
+}
 .mobile-toc-content { padding: 15px; border-top: 1px solid var(--color-main-border); }
 .mobile-toc-content ul { list-style: none; padding: 0; }
 .mobile-toc-content ul ul { 
@@ -258,7 +267,15 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 /* =========================================
    J. 文章正文 (Content)
    ========================================= */
-.post-content p { margin-bottom: 1.6em; color: var(--color-main-text); }
+.post-content p { 
+    margin-bottom: 1.6em; 
+    color: var(--color-main-text); 
+    /* 优化: 微观排版 */
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    text-rendering: optimizeLegibility; 
+}
 .post-content img {
     max-width: 100%; height: auto; border-radius: 4px;
     display: block; margin: 30px auto; 
@@ -298,6 +315,20 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .admonition.note { border-left-color: var(--color-primary); }
 .admonition.warning { border-left-color: var(--color-admonition-warn); }
 .admonition.danger { border-left-color: var(--color-admonition-danger); }
+
+/* 优化: 锚点标题反馈 */
+.post-content :target {
+    background-color: var(--color-primary-light); 
+    padding-left: 5px;
+    margin-left: -5px; 
+    border-left: 5px solid var(--color-primary);
+    transition: background-color 0.5s ease-out;
+}
+@media (prefers-color-scheme: dark) {
+    .post-content :target {
+        background-color: rgba(0, 121, 107, 0.1);
+    }
+}
 
 
 /* =========================================
@@ -478,6 +509,52 @@ footer {
     color: var(--color-primary);
 }
 .read-more-link-area { text-align: center; margin-top: 40px; }
+
+/* 优化: 小型按钮 */
+.button-small {
+    padding: 5px 10px;
+    font-size: 0.85rem;
+}
+
+/* =========================================
+   A11Y & Focus
+   ========================================= */
+/* 优化: 1.1 跳过链接 (Skip Link) */
+.skip-link {
+    position: absolute;
+    left: -9999px; /* 默认移出屏幕 */
+    z-index: 9999;
+    padding: 10px 15px;
+    background-color: var(--color-primary);
+    color: white;
+    text-decoration: none;
+    top: 10px;
+    border-radius: 4px;
+    font-weight: bold;
+}
+.skip-link:focus {
+    left: 50%; /* 获得焦点时居中显示 */
+    transform: translateX(-50%);
+    border: 2px solid white; 
+}
+
+/* 优化: 1.2 统一焦点轮廓 (Focus Outline) */
+a:focus,
+button:focus,
+.tag-cloud-item:focus {
+    outline: none; 
+    /* 使用主题色作为清晰的轮廓 */
+    box-shadow: 0 0 0 3px var(--color-primary-light), 0 0 0 5px var(--color-primary);
+    border-radius: 4px; 
+}
+/* 修正代码块/输入框等元素的焦点样式 */
+.post-content pre a:focus, 
+.post-content code a:focus {
+    box-shadow: none; 
+    outline: 2px dotted currentColor;
+    border-radius: 0;
+}
+
 
 /* =========================================
    Z. 响应式布局
