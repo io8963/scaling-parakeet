@@ -40,14 +40,16 @@
                         <h1>{{post.title}}</h1>
                         <div class="post-meta">
                             <div class="meta-container">
+                                <!-- 修复：不再使用硬编码的 / 分隔符，改用 flex gap -->
                                 <span class="meta-date">
                                     {{post_date}}
                                 </span>
+                                
                                 {% if post_tags %}
-                                    <span style="opacity: 0.5;">/</span>
                                     <div class="meta-tags">
                                         <ul class="tags-list">
                                         {% for tag in post_tags %}
+                                            <!-- 详情页标签：#Tag 风格，无背景 -->
                                             <li><a href="{{site_root}}/tags/{{tag.slug}}.html" class="tag-badge">#{{tag.name}}</a></li>
                                         {% endfor %}
                                         </ul>
@@ -74,10 +76,9 @@
                     
                     {%- if page_id == 'tag' -%}
                         <h1 class="page-list-title"># {{tag}}</h1>
-                        <p style="color: var(--color-main-subtext); margin-bottom: 40px;">共 {{posts | length}} 篇文章</p>
+                        <p style="color: var(--color-main-subtext); margin-bottom: 40px; font-size: 0.9rem;">共 {{posts | length}} 篇文章</p>
                     {%- elif page_id == 'archive' -%}
-                        <!-- 归档页由 generator 直接生成 HTML，这里只作为容器 -->
-                        <!-- generator.py 逻辑会填充 content_html -->
+                        <!-- 归档页由 generator 直接生成 HTML -->
                     {%- endif -%}
                     
                     {%- if page_id != 'archive' -%}
@@ -85,23 +86,27 @@
                     {% for post in posts %}
                         <a href="{{site_root}}/{{post.link}}" class="post-list-item">
                             
+                            <!-- 1. 日期前置 -->
+                            <span class="meta-date">{{post.date_formatted}}</span>
+
+                            <!-- 2. 标题 -->
                             <h2 class="post-title">{{post.title}}</h2>
                             
+                            <!-- 3. 摘要 -->
                             {% if post.excerpt %}
                                 <p class="post-excerpt">{{post.excerpt}}</p>
                             {% endif %}
                             
+                            <!-- 4. 底部标签 (Hashtag 风格) -->
+                            {% if post.tags %}
                             <div class="post-meta-list">
-                                <span class="meta-date">{{post.date_formatted}}</span>
-                                
-                                {% if post.tags %}
-                                    <ul class="tags-list">
-                                    {% for tag in post.tags %}
-                                        <li><span class="tag-badge">#{{tag.name}}</span></li>
-                                    {% endfor %}
-                                    </ul>
-                                {% endif %}
+                                <ul class="tags-list">
+                                {% for tag in post.tags %}
+                                    <li><span class="tag-badge">#{{tag.name}}</span></li>
+                                {% endfor %}
+                                </ul>
                             </div>
+                            {% endif %}
                         </a>
                     {% endfor %}
                     </div>
@@ -138,7 +143,7 @@
             <p class="copyright-info">&copy; {{current_year}} {{blog_author}}.</p>
             <p class="footer-links">
                 <a href="{{site_root}}/rss.xml">RSS</a>
-                <a href="{{site_root}}/archive.html">归档</a>
+                <a href="{{site_root}}/archive.html">Archive</a>
                 <a href="#main-content" class="back-to-top">Top</a>
             </p>
         </div>
