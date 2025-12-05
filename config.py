@@ -23,11 +23,12 @@ CODE_HIGHLIGHT_CLASS = 'highlight'
 # --- Markdown 配置 ---
 # 1. 扩展列表 (使用短名称)
 MARKDOWN_EXTENSIONS = [
-    'extra',        # 包含 fenced_code (```), tables, footnotes
-    'codehilite',   # 代码高亮 (必须安装 Pygments)
-    'toc',          # 目录
-    'admonition',   # 提示块
-    'sane_lists',   # 更好的列表
+    'extra',              # 包含 fenced_code (```), tables, footnotes
+    'codehilite',         # 代码高亮 (必须安装 Pygments)
+    'toc',                # 目录
+    'admonition',         # 提示块
+    'sane_lists',         # 更好的列表
+    'pymdownx.tasklist',  # [新增] 任务列表支持 (- [ ])
 ]
 
 # 2. 扩展具体配置 (！！！关键修复：使用短名称作为键！！！)
@@ -42,6 +43,11 @@ MARKDOWN_EXTENSION_CONFIGS = {
         'use_pygments': True,          # 强制使用 Pygments
         'noclasses': True,             # True = 使用内联样式 (直接生成带颜色的 HTML)
         'guess_lang': True,            # 自动猜测语言
+    },
+    # [新增] 任务列表配置
+    'pymdownx.tasklist': {
+        'custom_checkbox': True,      # 允许使用 CSS 自定义样式
+        'clickable_checkbox': False,  # 静态页面通常设为不可点击
     }
 }
 # --- Markdown 配置结束 ---
