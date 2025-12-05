@@ -1,7 +1,5 @@
-
 <!DOCTYPE html>
-<html lang="zh-cn"> <!-- FIXED: Replaced {{lang}} with "zh-cn" for Chinese site -->
-<head>
+<html lang="zh-cn"> <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>{{page_title}} - {{blog_title}}</title>
@@ -19,7 +17,6 @@
 
 </head>
 <body class="page-{{page_id}}">
-    <!-- 优化: 1.1 A11Y: Skip Link 跳到主内容 -->
     <a href="#main-content" class="skip-link">跳到主内容</a> 
 
     <header>
@@ -42,18 +39,14 @@
                         <h1>{{post.title}}</h1>
                         <div class="post-meta">
                             <div class="meta-container">
-                                <!-- [优化 1] 日期显示强化 -->
                                 <span class="meta-date">
                                     {{post_date}}
-                                
                                 </span>
                                 
-                                <!-- [优化 1] 标签列表容器调整 -->
                                 {% if post_tags %}
                                     <div class="meta-tags">
                                         <ul class="tags-list">
                                         {% for tag in post_tags %}
-                                            <!-- [优化 1] 移除硬编码的 # 符号 -->
                                             <li><a href="{{site_root}}/tags/{{tag.slug}}.html" class="tag-badge">{{tag.name}}</a></li>
                                         {% endfor %}
                                         </ul>
@@ -79,7 +72,6 @@
                 {%- if page_id == 'index' or page_id == 'tag' or page_id == 'archive' -%} 
                     
                     {%- if page_id == 'tag' -%}
-                        <!-- 优化: 3.3 标签页导航增强 -->
                         <div class="tag-meta-info">
                             <h1 class="page-list-title"># {{tag}}</h1>
                             <p style="color: var(--color-main-subtext); margin-bottom: 20px; font-size: 0.9rem;">共 {{posts | length}} 篇文章</p>
@@ -93,27 +85,20 @@
                     {% for post in posts %}
                         <a href="{{site_root}}/{{post.link}}" class="post-list-item">
                             
-                            <!-- 1. 新的元数据顶部容器 -->
-                            <div class="post-list-meta-top">
-                                <!-- 日期 -->
+                            <h2 class="post-title">{{post.title}}</h2>
+                            
+                            <div class="post-list-meta-line">
                                 <span class="meta-date">{{post.date_formatted}}</span>
 
-                                <!-- 标签 -->
                                 {% if post.tags %}
-                                <div class="post-meta-list">
-                                    <ul class="tags-list">
+                                    <span style="opacity: 0.5;">·</span> <ul class="tags-list">
                                     {% for tag in post.tags %}
                                         <li><span class="tag-badge">{{tag.name}}</span></li>
                                     {% endfor %}
                                     </ul>
-                                </div>
                                 {% endif %}
                             </div>
 
-                            <!-- 2. 标题 -->
-                            <h2 class="post-title">{{post.title}}</h2>
-                            
-                            <!-- 3. 摘要 -->
                             {% if post.excerpt %}
                                 <p class="post-excerpt">{{post.excerpt}}</p>
                             {% endif %}
