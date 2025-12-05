@@ -1,4 +1,3 @@
-
 # autobuild.py - Fixed 404 Logic
 
 import os
@@ -141,6 +140,31 @@ def build_site():
     # 排序
     final_parsed_posts = sorted(parsed_posts, key=lambda p: p['date'], reverse=True)
     print(f"   -> Successfully parsed {len(final_parsed_posts)} blog posts.")
+
+    # -------------------------------------------------------------------------
+    # [新增逻辑] 注入上/下一篇文章导航数据 (P/N Navigation Injection)
+    # -------------------------------------------------------------------------
+    for i, post in enumerate(final_parsed_posts):
+        # i-1 是前一个元素 (时间上更近) -> Newer Article
+        prev_post_data = final_parsed_posts[i - 1] if i > 0 else None
+        
+        # i+1 是后一个元素 (时间上更远) -> Older Article
+        next_post_data = final_parsed_posts[i + 1] if i < len(final_parsed_posts) - 1 else None
+
+        post['prev_post_nav'] = None
+        if prev_post_data:
+            post['prev_post_nav'] = {
+                'title': prev_post_data['title'],
+                'link': prev_post_data['link']
+            }
+
+        post['next_post_nav'] = None
+        if next_post_data:
+            post['next_post_nav'] = {
+                'title': next_post_data['title'],
+                'link': next_post_data['link']
+            }
+    # -------------------------------------------------------------------------
 
     # -------------------------------------------------------------
     # 4. 生成 HTML
