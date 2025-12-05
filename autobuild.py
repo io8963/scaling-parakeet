@@ -1,3 +1,4 @@
+
 # autobuild.py - Fixed 404 Logic
 
 import os
@@ -28,7 +29,7 @@ def hash_file(filepath: str) -> str:
 
 def build_site():
     print("\n" + "="*40)
-    print("   🚀 STARTING BUILD PROCESS (Fix 404 List Issue)")
+    print("   🚀 STARTING BUILD PROCESS (Fix 404 List Issue & Hidden Pages)")
     print("="*40 + "\n")
     
     # -------------------------------------------------------------
@@ -109,14 +110,13 @@ def build_site():
 
         # 过滤 hidden 标记的文章 (双重保险)
         if metadata.get('hidden') is True: 
-            # 如果是 hidden 或者是 about 页面，我们可以选择生成它但不加入列表
-            # 这里为了简单，如果想生成 about.html 但不加入列表，可以在这里加逻辑
-            # 目前逻辑是 hidden 的直接忽略，或者如果你想生成单页：
-            if slug == 'about':
+            # 如果是 hidden，检查是否是 about 页面
+            if slug == 'about' or file_name == config.ABOUT_PAGE:
                  special_post = { **metadata, 'content_html': content_html, 'toc_html': '', 'link': 'about.html' }
-                 generator.generate_post_page(special_post)
-                 print(f"   -> [Special] Generating about.html")
+                 generator.generate_page_html(special_post['content_html'], special_post['title'], 'about', 'about.html')
+                 print(f"   -> [Special] Generating about.html (Hidden)")
             
+            # Hidden 页面不加入列表
             continue 
 
         # 检查普通文章的必要字段
@@ -151,7 +151,7 @@ def build_site():
     for post in final_parsed_posts:
         generator.generate_post_page(post)
     
-    # 生成列表页 (此时 final_parsed_posts 里绝对没有 404)
+    # 生成列表页 (此时 final_parsed_posts 里绝对没有 404/hidden)
     generator.generate_index_html(final_parsed_posts)
     generator.generate_archive_html(final_parsed_posts)
     generator.generate_tags_list_html(tag_map)
@@ -163,6 +163,7 @@ def build_site():
 
     generator.generate_robots_txt()
     
+    # Sitemap 和 RSS 使用经过过滤和排序的列表
     with open(os.path.join(config.BUILD_DIR, config.SITEMAP_FILE), 'w', encoding='utf-8') as f:
         f.write(generator.generate_sitemap(final_parsed_posts))
     with open(os.path.join(config.BUILD_DIR, config.RSS_FILE), 'w', encoding='utf-8') as f:
