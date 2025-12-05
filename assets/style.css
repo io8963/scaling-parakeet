@@ -89,7 +89,7 @@ h1, h2, h3, h4, h5, h6 {
     margin-bottom: 0.6em;
     font-weight: 700;
     color: var(--color-main-text);
-    scroll-margin-top: 90px; 
+    scroll-margin-top: 90px; /* 桌面端默认值，预留导航栏高度（约 90px）*/
 }
 h1 { font-size: 2rem; letter-spacing: -0.02em; }
 h2 { font-size: 1.6rem; }
@@ -511,6 +511,11 @@ footer {
     
     h1 { font-size: 1.7rem; }
     .post-title { font-size: 1.3rem; }
+    
+    /* [重要修改] 移动端导航栏更高，调整锚点跳转边距 */
+    h1, h2, h3, h4, h5, h6 {
+        scroll-margin-top: 130px; 
+    }
 }
 
 /* =========================================
