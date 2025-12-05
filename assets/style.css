@@ -61,8 +61,6 @@ html {
     background-color: var(--color-main-background);
     font-size: 16px;
     scroll-behavior: smooth; 
-    /* [优化] 启用字体渲染优化 */
-    text-rendering: optimizeLegibility; 
 }
 
 body {
@@ -113,9 +111,7 @@ header {
     z-index: 100;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--color-main-border); /* [优化] 统一边框颜色 */
-    /* [优化] 新增微妙的阴影 */
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05); 
+    border-bottom: 1px solid transparent; 
 }
 @media (prefers-color-scheme: dark) {
     header { background-color: rgba(18, 18, 18, 0.85); }
@@ -178,11 +174,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     top: 100px;
     max-height: calc(100vh - 120px);
     overflow-y: auto;
-    /* [优化] 目录区域卡片化 */
-    padding: 15px;
-    border-left: none; /* 移除左边框，融入背景 */
-    border-radius: 6px;
-    background-color: rgba(0, 121, 107, 0.03); /* 略微突出 TOC 背景 */
+    padding-left: 15px;
+    border-left: 1px solid var(--color-main-border);
     font-size: 0.85rem;
 }
 .toc-area h3 { 
@@ -239,12 +232,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     color: var(--color-primary); 
 }
 
-/* [优化] 增强焦点 */
-.toc-area li a:focus {
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-}
-
 
 .page-post .toc-area { display: block; }
 .page-post .content-area { flex-basis: 75%; max-width: 75%; }
@@ -271,24 +258,11 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 /* =========================================
    J. 文章正文 (Content)
    ========================================= */
-.post-content p { 
-    /* [优化] 调整段落间距和连字符 */
-    margin-bottom: 1.7rem; 
-    color: var(--color-main-text); 
-    hyphens: auto; /* 启用自动连字符 */
-    -webkit-hyphens: auto;
-    -ms-hyphens: auto;
-}
+.post-content p { margin-bottom: 1.6em; color: var(--color-main-text); }
 .post-content img {
     max-width: 100%; height: auto; border-radius: 4px;
     display: block; margin: 30px auto; 
     border: 1px solid var(--color-main-border);
-    /* [优化] 增加阴影和过渡 */
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08); /* 赋予轻微阴影 */
-}
-.post-content img:hover {
-    box-shadow: 0 6px 12px rgba(0, 0, 0, 0.15); /* 悬停时阴影加深 */
 }
 .post-content img + em {
     display: block; text-align: center; font-size: 0.85rem;
@@ -379,31 +353,14 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 .post-list-item {
     display: block; 
-    /* [优化] 移除 border-bottom，改用卡片样式 */
-    border: 1px solid transparent; /* 初始透明边框 */
-    border-radius: 8px; /* 略微圆角 */
-    padding: 25px 15px; /* 增加内边距 */
-    margin-bottom: 15px; /* 增加列表项间距 */
+    padding: 25px 0;
+    border-bottom: 1px solid var(--color-main-border); 
     text-decoration: none;
     color: inherit;
-    transition: all 0.2s ease;
+    transition: opacity 0.2s;
 }
-.post-list-item:hover { 
-    /* [优化] 悬停效果：背景色、高亮边框、轻微上浮 */
-    background-color: var(--color-primary-light);
-    opacity: 1; 
-    border-color: var(--color-primary); 
-    transform: translateY(-2px); 
-}
+.post-list-item:hover { opacity: 0.8; }
 .post-list-item:last-child { border-bottom: none; }
-
-/* [优化] 暗色模式下的悬停背景 */
-@media (prefers-color-scheme: dark) {
-    .post-list-item:hover {
-        background-color: var(--color-card-dark);
-        border-color: var(--color-link-dark);
-    }
-}
 
 .post-list-item .meta-date {
     display: block;
@@ -559,23 +516,6 @@ footer {
     h1, h2, h3, h4, h5, h6 {
         scroll-margin-top: 130px; 
     }
-}
-
-/* [优化] 404 页面居中优化 */
-.page-404 main {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: calc(100vh - 120px); 
-    padding: 0;
-}
-.page-404 .content-area {
-    text-align: center;
-    max-width: 500px;
-}
-.page-404 h2 {
-    font-size: 2.5rem;
-    color: var(--color-primary);
 }
 
 /* =========================================
