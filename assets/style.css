@@ -452,8 +452,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 .post-list-item {
     display: block; 
-    /* 关键: 内边距较大，但利用负边距向左延伸，模拟Archive效果 */
-    padding: 20px 20px 20px 25px; /* 左侧留出更多空间给hover背景 */
+    /* 关键: 内边距和负边距调整，使其左侧距离与归档页列表项一致 (15px) */
+    padding: 20px 20px 20px 15px; /* 左侧内边距改为 15px */
     
     /* 1. 下面是一条虚线 */
     border-bottom: 1px dashed var(--color-main-border); 
@@ -461,9 +461,9 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     /* 2. 默认左侧是透明的边框 (占位) */
     border-left: 4px solid transparent; 
     
-    /* 3. 利用负边距向左拉伸盒子 */
-    margin-left: -25px; 
-    width: calc(100% + 25px);
+    /* 3. 利用负边距向左拉伸盒子 (与内边距匹配，保证内容对齐) */
+    margin-left: -15px; 
+    width: calc(100% + 15px);
     
     background-color: transparent; 
     text-decoration: none;
