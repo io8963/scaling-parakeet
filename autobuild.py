@@ -7,7 +7,8 @@ import hashlib
 from typing import List, Dict, Any
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta 
-import subprocess # 导入 subprocess 用于执行 Git 命令
+import subprocess # 用于执行 Git 命令
+import shlex      # 用于安全处理命令字符串
 
 import config
 from parser import get_metadata_and_content
@@ -32,35 +33,44 @@ def hash_file(filepath: str) -> str:
     except FileNotFoundError:
         return 'nohash'
 
-# [修复 FUNCTION] 获取文件的最后修改时间 (强制使用 Git Commit Time) 并格式化为 UTC+8
+# [核心修复 FUNCTION] 获取文件的最后修改时间 (强制使用 Git Commit Time) 并格式化为 UTC+8
 def format_file_mod_time(filepath: str) -> str:
     """获取文件的最后修改时间 (强制使用 Git Commit Time) 并格式化为中文构建时间 (UTC+8)。"""
     
-    # 尝试获取 Git 最后提交时间
+    # 尝试获取 Git 最后提交时间 (使用 Author Date %aI，通常更接近实际修改日期)
+    # 使用 shlex.quote 来保护文件路径中的空格或特殊字符
+    quoted_filepath = shlex.quote(filepath)
+    # 使用 os.popen 代替 subprocess.run 以简化在各种 CI 环境下的执行
+    git_command = f'git log -1 --pretty=format:%aI -- {quoted_filepath}'
+    
+    git_time_str = ''
     try:
-        # 使用 Git 命令获取 Committer Date 的 ISO 8601 格式，包含时区偏移
-        git_command = ['git', 'log', '-1', '--pretty=format:%cI', '--', filepath]
-        
-        # 捕获输出，确保在当前工作目录执行
-        # check=True 会在命令失败时抛出异常
-        result = subprocess.run(git_command, capture_output=True, text=True, check=True, cwd=os.getcwd())
-        git_time_str = result.stdout.strip()
+        # cwd=os.getcwd() 应该确保命令在项目根目录执行
+        with os.popen(git_command) as f:
+            git_time_str = f.read().strip()
 
         if git_time_str:
             # 解析 ISO 时间字符串，datetime.fromisoformat 会正确处理时区偏移
-            mtime_dt_tz = datetime.fromisoformat(git_time_str)
+            # 在某些 Python 版本/环境中，需要手动去除冒号后的时区部分，但我们先按标准处理
+            try:
+                mtime_dt_tz = datetime.fromisoformat(git_time_str)
+            except ValueError:
+                # 处理如 'Z' 结尾或时区格式问题
+                if git_time_str.endswith('Z'):
+                    git_time_str = git_time_str.replace('Z', '+00:00')
+                mtime_dt_tz = datetime.fromisoformat(git_time_str)
             
             # 转换为 UTC+8 (保证显示时区一致性)
             mtime_dt_utc8 = mtime_dt_tz.astimezone(TIMEZONE_INFO)
             
             return f"本文构建时间: {mtime_dt_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8 - Git)"
 
-        # Git 成功运行但文件未被追踪，进入回退
-        raise Exception("Git time not found for tracked file, falling back.") 
+        # Git 成功运行但文件未被追踪/无历史记录，进入回退
+        raise Exception("Git history not found, falling back.") 
 
-    except (subprocess.CalledProcessError, FileNotFoundError, Exception) as e:
+    except Exception as e:
         # Git 命令失败（不在仓库中、文件不存在或未被追踪）时，使用当前的构建时间作为文章的 fallback 时间。
-        # 此处不使用 os.path.getmtime 来避免 CI/CD 环境的时间污染。
+        # 此处强制使用当前构建时间作为回退，以避免文件系统时间污染。
         now_utc = datetime.now(timezone.utc)
         now_utc8 = now_utc.astimezone(TIMEZONE_INFO)
         # 标记为 Fallback，表示未能获取到历史修改时间
