@@ -22,8 +22,8 @@ jobs:
 
     steps:
     - name: Checkout Repository (Full History)
-        uses: actions/checkout@v4
-        with:
+      uses: actions/checkout@v4
+      with:
           fetch-depth: 0
       
     - name: Set up Python
