@@ -352,10 +352,14 @@ def build_site():
         print("   -> [SKIPPED] Index, Archive, Tags, RSS (No post data change)")
 
     # 3. 保存新的构建清单
+# autobuild.py (已修复最后一行语法错误)
+# ... (文件的所有其他内容保持不变)
+
+    # 3. 保存新的构建清单
     save_manifest(new_manifest)
     print("   -> Manifest file updated.")
     
     print("\n✅ BUILD COMPLETE")
 
-if __name__ == '__main':
+if __name__ == '__main__': # <-- 关键修复：添加了冒号 (:) 和第二个下划线 (__)
     build_site()
