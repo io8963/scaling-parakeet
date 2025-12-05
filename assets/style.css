@@ -135,16 +135,27 @@ header nav a::after {
 
 
 h1, h2, h3, h4, h5, h6 {
-    line-height: 1.3;
+    /* [优化 3] 标题行高略低，增加紧凑感 */
+    line-height: 1.25; 
     margin-top: 1.5em;
     margin-bottom: 0.6em;
     font-weight: 700;
     color: var(--color-main-text);
     scroll-margin-top: 90px; /* 桌面端默认值，预留导航栏高度（约 90px）*/
 }
-h1 { font-size: 2rem; letter-spacing: -0.02em; }
-h2 { font-size: 1.6rem; }
-h3 { font-size: 1.3rem; }
+h1 { 
+    font-size: 2rem; 
+    letter-spacing: -0.02em; 
+    line-height: 1.2; /* 优化：H1更紧凑 */
+}
+h2 { 
+    font-size: 1.6rem; 
+    letter-spacing: -0.01em; /* 优化：略微收紧 */
+}
+h3 { 
+    font-size: 1.3rem; 
+    letter-spacing: 0; /* H3保持默认 */
+}
 
 ul, ol { padding-left: 20px; margin-bottom: 1.5em; }
 li { margin-bottom: 0.4em; }
@@ -257,12 +268,15 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 /* 链接样式 */
 .toc-area li a { 
     display: block; 
-    padding: 4px 0; /* 增加垂直间距 */
+    padding: 4px 5px; /* [优化 4] 增加水平内边距 */
     color: var(--color-main-subtext); 
     text-decoration: none; 
     transition: all 0.2s ease;
     line-height: 1.4;
-    font-weight: 500; /* 默认字重略微增加 */
+    font-weight: 500;
+    /* [优化 4] 基础焦点样式 */
+    outline: none;
+    border-radius: 3px;
 }
 
 /* 突出最顶层链接 (H2) */
@@ -280,9 +294,22 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     color: var(--color-main-subtext); 
 }
 
-/* 悬停效果 */
-.toc-area li a:hover { 
+/* 悬停/聚焦效果 */
+.toc-area li a:hover,
+.toc-area li a:focus { 
     color: var(--color-primary); 
+    /* [优化 4] 增加背景色反馈 */
+    background-color: var(--color-primary-light);
+}
+
+
+/* 暗色模式下 TOC 悬停/聚焦效果 */
+@media (prefers-color-scheme: dark) {
+    .toc-area li a:hover,
+    .toc-area li a:focus { 
+        color: var(--color-link-dark); 
+        background-color: rgba(0, 121, 107, 0.1); /* 暗色柔和背景 */
+    }
 }
 
 
@@ -416,11 +443,30 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 
+/* [优化 1] 行内代码优化 */
 .post-content code:not(pre code) {
-    background-color: rgba(0, 0, 0, 0.04);
-    color: var(--color-primary);
-    padding: 2px 4px; border-radius: 3px; font-size: 0.9em;
+    /* [优化] 增加字重，使用更柔和的背景色 */
+    background-color: var(--color-code-bg); /* 使用代码块的柔和背景色 */
+    color: var(--color-text); /* 使用主文本颜色或深色 */
+    font-weight: 500; /* 轻微加粗 */
+    padding: 2px 4px; 
+    border-radius: 3px; 
+    font-size: 0.9em;
+    /* [新增] 增加一个轻微的边框，以明确代码边界 */
+    border: 1px solid rgba(0, 0, 0, 0.05);
 }
+
+/* [优化 1] 行内代码暗色模式优化 */
+@media (prefers-color-scheme: dark) {
+    .post-content code:not(pre code) { 
+        background-color: var(--color-code-bg-dark); 
+        color: var(--color-link-dark); /* 暗色模式下使用主题色文字 */
+        border: 1px solid rgba(255, 255, 255, 0.1);
+    }
+    /* ... (其他 pre 优化保持不变) ... */
+}
+
+
 .post-content pre {
     background-color: var(--color-code-bg);
     border-radius: 6px; 
@@ -439,7 +485,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.1); /* 悬停时阴影加深 */
 }
 @media (prefers-color-scheme: dark) {
-    .post-content code:not(pre code) { background-color: rgba(255,255,255,0.1); }
     .post-content pre { 
         background-color: var(--color-code-bg-dark); 
         box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.05); /* 暗色模式下的默认阴影 */
@@ -549,9 +594,39 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border-bottom: 1px solid var(--color-main-border); 
     text-decoration: none;
     color: inherit;
-    transition: opacity 0.2s;
+    transition: opacity 0.2s, background-color 0.2s; /* [优化 2] 增加背景色过渡 */
+    
+    /* [优化 2] 基础焦点样式重置 */
+    outline: none; 
 }
-.post-list-item:hover { opacity: 0.8; }
+
+/* [优化 2] Hover 和 Focus 时提供背景反馈 */
+.post-list-item:hover,
+.post-list-item:focus { 
+    opacity: 1; /* 保持不透明 */
+    /* 增加一个非常浅的背景色作为焦点指示 */
+    background-color: rgba(0, 0, 0, 0.015);
+}
+
+/* [优化 2] 更好的焦点可见性 */
+.post-list-item:focus {
+    /* 使用 box-shadow 作为外部轮廓，替代浏览器默认轮廓 */
+    box-shadow: 0 0 0 2px var(--color-primary-light), 0 0 0 4px var(--color-primary);
+    border-radius: 4px;
+}
+
+/* [新增] 暗色模式下的列表项焦点反馈 */
+@media (prefers-color-scheme: dark) {
+    .post-list-item:hover,
+    .post-list-item:focus {
+        background-color: rgba(255, 255, 255, 0.03);
+    }
+    .post-list-item:focus {
+        box-shadow: 0 0 0 2px rgba(0, 121, 107, 0.3), 0 0 0 4px var(--color-link-dark);
+    }
+}
+
+
 .post-list-item:last-child { border-bottom: none; }
 
 .post-list-item .meta-date {
@@ -706,6 +781,7 @@ footer {
 }
 
 /* 优化: 1.2 统一焦点轮廓 (Focus Outline) */
+/* 列表项的焦点轮廓已经在 N. 极简文章列表 中单独处理 */
 a:focus,
 button:focus,
 .tag-cloud-item:focus {
