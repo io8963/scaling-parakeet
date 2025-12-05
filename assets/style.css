@@ -165,7 +165,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .content-area { flex-grow: 1; max-width: 100%; }
 
 /* =========================================
-   I. 目录 (TOC)
+   I. 目录 (TOC) - 增强可读性与层级区分
    ========================================= */
 .toc-area {
     width: 200px;
@@ -178,10 +178,60 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border-left: 1px solid var(--color-main-border);
     font-size: 0.85rem;
 }
-.toc-area h3 { font-size: 0.8rem; text-transform: uppercase; color: var(--color-main-subtext); margin: 0 0 10px; }
-.toc-area ul { list-style: none; padding: 0; margin: 0; }
-.toc-area li a { display: block; padding: 3px 0; color: var(--color-main-subtext); text-decoration: none; }
-.toc-area li a:hover { color: var(--color-primary); }
+.toc-area h3 { 
+    font-size: 0.8rem; 
+    text-transform: uppercase; 
+    color: var(--color-main-subtext); 
+    margin: 0 0 10px; 
+    letter-spacing: 0.05em; /* 略微增加字母间距 */
+}
+.toc-area ul { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+}
+
+/* 增强层级感: 增加嵌套列表的缩进 */
+.toc-area ul ul {
+    padding-left: 12px; /* 略微缩进 */
+    border-left: 1px dotted var(--color-main-border); /* 虚线区分层级 */
+    margin: 5px 0;
+}
+.toc-area ul ul ul {
+    padding-left: 12px;
+}
+
+/* 链接样式 */
+.toc-area li a { 
+    display: block; 
+    padding: 4px 0; /* 增加垂直间距 */
+    color: var(--color-main-subtext); 
+    text-decoration: none; 
+    transition: all 0.2s ease;
+    line-height: 1.4;
+    font-weight: 500; /* 默认字重略微增加 */
+}
+
+/* 突出最顶层链接 (H2) */
+.toc-area > ul > li > a {
+    font-weight: 600; /* 顶部链接加粗 */
+    font-size: 0.9rem; /* 略微放大 */
+    color: var(--color-main-text); /* 使用主文本颜色 */
+    padding-top: 6px; /* 增加顶部间距 */
+    padding-bottom: 6px;
+}
+
+/* 嵌套层级链接 (H3, H4...) 恢复原大小，略微减轻颜色 */
+.toc-area ul ul a {
+    font-size: 0.85rem; 
+    color: var(--color-main-subtext); 
+}
+
+/* 悬停效果 */
+.toc-area li a:hover { 
+    color: var(--color-primary); 
+}
+
 
 .page-post .toc-area { display: block; }
 .page-post .content-area { flex-basis: 75%; max-width: 75%; }
@@ -199,6 +249,10 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .mobile-toc summary { padding: 10px 15px; cursor: pointer; color: var(--color-main-subtext); }
 .mobile-toc-content { padding: 15px; border-top: 1px solid var(--color-main-border); }
 .mobile-toc-content ul { list-style: none; padding: 0; }
+.mobile-toc-content ul ul { 
+    padding-left: 15px; /* 移动端目录也增加缩进 */
+    border-left: 1px dotted var(--color-main-border);
+}
 .mobile-toc-content a { display: block; padding: 4px 0; color: var(--color-main-text); text-decoration: none;}
 
 /* =========================================
