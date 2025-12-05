@@ -516,7 +516,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     /* [新增] 风格化说明文字 */
     font-family: monospace; /* 等宽字体增强元数据感 */
     border-top: 1px solid var(--color-main-border);
-    border-bottom: 1px solid var(--color-main-border);
+    border-bottom: 13px solid var(--color-main-border);
     padding: 5px 0;
     margin-top: -20px; 
     margin-bottom: 30px; 
@@ -747,22 +747,23 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0;
     list-style: none;
 }
-/* [优化 1] 增强徽章视觉效果，使其成为药丸卡片 */
+/* [修改 - 标签与日期对齐] 增强徽章视觉效果，使其成为卡片，并与日期卡片统一高度 */
 .meta-tags .tag-badge {
     color: var(--color-main-subtext);
     text-decoration: none;
-    transition: color 0.2s, background-color 0.2s, border-color 0.2s;
+    transition: all 0.2s ease; /* 简化过渡 */
     
-    /* [新增] 增强徽章视觉效果 */
-    padding: 2px 6px; /* 调整内边距 */
-    border-radius: 4px; /* [修复 1] 统一圆角 */
+    /* [新增/修复] 增强徽章视觉效果，使其与日期卡片风格统一 */
+    padding: 2px 6px; /* 调整内边距，与 meta-date 保持一致 */
+    border-radius: 4px; 
     background-color: var(--color-code-bg);
-    /* [修复 1] 移除边框，使其更轻量化 */
-    border: none;
+    border: 1px solid var(--color-main-border); /* 与 meta-date 统一边框 */
     font-weight: 500;
     
-    /* [修复 1] 确保垂直对齐 */
+    /* [修复] 确保垂直对齐和高度一致 */
+    display: inline-block; /* 确保能设置高度和内边距 */
     line-height: 1.2;
+    height: 1.8em; /* 与 meta-date 高度一致 */
 }
 .meta-tags .tag-badge:hover {
     color: var(--color-primary);
