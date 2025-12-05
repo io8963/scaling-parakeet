@@ -340,6 +340,30 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border-left: none; /* 3级以上取消虚线，避免过于复杂 */
 }
 
+/* [新增] 增强列表项的可读性 */
+.post-content ul li,
+.post-content ol li {
+    padding: 3px 0;
+    /* 列表项之间添加一个非常浅的虚线分隔 */
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
+    margin-bottom: 0.8em;
+}
+
+/* 最后一个列表项移除分隔线 */
+.post-content ul li:last-child,
+.post-content ol li:last-child {
+    border-bottom: none;
+}
+
+/* 暗色模式下的分隔线 */
+@media (prefers-color-scheme: dark) {
+    .post-content ul li,
+    .post-content ol li {
+        border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
+    }
+}
+
+
 .post-content img {
     max-width: 100%; 
     height: auto; 
@@ -399,22 +423,29 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 .post-content pre {
     background-color: var(--color-code-bg);
-    border-radius: 6px; margin: 25px 0; padding: 15px;
-    overflow-x: auto; font-size: 0.9rem; border: 1px solid var(--color-main-border);
-    /* 优化 3: 为可滚动代码块添加视觉反馈 */
-    transition: box-shadow 0.2s;
-    box-shadow: 0 0 0 0 transparent;
+    border-radius: 6px; 
+    margin: 25px 0; 
+    padding: 15px;
+    overflow-x: auto; 
+    font-size: 0.9rem; 
+    border: 1px solid var(--color-main-border);
+    /* [优化 1] 代码块视觉层次优化 */
+    transition: box-shadow 0.2s, background-color 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* 默认增加轻微阴影，模拟浮动卡片 */
 }
 
-/* 优化 3: hover 时显示阴影，提示可滚动 */
+/* [优化 1] hover 时显示更明显的阴影，提示可滚动 */
 .post-content pre:hover {
-    box-shadow: 0 4px 8px -2px rgba(0, 0, 0, 0.1); 
+    box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.1); /* 悬停时阴影加深 */
 }
 @media (prefers-color-scheme: dark) {
     .post-content code:not(pre code) { background-color: rgba(255,255,255,0.1); }
-    .post-content pre { background-color: var(--color-code-bg-dark); }
+    .post-content pre { 
+        background-color: var(--color-code-bg-dark); 
+        box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.05); /* 暗色模式下的默认阴影 */
+    }
     .post-content pre:hover {
-        box-shadow: 0 4px 8px -2px rgba(255, 255, 255, 0.1); 
+        box-shadow: 0 6px 12px -2px rgba(255, 255, 255, 0.1); /* 暗色模式下的悬停阴影 */
     }
 }
 
@@ -424,7 +455,24 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .post-content th { background-color: rgba(0,0,0,0.02); font-weight: 600; }
 
 .admonition { margin: 25px 0; padding: 15px; border: 1px solid var(--color-main-border); border-left-width: 4px; border-radius: 4px; }
-.admonition-title { margin-bottom: 8px; font-weight: 700; font-size: 0.95rem; }
+.admonition-title { 
+    /* [优化 2] 标题使用主色 */
+    color: var(--color-primary); 
+    margin-bottom: 8px; 
+    font-weight: 700; 
+    font-size: 0.95rem; 
+}
+/* [优化 2] 针对特定类型的标题颜色覆盖 */
+.admonition.note .admonition-title { color: var(--color-admonition-note); }
+.admonition.warning .admonition-title { color: var(--color-admonition-warn); }
+.admonition.danger .admonition-title { color: var(--color-admonition-danger); }
+
+/* [优化 2] 暗色模式下，使用稍微亮一些的主色来保证对比度 */
+@media (prefers-color-scheme: dark) {
+    .admonition.note .admonition-title { color: var(--color-link-dark); }
+}
+
+
 .admonition.note { border-left-color: var(--color-primary); }
 .admonition.warning { border-left-color: var(--color-admonition-warn); }
 .admonition.danger { border-left-color: var(--color-admonition-danger); }
@@ -794,8 +842,9 @@ button:focus,
     margin: 0;
     line-height: 1.4;
     color: var(--color-main-text);
-    transition: color 0.2s;
-    scroll-margin-top: 0; /* 导航卡片内的 h3 不需要锚点边距 */
+    /* [优化 4] 增加 transform 动画属性 */
+    transition: color 0.2s, transform 0.2s ease-out; 
+    scroll-margin-top: 0; 
     /* 确保标题在卡片内截断 */
     overflow: hidden;
     white-space: nowrap;
@@ -804,6 +853,8 @@ button:focus,
 
 .nav-link:hover h3 { 
     color: var(--color-primary); 
+    /* [优化 4] 悬停时标题向上轻微移动，模拟交互 */
+    transform: translateY(-1px); 
 }
 
 /* 左侧 Newer Post / 上一篇 居左对齐 */
