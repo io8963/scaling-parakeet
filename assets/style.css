@@ -21,11 +21,11 @@
     --color-card: #ffffff; 
     --color-border: #f0f0f0; 
     
-    --color-text-dark: #ededed; /* [优化 1] 优化暗色模式文本颜色 */
+    --color-text-dark: #ededed;
     --color-text-secondary-dark: #888;
     --color-background-dark: #121212; 
     --color-card-dark: #1e1e1e; 
-    --color-border-light: #333; /* 暗色模式边框稍微深一点 */
+    --color-border-light: #333;
     --color-border-dark: #2a2a2a;
 
     --color-code-bg: #f8f9fa;
@@ -47,7 +47,7 @@
         --color-main-subtext: var(--color-text-secondary-dark);
         --color-main-background: var(--color-background-dark);
         --color-main-card: var(--color-card-dark);
-        --color-main-border: var(--color-border-light); /* 使用稍微明显的边框 */
+        --color-main-border: var(--color-border-light);
     }
 }
 
@@ -75,19 +75,17 @@ a {
     color: var(--color-primary);
     text-decoration: none;
     transition: color 0.2s;
-    /* [新增] 基础设置用于链接悬停动画 */
     position: relative; 
-    display: inline-block; /* 确保能容纳伪元素 */
-    outline: none; /* [优化 2] 移除默认 outline */
+    display: inline-block;
+    outline: none;
 }
 
-/* [新增] 链接下划线伪元素 */
 a::after {
     content: '';
     position: absolute;
     width: 100%;
     transform: scaleX(0);
-    height: 1px; /* 细下划线 */
+    height: 1px;
     bottom: 0;
     left: 0;
     background-color: var(--color-primary);
@@ -95,89 +93,49 @@ a::after {
     transition: transform 0.3s ease-out;
 }
 
-/* [优化] 悬停时展开下划线 */
 a:hover { 
-    color: #004d40; /* 悬停颜色不变 */
+    color: #004d40;
 }
 a:hover::after {
     transform: scaleX(1);
     transform-origin: bottom left;
 }
-/* [优化 2] 链接默认焦点：使用主题色边框 */
 a:focus {
     outline: 2px solid var(--color-primary); 
-    outline-offset: 2px; /* 略微偏移 */
+    outline-offset: 2px;
     border-radius: 2px;
 }
 
 @media (prefers-color-scheme: dark) {
     a { color: var(--color-link-dark); }
     a:hover { color: #b2dfdb; }
-    
-    /* [新增] 暗色模式下划线颜色 */
-    a::after {
-        background-color: var(--color-link-dark);
-    }
+    a::after { background-color: var(--color-link-dark); }
 }
 
-/* [例外处理] 确保 Header Nav Link 保持简洁 */
-header nav a::after {
-    content: none;
-}
-.post-license a::after {
-    content: none; /* 版权声明中的链接保持默认下划线，避免干扰 */
-}
-
-/* [例外处理] 避免文章标题（H1-H6）中的链接被干扰 */
-.post-content h1 a::after,
-.post-content h2 a::after,
-.post-content h3 a::after {
-    content: none;
-}
-
-/* [例外处理] Tag Badge/Button 链接 */
+/* 例外处理 */
+header nav a::after, .post-license a::after,
+.post-content h1 a::after, .post-content h2 a::after, .post-content h3 a::after,
 .tag-badge a::after, .button a::after, .button-secondary a::after {
     content: none;
 }
 
-
 h1, h2, h3, h4, h5, h6 {
-    /* [优化 3] 标题行高略低，增加紧凑感 */
     line-height: 1.25; 
-    margin-top: 1.5em; /* 默认大间距 */
+    margin-top: 1.5em;
     margin-bottom: 0.6em;
     font-weight: 700;
     color: var(--color-main-text);
-    scroll-margin-top: 90px; /* 桌面端默认值，预留导航栏高度（约 90px）*/
+    scroll-margin-top: 90px;
 }
-h1 { 
-    font-size: 2rem; 
-    letter-spacing: -0.02em; 
-    line-height: 1.2; /* 优化：H1更紧凑 */
-}
-h2 { 
-    font-size: 1.6rem; 
-    letter-spacing: -0.01em; /* 优化：略微收紧 */
-}
-h3 { 
-    font-size: 1.3rem; 
-    letter-spacing: 0; /* H3保持默认 */
-}
+h1 { font-size: 2rem; letter-spacing: -0.02em; line-height: 1.2; }
+h2 { font-size: 1.6rem; letter-spacing: -0.01em; }
+h3 { font-size: 1.3rem; letter-spacing: 0; }
 
-/* [优化 1] 标题颜色修正 */
 @media (prefers-color-scheme: dark) {
-    h1, h2, h3, h4, h5, h6 {
-        color: #ededed;
-    }
+    h1, h2, h3, h4, h5, h6 { color: #ededed; }
 }
 
-/* [优化 1] 标题紧随标题时，减少顶部间距，强调结构紧凑 */
-.post-content h2 + h3,
-.post-content h3 + h4,
-.post-content h4 + h5 {
-    margin-top: 0.8em; /* 减小到默认的一半多一点 */
-}
-
+.post-content h2 + h3, .post-content h3 + h4 { margin-top: 0.8em; }
 
 ul, ol { padding-left: 20px; margin-bottom: 1.5em; }
 li { margin-bottom: 0.4em; }
@@ -188,19 +146,17 @@ li { margin-bottom: 0.4em; }
 .container { max-width: 800px; margin: 0 auto; padding: 0 20px; } 
 
 header {
-    /* 优化 1: 提高 Header 背景不透明度，增强对比度 */
-    background-color: rgba(255, 255, 255, 0.95); /* 从 0.85 提高到 0.95 */
+    background-color: rgba(255, 255, 255, 0.95);
     padding: 20px 0;
     position: sticky;
     top: 0;
     z-index: 100;
     backdrop-filter: blur(12px);
     -webkit-backdrop-filter: blur(12px);
-    border-bottom: 1px solid var(--color-main-border); /* 优化: 始终可见的底部边框 */
+    border-bottom: 1px solid var(--color-main-border);
 }
 @media (prefers-color-scheme: dark) {
-    /* 优化 1: 提高 Header 背景不透明度，增强对比度 */
-    header { background-color: rgba(18, 18, 18, 0.95); } /* 从 0.85 提高到 0.95 */
+    header { background-color: rgba(18, 18, 18, 0.95); }
 }
 
 .header-inner {
@@ -219,21 +175,14 @@ header {
     letter-spacing: -0.01em;
 }
 
-header nav {
-    display: flex;
-    align-items: center;
-}
-
+header nav { display: flex; align-items: center; }
 header nav a {
     margin-left: 20px;
     font-size: 0.9rem;
     color: var(--color-main-subtext);
     padding: 5px 0;
 }
-header nav a:hover,
-header nav a.active-nav-link {
-    color: var(--color-main-text);
-}
+header nav a:hover, header nav a.active-nav-link { color: var(--color-main-text); }
 
 /* =========================================
    H. 主内容区域
@@ -251,7 +200,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .content-area { flex-grow: 1; max-width: 100%; }
 
 /* =========================================
-   I. 目录 (TOC) - 增强可读性与层级区分
+   I. 目录 (TOC)
    ========================================= */
 .toc-area {
     width: 200px;
@@ -269,74 +218,31 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     text-transform: uppercase; 
     color: var(--color-main-subtext); 
     margin: 0 0 10px; 
-    letter-spacing: 0.05em; /* 略微增加字母间距 */
+    letter-spacing: 0.05em; 
 }
-.toc-area ul { 
-    list-style: none; 
-    padding: 0; 
-    margin: 0; 
-}
+.toc-area ul { list-style: none; padding: 0; margin: 0; }
+.toc-area ul ul { padding-left: 15px; border-left: 1px dotted var(--color-main-border); margin: 5px 0; }
+.toc-area ul ul ul { padding-left: 15px; border-left: 1px dotted var(--color-main-border); }
 
-/* 增强层级感: 增加嵌套列表的缩进 */
-.toc-area ul ul {
-    /* [优化 3] 统一缩进值和边线样式 */
-    padding-left: 15px; /* 统一为 15px */
-    border-left: 1px dotted var(--color-main-border); /* 虚线区分层级 */
-    margin: 5px 0;
-}
-.toc-area ul ul ul {
-    /* [优化 3] 保持一致的缩进和样式 */
-    padding-left: 15px;
-    border-left: 1px dotted var(--color-main-border); /* 保持虚线区分 */
-}
-
-/* 链接样式 */
 .toc-area li a { 
     display: block; 
-    padding: 4px 5px; /* [优化 4] 增加水平内边距 */
+    padding: 4px 5px; 
     color: var(--color-main-subtext); 
     text-decoration: none; 
     transition: all 0.2s ease;
     line-height: 1.4;
     font-weight: 500;
-    /* [优化 4] 基础焦点样式 */
     outline: none;
     border-radius: 3px;
 }
+.toc-area > ul > li > a { font-weight: 600; font-size: 0.9rem; color: var(--color-main-text); padding-top: 6px; padding-bottom: 6px; }
+.toc-area ul ul a { font-size: 0.85rem; color: var(--color-main-subtext); }
 
-/* 突出最顶层链接 (H2) */
-.toc-area > ul > li > a {
-    font-weight: 600; /* 顶部链接加粗 */
-    font-size: 0.9rem; /* 略微放大 */
-    color: var(--color-main-text); /* 使用主文本颜色 */
-    padding-top: 6px; /* 增加顶部间距 */
-    padding-bottom: 6px;
-}
+.toc-area li a:hover, .toc-area li a:focus { color: var(--color-primary); background-color: var(--color-primary-light); }
 
-/* 嵌套层级链接 (H3, H4...) 恢复原大小，略微减轻颜色 */
-.toc-area ul ul a {
-    font-size: 0.85rem; 
-    color: var(--color-main-subtext); 
-}
-
-/* 悬停/聚焦效果 */
-.toc-area li a:hover,
-.toc-area li a:focus { 
-    color: var(--color-primary); 
-    /* [优化 4] 增加背景色反馈 */
-    background-color: var(--color-primary-light);
-}
-
-
-/* 暗色模式下 TOC 悬停/聚焦效果 */
 @media (prefers-color-scheme: dark) {
-    .toc-area li a:hover,
-    .toc-area li a:focus { 
-        color: var(--color-link-dark); 
-        background-color: rgba(0, 121, 107, 0.1); /* 暗色柔和背景 */
-    }
+    .toc-area li a:hover, .toc-area li a:focus { color: var(--color-link-dark); background-color: rgba(0, 121, 107, 0.1); }
 }
-
 
 .page-post .toc-area { display: block; }
 .page-post .content-area { flex-basis: 75%; max-width: 75%; }
@@ -350,281 +256,118 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border: 1px solid var(--color-main-border);
     border-radius: 6px;
     font-size: 0.9rem;
-    transition: border-color 0.2s; /* 优化: 添加过渡 */
+    transition: border-color 0.2s;
 }
-.mobile-toc:hover {
-    border-color: var(--color-primary); /* 优化: 悬停强调 */
-}
+.mobile-toc:hover { border-color: var(--color-primary); }
 .mobile-toc summary { padding: 10px 15px; cursor: pointer; color: var(--color-main-subtext); }
-.mobile-toc[open] > summary {
-    border-bottom: 1px solid var(--color-main-border); /* 优化: 展开后分割 */
-    padding-bottom: 10px;
-    margin-bottom: 10px;
-}
+.mobile-toc[open] > summary { border-bottom: 1px solid var(--color-main-border); padding-bottom: 10px; margin-bottom: 10px; }
 .mobile-toc-content { padding: 15px; border-top: 1px solid var(--color-main-border); }
 .mobile-toc-content ul { list-style: none; padding: 0; }
-.mobile-toc-content ul ul { 
-    padding-left: 15px; /* 移动端目录也增加缩进 */
-    border-left: 1px dotted var(--color-main-border);
-}
+.mobile-toc-content ul ul { padding-left: 15px; border-left: 1px dotted var(--color-main-border); }
 .mobile-toc-content a { display: block; padding: 4px 0; color: var(--color-main-text); text-decoration: none;}
 
 /* =========================================
    J. 文章正文 (Content)
    ========================================= */
-/* [优化 1] 增强正文可读性 (已包含上一轮调整) */
 .post-content p { 
-    /* [优化] 使用更深的颜色 (#212121) 确保对比度，比 #333 更深 */
     color: #212121; 
-    letter-spacing: 0.005em; /* 轻微收紧字间距，提升印刷感 */
-    line-height: 1.75; /* 略微增加行高，提升阅读舒适度 */
+    letter-spacing: 0.005em; 
+    line-height: 1.75; 
     margin-bottom: 1.6em; 
-    
-    /* [新增] 避免正文内容过于贴边 */
-    text-align: justify; /* 尝试两端对齐，使文本边缘更整齐 */
+    text-align: justify; 
     text-justify: inter-word;
-    
-    /* 优化: 微观排版 */
     hyphens: auto;
     -webkit-hyphens: auto;
     -ms-hyphens: auto;
     text-rendering: optimizeLegibility; 
 }
-/* [优化 1] 增强正文可读性 - 暗色模式下的正文颜色 */
 @media (prefers-color-scheme: dark) {
-    .post-content p {
-        color: #ededed; /* 暗色模式下使用 #EDEDED 确保对比度 */
-    }
+    .post-content p { color: #ededed; }
 }
 
-/* [新增] 确保段落前的块级元素（如 H2/H3）不会导致过度空白 */
-.post-content h2 + p,
-.post-content h3 + p,
-.post-content h4 + p {
-    margin-top: 0.8em; /* 标题后紧跟的段落减少顶部空间 */
-}
+.post-content h2 + p, .post-content h3 + p, .post-content h4 + p { margin-top: 0.8em; }
 
-
-/* 优化 2: 增强文章内容中嵌套列表的视觉层次 */
-.post-content ul ul, .post-content ol ol {
-    padding-left: 15px;
-    border-left: 1px dotted var(--color-main-border); 
-    margin-top: 5px;
-    margin-bottom: 5px;
-}
-.post-content ul ul ul, .post-content ol ol ol {
-    /* [优化 3] 3级列表使用更淡的实线，区分层级但不过于混乱 */
-    padding-left: 15px; 
-    border-left: 1px solid rgba(0, 0, 0, 0.1); 
-}
+.post-content ul ul, .post-content ol ol { padding-left: 15px; border-left: 1px dotted var(--color-main-border); margin-top: 5px; margin-bottom: 5px; }
+.post-content ul ul ul, .post-content ol ol ol { padding-left: 15px; border-left: 1px solid rgba(0, 0, 0, 0.1); }
 @media (prefers-color-scheme: dark) {
-    .post-content ul ul ul, .post-content ol ol ol {
-        border-left: 1px solid rgba(255, 255, 255, 0.1);
-    }
+    .post-content ul ul ul, .post-content ol ol ol { border-left: 1px solid rgba(255, 255, 255, 0.1); }
 }
 
-
-/* [优化 3] 增强列表项的可读性 */
-.post-content ul, 
-.post-content ol {
-    /* 适用于旧浏览器的颜色 hack */
-    color: var(--color-primary); 
-}
-
-.post-content ul li,
-.post-content ol li {
-    padding: 3px 5px; /* [优化 2] 增加左右内边距，留给悬停背景空间 */
-    /* 列表项之间添加一个非常浅的虚线分隔 */
+.post-content ul, .post-content ol { color: var(--color-primary); }
+.post-content ul li, .post-content ol li {
+    padding: 3px 5px; 
     border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
     margin-bottom: 0.8em;
-    /* 覆盖回列表文字的颜色 */
     color: var(--color-main-text); 
-    
-    /* [优化 2] 悬停过渡 */
     transition: background-color 0.2s;
-    margin-left: -5px; /* 略微负边距，让背景铺满 */
-    width: calc(100% + 5px); /* 弥补负边距 */
+    margin-left: -5px; 
+    width: calc(100% + 5px); 
 }
+.post-content ul li:hover, .post-content ol li:hover { background-color: rgba(0, 0, 0, 0.015); }
+.post-content ul li:last-child, .post-content ol li:last-child { border-bottom: none; }
+.post-content ul li::marker, .post-content ol li::marker { color: var(--color-primary); }
 
-/* [优化 2] 列表项悬停反馈 */
-.post-content ul li:hover,
-.post-content ol li:hover {
-    background-color: rgba(0, 0, 0, 0.015); /* 极浅的背景色 */
-}
-
-/* 最后一个列表项移除分隔线 */
-.post-content ul li:last-child,
-.post-content ol li:last-child {
-    border-bottom: none;
-}
-
-/* 针对现代浏览器的标记颜色优化 */
-.post-content ul li::marker,
-.post-content ol li::marker {
-    color: var(--color-primary);
-}
-
-/* 暗色模式下的分隔线和标记颜色 */
 @media (prefers-color-scheme: dark) {
-    .post-content ul li,
-    .post-content ol li {
-        border-bottom: 1px dashed rgba(255, 255, 255, 0.08);
-    }
-    .post-content ul li::marker,
-    .post-content ol li::marker {
-        color: var(--color-link-dark);
-    }
-    .post-content ul li:hover,
-    .post-content ol li:hover {
-        background-color: rgba(255, 255, 255, 0.03);
-    }
+    .post-content ul li, .post-content ol li { border-bottom: 1px dashed rgba(255, 255, 255, 0.08); }
+    .post-content ul li::marker, .post-content ol li::marker { color: var(--color-link-dark); }
+    .post-content ul li:hover, .post-content ol li:hover { background-color: rgba(255, 255, 255, 0.03); }
 }
-
 
 .post-content img {
-    max-width: 100%; 
-    height: auto; 
-    border-radius: 4px;
-    display: block; 
-    margin: 30px auto; 
+    max-width: 100%; height: auto; border-radius: 4px; display: block; margin: 30px auto; 
     border: 1px solid var(--color-main-border);
-    /* [新增] 动画基础 */
     transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
-/* [新增] 图片悬停效果 */
-.post-content img:hover {
-    transform: scale(1.01); /* 轻微放大 */
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); /* 增加浮动阴影 */
-}
-
-/* [新增] 暗色模式下的图片悬停阴影 */
+.post-content img:hover { transform: scale(1.01); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); }
 @media (prefers-color-scheme: dark) {
-    .post-content img:hover {
-        box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08); 
-    }
+    .post-content img:hover { box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08); }
 }
-
-
-/* [优化 3] 图片说明文字的风格化 */
 .post-content img + em {
-    display: block; 
-    text-align: center; 
-    font-size: 0.85rem;
-    color: var(--color-main-subtext); 
-    
-    /* [新增] 风格化说明文字 */
-    font-family: monospace; /* 等宽字体增强元数据感 */
-    border-top: 1px solid var(--color-main-border);
-    border-bottom: 1px solid var(--color-main-border);
-    padding: 5px 0;
-    margin-top: -20px; 
-    margin-bottom: 30px; 
-    font-style: normal;
+    display: block; text-align: center; font-size: 0.85rem; color: var(--color-main-subtext); 
+    font-family: monospace; border-top: 1px solid var(--color-main-border); border-bottom: 1px solid var(--color-main-border);
+    padding: 5px 0; margin-top: -20px; margin-bottom: 30px; font-style: normal;
 }
 
-
-/* [优化 2] Blockquote 优化 */
 .post-content blockquote {
-    border-left: 3px solid var(--color-primary);
-    padding: 5px 20px; 
-    margin: 25px 0;
-    color: var(--color-main-subtext); 
-    font-style: italic;
-    /* [新增] 轻微的内阴影 */
-    background-color: rgba(0, 0, 0, 0.01); /* 极浅的背景色 */
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.03); /* 轻微内阴影 */
-    border-radius: 3px;
+    border-left: 3px solid var(--color-primary); padding: 5px 20px; margin: 25px 0;
+    color: var(--color-main-subtext); font-style: italic;
+    background-color: rgba(0, 0, 0, 0.01); box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.03); border-radius: 3px;
 }
-
-/* [新增] 暗色模式下的引文优化 */
 @media (prefers-color-scheme: dark) {
-    .post-content blockquote {
-        background-color: rgba(255, 255, 255, 0.01);
-        box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.03);
-    }
+    .post-content blockquote { background-color: rgba(255, 255, 255, 0.01); box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.03); }
 }
 
-
-/* [优化 1] 行内代码优化 */
 .post-content code:not(pre code) {
-    /* [优化] 增加字重，使用更柔和的背景色 */
-    color: var(--color-text); /* 使用主文本颜色或深色 */
-    font-weight: 500; /* 轻微加粗 */
-    padding: 2px 4px; 
-    border-radius: 3px; 
-    font-size: 0.9em;
-    /* [新增] 增加一个轻微的边框，以明确代码边界 */
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    background-color: var(--color-code-bg); /* 使用代码块的柔和背景色 */
+    color: var(--color-text); font-weight: 500; padding: 2px 4px; border-radius: 3px; font-size: 0.9em;
+    border: 1px solid rgba(0, 0, 0, 0.05); background-color: var(--color-code-bg);
 }
-
-/* [优化 1] 行内代码暗色模式优化 */
 @media (prefers-color-scheme: dark) {
     .post-content code:not(pre code) { 
-        background-color: var(--color-code-bg-dark); 
-        color: var(--color-link-dark); /* 暗色模式下使用主题色文字 */
-        border: 1px solid rgba(255, 255, 255, 0.1);
+        background-color: var(--color-code-bg-dark); color: var(--color-link-dark); border: 1px solid rgba(255, 255, 255, 0.1);
     }
 }
-
 
 .post-content pre {
-    background-color: var(--color-code-bg);
-    border-radius: 6px; 
-    margin: 25px 0; 
-    padding: 15px;
-    overflow-x: auto; 
-    font-size: 0.9rem; 
-    border: 1px solid var(--color-main-border);
-    /* [优化 1] 代码块视觉层次优化 */
+    background-color: var(--color-code-bg); border-radius: 6px; margin: 25px 0; padding: 15px;
+    overflow-x: auto; font-size: 0.9rem; border: 1px solid var(--color-main-border);
     transition: box-shadow 0.2s, background-color 0.2s;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); /* 默认增加轻微阴影，模拟浮动卡片 */
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
-
-/* [优化 1] hover 时显示更明显的阴影，提示可滚动 */
-.post-content pre:hover {
-    box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.1); /* 悬停时阴影加深 */
-}
+.post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.1); }
 @media (prefers-color-scheme: dark) {
-    .post-content pre { 
-        background-color: var(--color-code-bg-dark); 
-        box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.05); /* 暗色模式下的默认阴影 */
-    }
-    .post-content pre:hover {
-        box-shadow: 0 6px 12px -2px rgba(255, 255, 255, 0.1); /* 暗色模式下的悬停阴影 */
-    }
+    .post-content pre { background-color: var(--color-code-bg-dark); box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.05); }
+    .post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(255, 255, 255, 0.1); }
 }
 
-/* [优化 1] Table Wrapper 焦点样式 */
 .table-wrapper { 
-    width: 100%; 
-    overflow-x: auto; 
-    margin: 30px 0; 
-    border: 1px solid var(--color-main-border); 
-    border-radius: 6px; 
-    /* [新增] 增强交互反馈 */
-    transition: border-color 0.2s, box-shadow 0.2s;
-    outline: none; /* 移除默认的焦点轮廓 */
+    width: 100%; overflow-x: auto; margin: 30px 0; border: 1px solid var(--color-main-border); 
+    border-radius: 6px; transition: border-color 0.2s, box-shadow 0.2s; outline: none; 
 }
-
-/* [新增] Hover 或 Focus 时强调表格 */
-.table-wrapper:hover {
-    border-color: var(--color-primary); /* 边框使用主题色 */
-}
-
-/* [新增] 键盘聚焦时的清晰轮廓 */
-.table-wrapper:focus-within { /* 聚焦内部元素或自身时激活 */
-    border-color: var(--color-primary);
-    box-shadow: 0 0 0 2px var(--color-primary-light), 0 0 0 4px var(--color-primary);
-}
-
-/* [新增] 暗色模式下的焦点轮廓 */
+.table-wrapper:hover { border-color: var(--color-primary); }
+.table-wrapper:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-light), 0 0 0 4px var(--color-primary); }
 @media (prefers-color-scheme: dark) {
-    .table-wrapper:hover,
-    .table-wrapper:focus-within {
-        border-color: var(--color-link-dark);
-        box-shadow: 0 0 0 2px rgba(0, 121, 107, 0.3), 0 0 0 4px var(--color-link-dark);
+    .table-wrapper:hover, .table-wrapper:focus-within {
+        border-color: var(--color-link-dark); box-shadow: 0 0 0 2px rgba(0, 121, 107, 0.3), 0 0 0 4px var(--color-link-dark);
     }
 }
 
@@ -633,238 +376,156 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .post-content th { background-color: rgba(0,0,0,0.02); font-weight: 600; }
 
 .admonition { margin: 25px 0; padding: 15px; border: 1px solid var(--color-main-border); border-left-width: 4px; border-radius: 4px; }
-.admonition-title { 
-    /* [优化 2] 标题使用主色 */
-    color: var(--color-primary); 
-    margin-bottom: 8px; 
-    font-weight: 700; 
-    font-size: 0.95rem; 
-}
-/* [优化 2] 针对特定类型的标题颜色覆盖 */
+.admonition-title { color: var(--color-primary); margin-bottom: 8px; font-weight: 700; font-size: 0.95rem; }
 .admonition.note .admonition-title { color: var(--color-admonition-note); }
 .admonition.warning .admonition-title { color: var(--color-admonition-warn); }
 .admonition.danger .admonition-title { color: var(--color-admonition-danger); }
-
-/* [优化 2] 暗色模式下，使用稍微亮一些的主色来保证对比度 */
 @media (prefers-color-scheme: dark) {
     .admonition.note .admonition-title { color: var(--color-link-dark); }
 }
-
-
 .admonition.note { border-left-color: var(--color-primary); }
 .admonition.warning { border-left-color: var(--color-admonition-warn); }
 .admonition.danger { border-left-color: var(--color-admonition-danger); }
 
-/* 优化: 锚点标题反馈 */
 .post-content :target {
-    background-color: var(--color-primary-light); 
-    padding-left: 5px;
-    margin-left: -5px; 
-    border-left: 5px solid var(--color-primary);
-    transition: background-color 0.5s ease-out;
+    background-color: var(--color-primary-light); padding-left: 5px; margin-left: -5px; 
+    border-left: 5px solid var(--color-primary); transition: background-color 0.5s ease-out;
 }
 @media (prefers-color-scheme: dark) {
-    .post-content :target {
-        background-color: rgba(0, 121, 107, 0.1);
-    }
+    .post-content :target { background-color: rgba(0, 121, 107, 0.1); }
 }
 
-
 /* =========================================
-   K. 文章页头部元数据 (已修复对齐问题)
+   K. 文章页头部元数据 (Post Meta)
    ========================================= */
 .page-header h1 {
-    margin-top: 0;
-    margin-bottom: 15px;
-    font-size: 2rem;
-    line-height: 1.25;
+    margin-top: 0; margin-bottom: 15px; font-size: 2rem; line-height: 1.25;
 }
-
 .post-meta {
-    font-size: 0.9rem;
-    color: var(--color-main-subtext);
-    /* [优化 2] 减少底部间距，让内容更紧凑 */
-    margin-bottom: 25px; 
-    padding-bottom: 0; 
-    
-    /* [优化 2] 将 meta 区域的分割线改为双线虚线 */
-    border-top: 2px dashed var(--color-main-border); 
-    padding-top: 15px;
+    font-size: 0.9rem; color: var(--color-main-subtext); margin-bottom: 25px; 
+    padding-bottom: 0; border-top: 2px dashed var(--color-main-border); padding-top: 15px;
 }
-
-/* [新增] 确保文章内容区的第一个 H2 顶部间距较小 */
-.post-content h2:first-of-type {
-    margin-top: 0.8em; 
-}
+.post-content h2:first-of-type { margin-top: 0.8em; }
 
 .meta-container {
-    display: flex;
-    justify-content: flex-start; 
-    flex-wrap: wrap; 
-    align-items: center; /* 关键: 垂直居中所有 flex items */
-    gap: 15px; 
+    display: flex; justify-content: flex-start; flex-wrap: wrap; align-items: center; gap: 15px; 
 }
-
-/* [最终修复 3] 强化日期显示效果并确保对齐 */
 .meta-date {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; /* 统一字体 */
-    font-size: 0.9rem; /* 统一字体大小 */
-    
-    padding: 3px 6px; /* 统一内边距 */
-    border-radius: 4px; 
-    background-color: var(--color-code-bg); 
-    border: 1px solid var(--color-main-border);
-    opacity: 1; 
-    
-    display: flex;
-    align-items: center; /* 确保内容居中 */
-    line-height: 1.2; 
-    margin: 0; 
-    height: 1.8em; /* 统一高度 */
+    font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 3px 6px; border-radius: 4px; 
+    background-color: var(--color-code-bg); border: 1px solid var(--color-main-border); opacity: 1; 
+    display: flex; align-items: center; line-height: 1.2; height: 1.8em; 
 }
 @media (prefers-color-scheme: dark) {
-    .meta-date {
-        background-color: var(--color-code-bg-dark);
-        border-color: var(--color-border-light);
-    }
+    .meta-date { background-color: var(--color-code-bg-dark); border-color: var(--color-border-light); }
 }
 
+.meta-tags { display: flex; align-items: center; line-height: 1.2; }
+.meta-tags .tags-list { display: inline-flex; flex-wrap: wrap; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.meta-tags .tags-list li { padding: 0; margin: 0; border-bottom: none; display: flex; align-items: center; line-height: 1.2; }
 
-.meta-tags {
-    display: flex;
-    align-items: center;
-    line-height: 1.2;
-}
-
-.meta-tags .tags-list {
-    display: inline-flex; 
-    flex-wrap: wrap;
-    gap: 10px;
-    padding: 0;
-    margin: 0;
-    list-style: none;
-}
-/* [最终修复 3] 标签列表项的容器，确保标签徽章被居中 */
-.meta-tags .tags-list li {
-    padding: 0;
-    margin: 0;
-    border-bottom: none; /* 移除列表项自带的样式 */
-    display: flex; /* 确保 li 容器也居中其内部元素 */
-    align-items: center;
-    line-height: 1.2;
-}
-
-/* [最终修复 3] 标签徽章样式 - 完美对齐日期 */
 .meta-tags .tag-badge {
-    color: var(--color-main-subtext);
-    text-decoration: none;
-    transition: all 0.2s ease; 
-    
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; 
-    font-size: 0.9rem; 
-    padding: 3px 6px; /* 统一内边距 */
-    border-radius: 4px; 
-    background-color: var(--color-code-bg);
-    border: 1px solid var(--color-main-border); 
-    font-weight: 500;
-    
-    display: flex; 
-    align-items: center; 
-    line-height: 1.2;
-    margin: 0; 
-    height: 1.8em; /* 统一高度，与日期匹配 */
-    
-    vertical-align: middle; 
+    color: var(--color-main-subtext); text-decoration: none; transition: all 0.2s ease; 
+    font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 3px 6px; border-radius: 4px; 
+    background-color: var(--color-code-bg); border: 1px solid var(--color-main-border); font-weight: 500;
+    display: flex; align-items: center; line-height: 1.2; height: 1.8em; vertical-align: middle; 
 }
 .meta-tags .tag-badge:hover {
-    color: var(--color-primary);
-    background-color: var(--color-primary-light);
-    border-color: var(--color-primary);
+    color: var(--color-primary); background-color: var(--color-primary-light); border-color: var(--color-primary);
 }
-
-/* [新增] 暗色模式下的徽章 */
 @media (prefers-color-scheme: dark) {
-    .meta-tags .tag-badge {
-        background-color: var(--color-code-bg-dark);
-        border-color: var(--color-border-light);
-    }
+    .meta-tags .tag-badge { background-color: var(--color-code-bg-dark); border-color: var(--color-border-light); }
     .meta-tags .tag-badge:hover {
-        color: var(--color-link-dark);
-        background-color: rgba(0, 121, 107, 0.15);
-        border-color: var(--color-link-dark);
+        color: var(--color-link-dark); background-color: rgba(0, 121, 107, 0.15); border-color: var(--color-link-dark);
     }
 }
-
 
 /* =========================================
-   N. 极简文章列表 (重新设计 - 卡片化)
+   N. 极简文章列表 (列表流风格 - List Stream)
    ========================================= */
 .post-list { 
     list-style: none; 
     padding: 0; 
     margin: 0; 
-    display: grid; /* 使用 Grid 布局容纳卡片 */
-    gap: 20px; /* 卡片之间的间距 */
+    display: flex;
+    flex-direction: column;
 }
 
 .post-list-item {
     display: block; 
-    padding: 20px; /* 内部填充 */
-    border: 1px solid var(--color-main-border); 
-    border-radius: 8px; /* 明显的圆角卡片 */
-    background-color: var(--color-main-card);
+    /* 关键：使用大的垂直 Padding 和虚线边框，营造呼吸感 */
+    padding: 25px 20px; 
+    border-bottom: 1px dashed var(--color-main-border); 
+    background-color: transparent; /* 默认透明 */
+    border-radius: 8px; /* 保留圆角，为了 Hover 效果 */
+    
     text-decoration: none;
     color: inherit;
-    transition: all 0.3s ease;
-    
-    /* 重置并添加卡片浮动阴影 */
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -2px rgba(0, 0, 0, 0.05);
+    transition: all 0.2s ease-in-out;
     position: relative; 
+    /* 移除卡片阴影 */
+    box-shadow: none;
 }
 
-/* [新交互] 列表项 Hover/Focus 效果：轻微上浮，边框使用主题色 */
+/* Hover/Focus 效果：极简风格 */
 .post-list-item:hover,
 .post-list-item:focus { 
-    border-color: var(--color-primary);
-    transform: translateY(-3px); /* 略微上浮 */
-    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.1);
+    /* 悬停时显示极淡的背景 */
+    background-color: rgba(0, 0, 0, 0.02); 
+    /* 移除位移和阴影，保持平稳，或者极其轻微的位移 */
+    transform: translateY(-2px);
     outline: none;
+    /* 隐藏底部边框，让背景更整体? 不，保留边框作为结构 */
+    border-bottom-color: transparent; /* 悬停时隐藏底线，让圆角背景更突出 */
 }
 
-/* 列表不再需要分隔线 */
-.post-list-item:last-child { border-bottom: 1px solid var(--color-main-border); /* 确保卡片本身的边框还在 */ }
+/* 最后一个元素移除底边框 */
+.post-list-item:last-child { border-bottom: none; }
 
-/* --- 卡片内部排版 --- */
+/* --- 列表项内部排版 --- */
 
-/* 1. 日期和标签在顶部同行 */
-.post-list-meta-top {
+/* 1. 标题优先 (Title First) */
+.post-list-item .post-title {
+    margin: 0 0 10px 0;
+    font-size: 1.6rem; 
+    font-weight: 700;
+    color: var(--color-main-text);
+    line-height: 1.3;
+    transition: color 0.2s;
+}
+
+/* 悬停时标题变色 */
+.post-list-item:hover .post-title { 
+    color: var(--color-primary); 
+}
+
+/* 2. 元数据行 (Meta Line) - 位于标题下方 */
+.post-list-meta-line {
     display: flex;
-    justify-content: space-between; /* 左右对齐 */
     align-items: center;
-    margin-bottom: 12px;
+    gap: 15px; /* 日期和标签之间的间距 */
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+    color: var(--color-main-subtext);
 }
 
-/* 1a. 日期样式：简化，靠左 */
+/* 2a. 日期样式 */
 .post-list-item .meta-date {
-    display: block;
+    /* 简化日期样式，纯文本 */
     font-family: monospace;
-    font-size: 0.85rem; /* 略微放大日期文本 */
-    color: var(--color-main-subtext);
     opacity: 0.8;
     margin: 0;
     padding: 0;
     border: none;
     background: none;
-    line-height: 1.2;
+    display: inline;
     height: auto;
 }
 
-/* 1b. 标签容器：靠右 */
+/* 2b. 标签列表 */
 .post-list-item .tags-list {
     display: flex;
     flex-wrap: wrap;
-    justify-content: flex-end; /* 右对齐 */
-    gap: 8px; /* 标签间距略微缩小 */
+    gap: 8px;
     padding: 0;
     margin: 0;
     list-style: none;
@@ -872,84 +533,69 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .post-list-item .tags-list li {
     padding: 0;
     margin: 0;
-    border-bottom: none;
+    border: none;
 }
 
-/* 1c. 列表标签徽章样式：轻量化 */
+/* 2c. 标签徽章：更轻量化，无边框，仅文字或极淡背景 */
 .post-list-item .tag-badge {
-    font-size: 0.75rem; /* 更小的标签 */
+    font-size: 0.8rem;
     color: var(--color-main-subtext);
-    opacity: 0.7;
-    padding: 2px 5px;
+    background-color: rgba(0,0,0,0.03); /* 极淡背景 */
+    border: none; /* 移除边框 */
+    padding: 2px 6px;
     border-radius: 4px;
-    background-color: var(--color-code-bg);
-    border: 1px solid var(--color-main-border);
     line-height: 1.2;
-    height: auto; /* 让内容决定高度 */
-    display: inline-block; /* 恢复 inline-block 简化列表标签样式 */
+    height: auto;
+    display: inline-block;
     vertical-align: middle;
 }
+/* 悬停列表项时，标签稍微明显一点 */
 .post-list-item:hover .tag-badge { 
-    opacity: 1; 
-    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background-color: var(--color-primary-light);
 }
 
-
-/* 2. 标题样式 */
-.post-list-item .post-title {
-    margin: 0 0 8px 0;
-    font-size: 1.5rem; /* 标题略大 */
-    font-weight: 700;
-    color: var(--color-main-text);
-    line-height: 1.3;
-}
-.post-list-item:hover .post-title { color: var(--color-primary); }
-
-/* 3. 摘要样式：弱化，使用次要文本色 */
+/* 3. 摘要样式 */
 .post-list-item .post-excerpt {
-    color: var(--color-main-subtext);
-    font-size: 0.95rem;
-    line-height: 1.6;
+    color: var(--color-main-subtext); /* 使用次要文本色 */
+    font-size: 1rem;
+    line-height: 1.65;
     margin: 0;
+    /* 限制行数 */
     display: -webkit-box;
-    -webkit-line-clamp: 2;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    font-family: 'Inter', sans-serif; /* 恢复主字体，不使用等宽 */
+    font-family: 'Inter', sans-serif;
+    opacity: 0.9;
 }
 
-/* 暗色模式下卡片/阴影调整 */
+/* 暗色模式下列表调整 */
 @media (prefers-color-scheme: dark) {
-    .post-list-item {
-        background-color: var(--color-card-dark);
-        border-color: var(--color-border-light);
-        box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.05), 0 2px 4px -2px rgba(255, 255, 255, 0.05);
-    }
     .post-list-item:hover,
     .post-list-item:focus {
-        border-color: var(--color-link-dark);
-        box-shadow: 0 10px 15px -3px rgba(255, 255, 255, 0.1), 0 4px 6px -4px rgba(255, 255, 255, 0.1);
+        background-color: rgba(255, 255, 255, 0.03);
     }
     .post-list-item .tag-badge {
-        background-color: var(--color-code-bg-dark);
-        border-color: var(--color-border-light);
+        background-color: rgba(255, 255, 255, 0.05);
+        color: var(--color-text-secondary-dark);
     }
     .post-list-item:hover .tag-badge {
-         border-color: var(--color-link-dark);
+         color: var(--color-link-dark);
+         background-color: rgba(0, 121, 107, 0.2);
     }
 }
 
 
 /* =========================================
-   P. 特殊页面样式 (Tag Cloud & Archive)
+   P. 特殊页面样式
    ========================================= */
 .tag-cloud { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
-/* ... (其余 Tag Cloud 样式不变) ... */
 
 .tag-cloud-item {
     display: inline-block;
     padding: 6px 12px;
-    background-color: transparent; /* 默认背景透明 */
+    background-color: transparent; 
     border: 1px solid var(--color-main-border);
     border-radius: 4px; 
     color: var(--color-main-text);
@@ -960,453 +606,166 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .tag-cloud-item:hover {
     border-color: var(--color-primary);
     color: var(--color-primary);
-    background-color: rgba(0,0,0,0.02); /* 悬停时加一点微弱背景 */
-    /* [优化 4] 悬停时轻微上浮 */
+    background-color: rgba(0,0,0,0.02); 
     transform: translateY(-1px);
 }
 @media (prefers-color-scheme: dark) {
     .tag-cloud-item:hover { background-color: rgba(255,255,255,0.05); }
 }
 
-/* [优化 1] 归档页样式 - 与 post-meta 风格统一 */
-.page-archive .post-content h2 {
-    font-size: 1.4rem;
-    margin-top: 2.5em; /* 顶部间距加大，强化年份分隔 */
-    margin-bottom: 0.6em; /* 底部间距不变 */
-    color: var(--color-main-text);
-}
-.page-archive .post-content ul { 
-    list-style: none; 
-    padding-left: 0; 
-    font-family: monospace; /* 统一元数据字体 */
-    font-size: 0.9rem;
-}
+.page-archive .post-content h2 { font-size: 1.4rem; margin-top: 2.5em; margin-bottom: 0.6em; color: var(--color-main-text); }
+.page-archive .post-content ul { list-style: none; padding-left: 0; font-family: monospace; font-size: 0.9rem; }
 .page-archive .post-content li {
-    padding: 8px 0; /* 增加垂直间距 */
-    border-bottom: 1px dashed var(--color-main-border); /* 统一虚线分隔 */
-    display: flex;
-    align-items: baseline;
-    font-size: 1rem; /* 保持一致性 */
-    transition: background-color 0.2s, border-left 0.2s;
-    
-    /* [新增] 悬停分层效果 */
-    padding-left: 15px; 
-    margin-left: -15px;
-    width: calc(100% + 15px);
-    border-left: 4px solid transparent;
+    padding: 8px 0; border-bottom: 1px dashed var(--color-main-border); 
+    display: flex; align-items: baseline; font-size: 1rem; transition: background-color 0.2s, border-left 0.2s;
+    padding-left: 15px; margin-left: -15px; width: calc(100% + 15px); border-left: 4px solid transparent;
 }
 .page-archive .post-content li:last-child { border-bottom: none; }
-.page-archive .post-content li:hover {
-    background-color: rgba(0, 0, 0, 0.015);
-    border-left-color: var(--color-primary);
-}
-.page-archive .post-content li a { 
-    color: var(--color-main-text); 
-    margin-right: auto; 
-    font-family: 'Inter', sans-serif; /* 链接文字恢复为非等宽字体，以便阅读 */
-    font-size: 1rem;
-}
+.page-archive .post-content li:hover { background-color: rgba(0, 0, 0, 0.015); border-left-color: var(--color-primary); }
+.page-archive .post-content li a { color: var(--color-main-text); margin-right: auto; font-family: 'Inter', sans-serif; font-size: 1rem; }
 .page-archive .post-content li a:hover { color: var(--color-primary); }
-
 @media (prefers-color-scheme: dark) {
-    .page-archive .post-content li:hover {
-        background-color: rgba(255, 255, 255, 0.03);
-        border-left-color: var(--color-link-dark);
-    }
+    .page-archive .post-content li:hover { background-color: rgba(255, 255, 255, 0.03); border-left-color: var(--color-link-dark); }
 }
 
 /* =========================================
-   L. 底部 (修改)
+   L. 底部 (Footer)
    ========================================= */
 footer {
-    padding: 40px 0;
-    margin-top: auto;
-    text-align: center;
-    color: var(--color-main-subtext);
-    font-size: 0.8rem;
-    border-top: 1px solid var(--color-main-border);
+    padding: 40px 0; margin-top: auto; text-align: center; color: var(--color-main-subtext); 
+    font-size: 0.8rem; border-top: 1px solid var(--color-main-border);
 }
-
-/* [新增样式] 给 footer 内的段落添加微小的间距 */
-.footer-content p {
-    margin: 5px 0;
-}
-
-/* [优化 3] Footer 链接的视觉整合 */
+.footer-content p { margin: 5px 0; }
 .footer-links a { 
-    color: var(--color-main-subtext); 
-    margin: 0 8px; 
-    /* [新增] 增强点击区域 */
-    display: inline-block;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background-color: rgba(0, 0, 0, 0.02);
-    transition: all 0.2s ease;
+    color: var(--color-main-subtext); margin: 0 8px; display: inline-block; padding: 2px 6px; 
+    border-radius: 4px; background-color: rgba(0, 0, 0, 0.02); transition: all 0.2s ease;
 }
 .footer-links a:hover { 
-    color: var(--color-primary); 
-    background-color: rgba(0, 121, 107, 0.08); /* 主题色背景 */
-    /* [优化 4] 悬停时轻微上浮 */
-    transform: translateY(-1px);
+    color: var(--color-primary); background-color: rgba(0, 121, 107, 0.08); transform: translateY(-1px);
 }
-
-/* [新增] 暗色模式下的 Footer 链接 */
 @media (prefers-color-scheme: dark) {
-    .footer-links a {
-        background-color: rgba(255, 255, 255, 0.05);
-    }
-    .footer-links a:hover {
-        color: var(--color-link-dark);
-        background-color: rgba(255, 255, 255, 0.1);
-    }
+    .footer-links a { background-color: rgba(255, 255, 255, 0.05); }
+    .footer-links a:hover { color: var(--color-link-dark); background-color: rgba(255, 255, 255, 0.1); }
 }
-
 
 /* =========================================
    M. 按钮
    ========================================= */
 .button {
-    display: inline-block; 
-    padding: 8px 16px; 
-    border-radius: 4px;
-    font-size: 0.9rem; 
-    text-decoration: none !important; 
-    cursor: pointer;
-    /* [新增] 增加动画过渡 */
-    transition: all 0.2s ease;
+    display: inline-block; padding: 8px 16px; border-radius: 4px; font-size: 0.9rem; 
+    text-decoration: none !important; cursor: pointer; transition: all 0.2s ease;
 }
-.button-secondary {
-    border: 1px solid var(--color-main-border);
-    color: var(--color-main-subtext);
-}
+.button-secondary { border: 1px solid var(--color-main-border); color: var(--color-main-subtext); }
 .button-secondary:hover {
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-    /* [优化 4] 悬停时轻微上浮 */
-    transform: translateY(-1px); 
+    border-color: var(--color-primary); color: var(--color-primary); transform: translateY(-1px); 
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
-
-/* [新增] 按钮的按下效果 (激活或聚焦) */
-.button:active,
-.button-secondary:focus {
-    transform: translateY(1px); /* 模拟按下 */
-    box-shadow: none;
-}
-
-/* 优化: 小型按钮 */
-.button-small {
-    padding: 5px 10px;
-    font-size: 0.85rem;
-}
+.button:active, .button-secondary:focus { transform: translateY(1px); box-shadow: none; }
+.button-small { padding: 5px 10px; font-size: 0.85rem; }
 
 /* =========================================
    A11Y & Focus
    ========================================= */
-/* 优化: 1.1 跳过链接 (Skip Link) */
 .skip-link {
-    position: absolute;
-    left: -9999px; /* 默认移出屏幕 */
-    z-index: 9999;
-    padding: 10px 15px;
-    background-color: var(--color-primary);
-    color: white;
-    text-decoration: none;
-    top: 10px;
-    border-radius: 4px;
-    font-weight: bold;
+    position: absolute; left: -9999px; z-index: 9999; padding: 10px 15px; 
+    background-color: var(--color-primary); color: white; text-decoration: none; top: 10px; 
+    border-radius: 4px; font-weight: bold;
 }
-.skip-link:focus {
-    left: 50%; /* 获得焦点时居中显示 */
-    transform: translateX(-50%);
-    border: 2px solid white; 
-}
+.skip-link:focus { left: 50%; transform: translateX(-50%); border: 2px solid white; }
 
-/* 优化: 1.2 统一焦点轮廓 (Focus Outline) */
-/* [优化] 移除复杂的 box-shadow，使用简洁 outline */
-a:focus,
-button:focus,
-.tag-cloud-item:focus {
-    outline: none; 
-    outline: 2px solid var(--color-primary);
-    outline-offset: 2px;
-    border-radius: 2px;
-    box-shadow: none; /* 确保移除 box-shadow */
+a:focus, button:focus, .tag-cloud-item:focus {
+    outline: none; outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 2px; box-shadow: none;
 }
-/* 修正代码块/输入框等元素的焦点样式 */
-.post-content pre a:focus, 
-.post-content code a:focus {
-    box-shadow: none; 
-    outline: 2px dotted currentColor;
-    border-radius: 0;
-}
-
+.post-content pre a:focus, .post-content code a:focus { box-shadow: none; outline: 2px dotted currentColor; border-radius: 0; }
 
 /* =========================================
    Z. 响应式布局
    ========================================= */
 @media (max-width: 900px) {
-    .header-inner { 
-        flex-direction: column; 
-        align-items: flex-start; 
-        gap: 15px;
-        padding: 0 20px; 
-    }
-
-    header nav {
-        display: flex;
-        flex-wrap: wrap; 
-        margin-left: 0;  
-        width: 100%;
-    }
-
-    header nav a {
-        margin-left: 0;   
-        margin-right: 20px; 
-        padding: 5px 0;
-    }
-    
+    .header-inner { flex-direction: column; align-items: flex-start; gap: 15px; padding: 0 20px; }
+    header nav { display: flex; flex-wrap: wrap; margin-left: 0; width: 100%; }
+    header nav a { margin-left: 0; margin-right: 20px; padding: 5px 0; }
     .main-layout { flex-direction: column; gap: 30px; }
     .toc-area { display: none !important; }
     .mobile-toc { display: block; }
-    
     .page-post .content-area { flex-basis: 100%; max-width: 100%; }
-    
     h1 { font-size: 1.7rem; }
-    .post-title { font-size: 1.3rem; }
+    .post-list-item .post-title { font-size: 1.4rem; } /* 移动端标题稍小 */
+    h1, h2, h3, h4, h5, h6 { scroll-margin-top: 130px; }
     
-    /* [重要修改] 移动端导航栏更高，调整锚点跳转边距 */
-    h1, h2, h3, h4, h5, h6 {
-        scroll-margin-top: 130px; 
-    }
+    .post-list-item { padding: 20px 15px; } /* 移动端减小Padding */
 }
 
 /* =========================================
-   Task List (任务列表) 修复样式
+   Task List
    ========================================= */
-/* 移除任务列表项默认的圆点 */
-.task-list-item {
-    list-style-type: none !important;
-    position: relative;
-    padding-left: 0;
-}
+.task-list-item { list-style-type: none !important; position: relative; padding-left: 0; }
+.task-list-item input[type="checkbox"] { margin: 0 0.5em 0.2em -1.3em; vertical-align: middle; }
+.task-list-item label { font-weight: inherit; }
+.task-list-item input[type="checkbox"]:disabled { cursor: default; opacity: 0.7; }
 
-/* 调整复选框与文字的间距 */
-.task-list-item input[type="checkbox"] {
-    margin: 0 0.5em 0.2em -1.3em; /* 负边距让复选框悬挂在左侧，对齐文本 */
-    vertical-align: middle;
-}
-
-/* 适配 pymdownx 生成的 label 结构 */
-.task-list-item label {
-    font-weight: inherit;
-}
-
-/* 禁用状态下的复选框样式优化 */
-.task-list-item input[type="checkbox"]:disabled {
-    cursor: default;
-    opacity: 0.7;
-}
-
-/* ---------------------------------------------------------
-   [新增样式] Q. 文章上/下导航 (Post Navigation)
-   --------------------------------------------------------- */
+/* =========================================
+   Q. 文章上/下导航
+   ========================================= */
 .post-navigation {
-    /* 使用 Flexbox 实现左右布局和间距 */
-    display: flex;
-    justify-content: space-between;
-    gap: 30px;
-    margin-top: 60px;
-    padding-top: 30px;
-    border-top: 1px solid var(--color-main-border); /* 分隔线 */
+    display: flex; justify-content: space-between; gap: 30px; margin-top: 60px; 
+    padding-top: 30px; border-top: 1px solid var(--color-main-border);
 }
-
 .nav-link {
-    display: block;
-    flex: 1; /* 使两侧链接平分空间 */
-    padding: 15px;
-    border: 1px solid var(--color-main-border);
-    border-radius: 6px;
-    text-decoration: none !important;
-    transition: border-color 0.2s, background-color 0.2s;
-    /* 确保文本不会溢出或被强制换行，让它截断 */
-    overflow: hidden;
-    white-space: nowrap; 
-    text-overflow: ellipsis;
+    display: block; flex: 1; padding: 15px; border: 1px solid var(--color-main-border); 
+    border-radius: 6px; text-decoration: none !important; transition: border-color 0.2s, background-color 0.2s;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
-
-.nav-link:hover {
-    border-color: var(--color-primary);
-    background-color: rgba(0, 0, 0, 0.02); /* 浅色模式下的微弱背景 */
-}
-
+.nav-link:hover { border-color: var(--color-primary); background-color: rgba(0, 0, 0, 0.02); }
 @media (prefers-color-scheme: dark) {
-    .nav-link:hover { 
-        background-color: rgba(255, 255, 255, 0.05); 
-    }
+    .nav-link:hover { background-color: rgba(255, 255, 255, 0.05); }
 }
-
-.nav-link small {
-    display: block;
-    color: var(--color-main-subtext);
-    font-size: 0.8rem;
-    margin-bottom: 5px;
-    font-weight: 500;
-}
-
+.nav-link small { display: block; color: var(--color-main-subtext); font-size: 0.8rem; margin-bottom: 5px; font-weight: 500; }
 .nav-link h3 {
-    /* 重置 h3 的默认样式以符合导航卡片要求 */
-    font-size: 1.1rem;
-    font-weight: 600;
-    margin: 0;
-    line-height: 1.4;
-    color: var(--color-main-text);
-    /* [优化 4] 增加 transform 动画属性 */
-    transition: color 0.2s, transform 0.2s ease-out; 
-    scroll-margin-top: 0; 
-    /* 确保标题在卡片内截断 */
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
+    font-size: 1.1rem; font-weight: 600; margin: 0; line-height: 1.4; color: var(--color-main-text);
+    transition: color 0.2s, transform 0.2s ease-out; scroll-margin-top: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
+.nav-link:hover h3 { color: var(--color-primary); transform: translateY(-1px); }
+.nav-link.nav-prev { text-align: left; }
+.nav-link.nav-next { text-align: right; }
+.nav-link-placeholder { flex: 1; min-width: 10px; } 
 
-.nav-link:hover h3 { 
-    color: var(--color-primary); 
-    /* [优化 4] 悬停时标题向上轻微移动，模拟交互 */
-    transform: translateY(-1px); 
-}
-
-/* 左侧 Newer Post / 上一篇 居左对齐 */
-.nav-link.nav-prev { 
-    text-align: left; 
-}
-
-/* 右侧 Older Post / 下一篇 居右对齐 */
-.nav-link.nav-next { 
-    text-align: right; 
-}
-
-/* 占位符确保另一侧链接能贴边 */
-.nav-link-placeholder { 
-    flex: 1; 
-    min-width: 10px; /* 确保在 flex 布局中占位 */
-} 
-
-/* 响应式调整：移动端改为上下堆叠 */
 @media (max-width: 600px) {
-    .post-navigation {
-        flex-direction: column;
-        gap: 15px;
-        margin-top: 40px;
-        padding-top: 20px;
-    }
-    
-    /* 移动端移除右对齐，全部居左 */
-    .nav-link.nav-next { 
-        text-align: left; 
-    }
-    
-    /* 移动端，长标题可能需要显示两行 */
-    .nav-link h3 {
-        white-space: normal;
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        height: auto;
-    }
-
-    .nav-link small {
-        margin-bottom: 3px;
-    }
+    .post-navigation { flex-direction: column; gap: 15px; margin-top: 40px; padding-top: 20px; }
+    .nav-link.nav-next { text-align: left; }
+    .nav-link h3 { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; height: auto; }
+    .nav-link small { margin-bottom: 3px; }
 }
 
-/* ---------------------------------------------------------
-   [新增样式] R. 版权声明 (License Notice)
-   --------------------------------------------------------- */
+/* =========================================
+   R. 版权声明
+   ========================================= */
 .post-license {
-    margin: 40px 0 0; 
-    padding: 15px 25px 15px 20px; 
-    border: none; 
-    border-left: 4px solid var(--color-primary); 
-    border-radius: 0; 
-    background-color: var(--color-primary-light); 
-    font-size: 0.9rem;
-    color: var(--color-main-subtext);
-    line-height: 1.6;
+    margin: 40px 0 0; padding: 15px 25px 15px 20px; border: none; border-left: 4px solid var(--color-primary); 
+    border-radius: 0; background-color: var(--color-primary-light); font-size: 0.9rem; color: var(--color-main-subtext); line-height: 1.6;
 }
-
-/* 暗色模式下覆盖背景和指示条颜色 */
 @media (prefers-color-scheme: dark) {
-    .post-license {
-        background-color: rgba(0, 121, 107, 0.15); 
-        border-left-color: var(--color-link-dark); 
-    }
+    .post-license { background-color: rgba(0, 121, 107, 0.15); border-left-color: var(--color-link-dark); }
 }
-
-.post-license p {
-    margin: 5px 0;
-    padding: 0;
-}
-
-.post-license a {
-    text-decoration: underline; 
-}
-
-/* CC 徽章样式 */
+.post-license p { margin: 5px 0; padding: 0; }
+.post-license a { text-decoration: underline; }
 .license-icon i {
-    display: inline-block;
-    font-style: normal;
-    font-weight: 700;
-    margin-right: 2px;
-    padding: 0 4px;
-    border: 1px solid var(--color-primary);
-    border-radius: 3px;
-    color: var(--color-primary);
-    font-size: 0.85em;
-    line-height: 1.5;
-    vertical-align: middle;
-    transition: all 0.2s;
+    display: inline-block; font-style: normal; font-weight: 700; margin-right: 2px; padding: 0 4px; 
+    border: 1px solid var(--color-primary); border-radius: 3px; color: var(--color-primary); font-size: 0.85em; 
+    line-height: 1.5; vertical-align: middle; transition: all 0.2s;
 }
-
-/* 暗色模式下 CC 徽章颜色 */
 @media (prefers-color-scheme: dark) {
-    .license-icon i {
-        border-color: var(--color-link-dark);
-        color: var(--color-link-dark);
-    }
-    .post-license a:hover .license-icon i {
-        background-color: var(--color-link-dark);
-        color: var(--color-background-dark); /* 悬停时反色 */
-    }
+    .license-icon i { border-color: var(--color-link-dark); color: var(--color-link-dark); }
+    .post-license a:hover .license-icon i { background-color: var(--color-link-dark); color: var(--color-background-dark); }
 }
-
-.post-license a:hover .license-icon i {
-    background-color: var(--color-primary);
-    color: var(--color-background); /* 悬停时反色 */
-}
-
-/* 针对标准格式块的新样式 - 保持简洁的代码块外观 */
+.post-license a:hover .license-icon i { background-color: var(--color-primary); color: var(--color-background); }
 .license-format-code {
-    margin-top: 10px;
-    padding: 8px 12px;
-    border-radius: 4px;
-    overflow-x: auto;
-    font-size: 0.9em;
-    color: var(--color-main-text); 
-    background-color: var(--color-code-bg); /* 使用标准的代码块背景 */
+    margin-top: 10px; padding: 8px 12px; border-radius: 4px; overflow-x: auto; font-size: 0.9em; 
+    color: var(--color-main-text); background-color: var(--color-code-bg);
 }
-
-/* 暗色模式下的标准格式块背景 */
 @media (prefers-color-scheme: dark) {
-    .license-format-code {
-        background-color: var(--color-code-bg-dark);
-    }
+    .license-format-code { background-color: var(--color-code-bg-dark); }
 }
-
-/* 移动端调整 */
 @media (max-width: 600px) {
-    .post-license {
-        padding: 15px 15px 15px 15px;
-        margin: 30px 0 0; 
-    }
+    .post-license { padding: 15px; margin: 30px 0 0; }
 }
