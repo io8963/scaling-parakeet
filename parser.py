@@ -27,8 +27,18 @@ def my_custom_slugify(s, separator):
     return s.strip(separator)
 
 def tag_to_slug(tag_name: str) -> str:
-    """将标签名转换为 URL 友好的 slug。"""
-    return tag_name.lower().replace(' ', '-')
+    """
+    [关键修复] 将标签名转换为 URL 友好的 slug。
+    使用更强的正则替换逻辑，移除所有非字母数字和非横线字符。
+    """
+    # 1. 小写
+    slug = tag_name.lower()
+    # 2. 将非字母数字、非横线、非空格的字符替换为空
+    # 保留中文的\u4e00-\u9fa5
+    slug = re.sub(r'[^\w\s\u4e00-\u9fa5-]', '', slug) 
+    # 3. 将空格和多个横线替换为单个横线，并移除首尾横线
+    slug = re.sub(r'[\s-]+', '-', slug).strip('-')
+    return slug
 
 def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, str, str]:
     """
@@ -119,13 +129,26 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     content_html = md.convert(content_markdown)
     
     # -------------------------------------------------------------------------
+    # [新增] UI 增强：图片懒加载 (Lazy Load)
+    # 为所有 <img> 标签强制添加 loading="lazy" 属性
+    # -------------------------------------------------------------------------
+    if '<img' in content_html:
+        # 使用正则表达式匹配 img 标签，并确保不重复添加 loading 属性
+        content_html = re.sub(
+            r'<img(?![^>]*loading=["\'][^"\']*["\'])',
+            r'<img loading="lazy"',
+            content_html
+        )
+
+    # -------------------------------------------------------------------------
     # UI 增强：表格包裹器 (Table Wrapper)
-    # 直接给 table 加上 wrapper div，这是实现移动端完美滚动的最佳实践，
-    # 比纯 CSS 的 display: block on table 效果更好（保留了表格的自适应布局特性）。
+    # 直接给 table 加上 wrapper div
     # -------------------------------------------------------------------------
     if '<table>' in content_html:
-        content_html = content_html.replace('<table>', '<div class="table-wrapper"><table>')
-        content_html = content_html.replace('</table>', '</table></div>')
+        # 避免在已经有 wrapper 的情况下重复添加（虽然 Markdown 不太可能生成）
+        if '<div class="table-wrapper">' not in content_html:
+            content_html = content_html.replace('<table>', '<div class="table-wrapper"><table>')
+            content_html = content_html.replace('</table>', '</table></div>')
     
     # 3. 获取目录
     toc_html = md.toc if hasattr(md, 'toc') else ""
