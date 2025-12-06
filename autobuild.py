@@ -67,7 +67,28 @@ def get_full_content_hash(filepath: str) -> str:
         return ""
     return h.hexdigest()
 
-# --- 检查依赖 & Hash 文件 (保持不变) ---
+# [新增] 辅助函数：计算文件哈希
+def get_file_hash(filepath: str) -> Optional[str]:
+    """计算文件的 SHA256 哈希值。"""
+    try:
+        # 获取脚本所在目录的绝对路径，用于构建文件的完整路径
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        full_path = os.path.join(script_dir, filepath)
+
+        if not os.path.exists(full_path):
+            return None
+            
+        sha256 = hashlib.sha256()
+        with open(full_path, 'rb') as f:
+            # 分块读取文件以处理大文件
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256.update(byte_block)
+        return sha256.hexdigest()
+    except Exception:
+        return None
+
+
+# 检查依赖 & Hash 文件 (保持不变)
 try:
     # 尝试导入 Pygments 以确保代码高亮功能可用
     import pygments
@@ -213,7 +234,7 @@ def build_site():
             theme_changed = True
             print(f"   -> [CHANGE DETECTED] {css_source} content has changed. (Theme Change)")
         
-        new_manifest['static_files'][css_source] = current_css_content_hash
+        new_manifest.setdefault('static_files', {})[css_source] = current_css_content_hash
     else:
         config.CSS_FILENAME = 'style.css'
 
@@ -229,7 +250,7 @@ def build_site():
             theme_changed = True
             print(f"   -> [CHANGE DETECTED] {base_template_source} has changed. (Theme Change)")
         
-        new_manifest['templates'][base_template_source] = current_template_hash
+        new_manifest.setdefault('templates', {})[base_template_source] = current_template_hash
     # -----------------------------------------------------------
 
 
@@ -264,7 +285,7 @@ def build_site():
         
         # [增量逻辑] 检查内容哈希
         current_hash = get_full_content_hash(md_file)
-        old_item = old_manifest.get(relative_path, {})
+        old_item = old_manifest.get('posts', {}).get(relative_path, {})
         old_hash = old_item.get('hash')
 
         needs_full_build = (current_hash != old_hash) or ('link' not in old_item)
@@ -297,10 +318,17 @@ def build_site():
                 **metadata, 'content_html': content_html, 'toc_html': '', 
                 'link': special_link, 'footer_time_info': mod_time_cn
             }
-            # ⭐ 修复: 特殊页面也需要检查 theme_changed
+            # ⭐ 关键修复：404 页面应使用 generate_page_html，而不是 generate_post_page
             if needs_full_build or theme_changed:
-                 generator.generate_post_page(special_post)
-            new_manifest[relative_path] = {'hash': current_hash, 'link': special_link}
+                generator.generate_page_html(
+                    special_post['content_html'], 
+                    special_post['title'], 
+                    '404', 
+                    special_link, 
+                    special_post['footer_time_info']
+                )
+
+            new_manifest.setdefault('posts', {})[relative_path] = {'hash': current_hash, 'link': special_link}
             continue 
 
         if metadata.get('hidden') is True: 
@@ -316,7 +344,7 @@ def build_site():
                          special_post['content_html'], special_post['title'], 
                          'about', special_link, special_post['footer_time_info']
                      )
-            new_manifest[relative_path] = {'hash': current_hash, 'link': 'hidden'}
+            new_manifest.setdefault('posts', {})[relative_path] = {'hash': current_hash, 'link': 'hidden'}
             continue 
 
         if not all(k in metadata for k in ['date', 'title']): 
@@ -388,36 +416,38 @@ def build_site():
         parsed_posts.append(post)
 
         # 3. 更新 Manifest (保存 Hash 和所有关键元数据)
-        new_manifest['posts'][relative_path] = new_manifest_data
+        new_manifest.setdefault('posts', {})[relative_path] = new_manifest_data
         
         # 只有当内容或链接/元数据发生变化时，才需要重建文章详情页
         if needs_rebuild:
             posts_to_build.append(post) 
             
     # 清理被删除的源文件
-    deleted_paths = set(old_manifest.keys()) - source_md_paths
+    deleted_paths = set(old_manifest.get('posts', {}).keys()) - source_md_paths
     for deleted_path in deleted_paths:
-        if deleted_path in old_manifest: # 确保只处理文章 (非 static_files/templates)
-            item = old_manifest[deleted_path]
-            deleted_link = item.get('link')
-            print(f"   -> [DELETED] Source file {deleted_path} removed.")
-            posts_data_changed = True 
+        item = old_manifest['posts'][deleted_path]
+        deleted_link = item.get('link')
+        print(f"   -> [DELETED] Source file {deleted_path} removed.")
+        posts_data_changed = True 
+        
+        if deleted_link and deleted_link != 'hidden' and deleted_link != '404.html':
+            # 确保路径是基于 BUILD_DIR 的
+            deleted_html_path_parts = deleted_link.strip('/').split('/')
+            deleted_html_dir = os.path.join(config.BUILD_DIR, *deleted_html_path_parts)
             
-            if deleted_link and deleted_link != 'hidden' and deleted_link != '404.html':
-                # 确保路径是基于 BUILD_DIR 的
-                deleted_html_path_parts = deleted_link.strip('/').split('/')
-                deleted_html_dir = os.path.join(config.BUILD_DIR, *deleted_html_path_parts)
-                
-                if os.path.exists(deleted_html_dir) and os.path.isdir(deleted_html_dir):
-                    shutil.rmtree(deleted_html_dir)
-                    print(f"   -> [CLEANUP] Deleted post directory: {deleted_html_dir}")
-                else:
-                    # 处理 /post.html 模式（如果存在）
-                    deleted_html_file = os.path.join(config.BUILD_DIR, deleted_link.strip('/'))
-                    if os.path.exists(deleted_html_file):
-                        os.remove(deleted_html_file)
-                        print(f"   -> [CLEANUP] Deleted post HTML file: {deleted_html_file}")
-                
+            if os.path.exists(deleted_html_dir) and os.path.isdir(deleted_html_dir):
+                shutil.rmtree(deleted_html_dir)
+                print(f"   -> [CLEANUP] Deleted post directory: {deleted_html_dir}")
+            else:
+                # 处理 /post.html 模式（如果存在）
+                deleted_html_file = os.path.join(config.BUILD_DIR, deleted_link.strip('/'))
+                if os.path.exists(deleted_html_file):
+                    os.remove(deleted_html_file)
+                    print(f"   -> [CLEANUP] Deleted post HTML file: {deleted_html_file}")
+            # 从新清单中移除已删除的文章记录
+            new_manifest['posts'].pop(deleted_path, None)
+
+
     final_parsed_posts = sorted(parsed_posts, key=lambda p: p['date'], reverse=True)
     
     print(f"   -> Successfully parsed {len(final_parsed_posts)} blog posts. ({len(posts_to_build)} HTML files rebuilt)")
