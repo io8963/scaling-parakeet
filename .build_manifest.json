@@ -41,6 +41,17 @@
             ],
             "hidden": false,
             "status": "published"
+        },
+        "markdown/log-02.md": {
+            "hash": "1e62fb6413e7cdcb19b406bc43e204b78bfba202ba4e3293a024b1d019390bb7",
+            "title": "网站生成器模板项目功能总结与纯前端优化方向",
+            "date_str": "2025-12-07",
+            "link": "posts/log-02.html",
+            "tags_list": [
+                "建站日志"
+            ],
+            "hidden": false,
+            "status": "published"
         }
     },
     "static_files": {
