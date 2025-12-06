@@ -115,7 +115,7 @@ a:focus {
 /* 例外处理 */
 header nav a::after, .post-license a::after,
 .post-content h1 a::after, .post-content h2 a::after, .post-content h3 a::after,
-.tag-badge a::after, .button a::after, .button-secondary a::after, .post-meta .tags-list a::after {
+.tag-badge a::after, .button a::after, .button-secondary a::after {
     content: none;
 }
 
@@ -269,415 +269,423 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 /* =========================================
    J. 文章正文 (Content)
    ========================================= */
-.post-content p { color: var(--color-main-text); letter-spacing: 0.005em; line-height: 1.75; margin-bottom: 1.6em; text-align: justify; text-justify: inter-word; hyphens: auto; -webkit-hyphens: auto; }
-.post-content img { max-width: 100%; height: auto; display: block; margin: 20px auto; border-radius: 6px; box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08); transition: all 0.2s; }
-.post-content img:hover { box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15); transform: translateY(-2px); }
-.post-content a img { border: 2px solid transparent; }
-.post-content a:hover img { border-color: var(--color-primary); }
-.post-content hr { border: none; border-top: 1px solid var(--color-main-border); margin: 40px 0; }
-.post-content .table-wrapper { overflow-x: auto; margin: 20px 0; border: 1px solid var(--color-main-border); border-radius: 6px; }
-.post-content table { border-collapse: collapse; width: 100%; min-width: 500px; margin: 0; }
-.post-content th, .post-content td { border: 1px solid var(--color-main-border); padding: 10px; text-align: left; }
-.post-content thead th { background-color: var(--color-primary-light); color: var(--color-text); font-weight: 700; border-bottom: 2px solid var(--color-primary); }
-@media (prefers-color-scheme: dark) {
-    .post-content thead th { background-color: rgba(0, 121, 107, 0.3); color: var(--color-text-dark); border-bottom-color: var(--color-link-dark); }
-}
-
-/* 脚注 */
-.post-content .footnote-ref { font-size: 0.8em; vertical-align: super; line-height: 0; }
-.post-content .footnotes { border-top: 1px dashed var(--color-main-border); margin-top: 30px; padding-top: 10px; font-size: 0.9rem; }
-.post-content .footnotes ol { padding-left: 15px; }
-
-/* 任务列表 */
-.task-list-indicator { display: none; }
-.post-content ul.task-list { list-style-type: none; padding-left: 0; }
-.post-content ul.task-list li { margin-bottom: 0.5em; }
-.post-content ul.task-list li input[type="checkbox"] { margin-right: 10px; vertical-align: middle; }
-
-/* 代码块 */
-.post-content pre { 
-    background-color: var(--color-code-bg); 
-    border-radius: 6px; 
-    padding: 15px; 
-    overflow-x: auto; 
-    margin: 25px 0;
-    line-height: 1.5;
+.post-content p { 
+    color: #212121; 
+    letter-spacing: 0.005em; 
+    line-height: 1.75; 
+    margin-bottom: 1.6em; 
+    text-align: justify; 
+    text-justify: inter-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    text-rendering: optimizeLegibility; 
 }
 @media (prefers-color-scheme: dark) {
-    .post-content pre { background-color: var(--color-code-bg-dark); }
+    .post-content p { color: #ededed; }
 }
-.post-content pre code { 
-    background-color: transparent; 
-    padding: 0; 
-    border-radius: 0; 
-    font-size: 0.9rem;
-    color: var(--color-main-text);
+
+.post-content h2 + p, .post-content h3 + p, .post-content h4 + p { margin-top: 0.8em; }
+
+.post-content ul ul, .post-content ol ol { padding-left: 15px; border-left: 1px dotted var(--color-main-border); margin-top: 5px; margin-bottom: 5px; }
+.post-content ul ul ul, .post-content ol ol ol { padding-left: 15px; border-left: 1px solid rgba(0, 0, 0, 0.1); }
+@media (prefers-color-scheme: dark) {
+    .post-content ul ul ul, .post-content ol ol ol { border-left: 1px solid rgba(255, 255, 255, 0.1); }
 }
-.post-content code:not(pre code) { 
-    color: var(--color-text); 
-    font-weight: 500;
-    background-color: var(--color-code-bg); 
-    padding: 2px 4px; 
-    border-radius: 3px; 
-    font-size: 0.95em; 
-    font-family: monospace;
+
+.post-content ul, .post-content ol { color: var(--color-primary); }
+.post-content ul li, .post-content ol li {
+    padding: 3px 5px; 
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
+    margin-bottom: 0.8em;
+    color: var(--color-main-text); 
+    transition: background-color 0.2s;
+    margin-left: -5px; 
+    width: calc(100% + 5px); 
+}
+.post-content ul li:hover, .post-content ol li:hover { background-color: rgba(0, 0, 0, 0.015); }
+.post-content ul li:last-child, .post-content ol li:last-child { border-bottom: none; }
+.post-content ul li::marker, .post-content ol li::marker { color: var(--color-primary); }
+
+@media (prefers-color-scheme: dark) {
+    .post-content ul li, .post-content ol li { border-bottom: 1px dashed rgba(255, 255, 255, 0.08); }
+    .post-content ul li::marker, .post-content ol li::marker { color: var(--color-link-dark); }
+    .post-content ul li:hover, .post-content ol li:hover { background-color: rgba(255, 255, 255, 0.03); }
+}
+
+.post-content img {
+    max-width: 100%; height: auto; border-radius: 4px; display: block; margin: 30px auto; 
+    border: 1px solid var(--color-main-border);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.post-content img:hover { transform: scale(1.01); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); }
+@media (prefers-color-scheme: dark) {
+    .post-content img:hover { box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08); }
+}
+.post-content img + em {
+    display: block; text-align: center; font-size: 0.85rem; color: var(--color-main-subtext); 
+    font-family: monospace; border-top: 1px solid var(--color-main-border); border-bottom: 1px solid var(--color-main-border);
+    padding: 5px 0; margin-top: -20px; margin-bottom: 30px; font-style: normal;
+}
+
+.post-content blockquote {
+    border-left: 3px solid var(--color-primary); padding: 5px 20px; margin: 25px 0;
+    color: var(--color-main-subtext); font-style: italic;
+    background-color: rgba(0, 0, 0, 0.01); box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.03); border-radius: 3px;
+}
+@media (prefers-color-scheme: dark) {
+    .post-content blockquote { background-color: rgba(255, 255, 255, 0.01); box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.03); }
+}
+
+.post-content code:not(pre code) {
+    color: var(--color-text); font-weight: 500; padding: 2px 4px; border-radius: 3px; font-size: 0.9em;
+    border: 1px solid rgba(0, 0, 0, 0.05); background-color: var(--color-code-bg);
 }
 @media (prefers-color-scheme: dark) {
     .post-content code:not(pre code) { 
-        color: var(--color-link-dark); 
-        background-color: var(--color-code-bg-dark); 
+        background-color: var(--color-code-bg-dark); color: var(--color-link-dark); border: 1px solid rgba(255, 255, 255, 0.1);
     }
 }
-.post-content pre .highlight { padding: 0; margin: 0; }
 
-/* 提示块 Admonition */
-.post-content .admonition { 
-    padding: 15px 20px; 
-    margin: 25px 0; 
-    border-radius: 6px; 
-    border: 1px solid var(--color-main-border); 
-    border-left-width: 4px; 
-    background-color: var(--color-main-card);
+.post-content pre {
+    background-color: var(--color-code-bg); border-radius: 6px; margin: 25px 0; padding: 15px;
+    overflow-x: auto; font-size: 0.9rem; border: 1px solid var(--color-main-border);
+    transition: box-shadow 0.2s, background-color 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
-.post-content .admonition p { margin-bottom: 10px; }
-.post-content .admonition p:last-child { margin-bottom: 0; }
-.post-content .admonition p.admonition-title { 
-    font-weight: 700; 
-    margin-top: 0; 
-    text-transform: uppercase; 
-    color: var(--color-primary);
-}
+.post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.1); }
 @media (prefers-color-scheme: dark) {
-    .post-content .admonition p.admonition-title { color: var(--color-link-dark); }
+    .post-content pre { background-color: var(--color-code-bg-dark); box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.05); }
+    .post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(255, 255, 255, 0.1); }
+}
+
+.table-wrapper { 
+    width: 100%; overflow-x: auto; margin: 30px 0; border: 1px solid var(--color-main-border); 
+    border-radius: 6px; transition: border-color 0.2s, box-shadow 0.2s; outline: none; 
+}
+.table-wrapper:hover { border-color: var(--color-primary); }
+.table-wrapper:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-light), 0 0 0 4px var(--color-primary); }
+@media (prefers-color-scheme: dark) {
+    .table-wrapper:hover, .table-wrapper:focus-within {
+        border-color: var(--color-link-dark); box-shadow: 0 0 0 2px rgba(0, 121, 107, 0.3), 0 0 0 4px var(--color-link-dark);
+    }
+}
+
+.post-content table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.post-content th, .post-content td { padding: 12px 15px; border-bottom: 1px solid var(--color-main-border); text-align: left; }
+.post-content th { background-color: rgba(0,0,0,0.02); font-weight: 600; }
+
+.admonition { margin: 25px 0; padding: 15px; border: 1px solid var(--color-main-border); border-left-width: 4px; border-radius: 4px; }
+.admonition-title { color: var(--color-primary); margin-bottom: 8px; font-weight: 700; font-size: 0.95rem; }
+.admonition.note .admonition-title { color: var(--color-admonition-note); }
+.admonition.warning .admonition-title { color: var(--color-admonition-warn); }
+.admonition.danger .admonition-title { color: var(--color-admonition-danger); }
+@media (prefers-color-scheme: dark) {
+    .admonition.note .admonition-title { color: var(--color-link-dark); }
 }
 .admonition.note { border-left-color: var(--color-primary); }
 .admonition.warning { border-left-color: var(--color-admonition-warn); }
 .admonition.danger { border-left-color: var(--color-admonition-danger); }
 
-/* 引用 */
-.post-content blockquote { 
-    border-left: 3px solid var(--color-primary); 
-    padding: 5px 20px; 
-    margin: 25px 0; 
-    color: var(--color-main-subtext); 
-    font-style: italic; 
-    background-color: rgba(0, 0, 0, 0.01); 
-    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.03); 
-    border-radius: 3px; 
-} 
-@media (prefers-color-scheme: dark) { 
-    .post-content blockquote { 
-        background-color: rgba(255, 255, 255, 0.01); 
-        box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.03); 
-    } 
+.post-content :target {
+    background-color: var(--color-primary-light); padding-left: 5px; margin-left: -5px; 
+    border-left: 5px solid var(--color-primary); transition: background-color 0.5s ease-out;
 }
-
-/* 锚点高亮 */
-.post-content :target { 
-    background-color: var(--color-primary-light); 
-    padding-left: 5px; 
-    margin-left: -5px; 
-    border-left: 5px solid var(--color-primary); 
-    transition: background-color 0.5s ease-out; 
+@media (prefers-color-scheme: dark) {
+    .post-content :target { background-color: rgba(0, 121, 107, 0.1); }
 }
-@media (prefers-color-scheme: dark) { 
-    .post-content :target { background-color: rgba(0, 121, 107, 0.1); } 
-}
-
 
 /* =========================================
    K. 文章页头部元数据 (Post Meta)
    ========================================= */
-.page-header h1 { margin-top: 0; margin-bottom: 15px; font-size: 2rem; line-height: 1.25; }
-.post-meta { font-size: 0.9rem; color: var(--color-main-subtext); margin-bottom: 25px; padding-bottom: 0; border-top: 2px dashed var(--color-main-border); padding-top: 15px; }
+.page-header h1 {
+    margin-top: 0; margin-bottom: 15px; font-size: 2rem; line-height: 1.25;
+}
+.post-meta {
+    font-size: 0.9rem; color: var(--color-main-subtext); margin-bottom: 25px; 
+    padding-bottom: 0; border-top: 2px dashed var(--color-main-border); padding-top: 15px;
+}
+.post-content h2:first-of-type { margin-top: 0.8em; }
 
-.post-meta .meta-container {
-    display: flex;
-    align-items: center;
-    gap: 15px;
+.meta-container {
+    display: flex; justify-content: flex-start; flex-wrap: wrap; align-items: center; gap: 15px; 
 }
-.post-meta .meta-date { font-family: monospace; font-size: 0.9em; opacity: 0.8; }
-.post-meta .tags-list { list-style: none; margin: 0; padding: 0; display: flex; gap: 10px; }
-.post-meta .tags-list li { margin: 0; }
-.post-meta .tag-badge { 
-    display: inline-block; 
-    padding: 2px 6px; 
-    font-size: 0.8em; 
-    border: 1px solid var(--color-main-border); 
-    border-radius: 4px;
-    color: var(--color-main-subtext);
+.meta-date {
+    font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 3px 6px; border-radius: 4px; 
+    background-color: var(--color-code-bg); border: 1px solid var(--color-main-border); opacity: 1; 
+    display: flex; align-items: center; line-height: 1.2; height: 1.8em; 
 }
-.post-meta .tag-badge:hover {
-    color: var(--color-primary);
-    border-color: var(--color-primary);
+@media (prefers-color-scheme: dark) {
+    .meta-date { background-color: var(--color-code-bg-dark); border-color: var(--color-border-light); }
 }
 
+.meta-tags { display: flex; align-items: center; line-height: 1.2; }
+.meta-tags .tags-list { display: inline-flex; flex-wrap: wrap; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.meta-tags .tags-list li { padding: 0; margin: 0; border-bottom: none; display: flex; align-items: center; line-height: 1.2; }
+
+.meta-tags .tag-badge {
+    color: var(--color-main-subtext); text-decoration: none; transition: all 0.2s ease; 
+    font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 3px 6px; border-radius: 4px; 
+    background-color: var(--color-code-bg); border: 1px solid var(--color-main-border); font-weight: 500;
+    display: flex; align-items: center; line-height: 1.2; height: 1.8em; vertical-align: middle; 
+}
+.meta-tags .tag-badge:hover {
+    color: var(--color-primary); background-color: var(--color-primary-light); border-color: var(--color-primary);
+}
+@media (prefers-color-scheme: dark) {
+    .meta-tags .tag-badge { background-color: var(--color-code-bg-dark); border-color: var(--color-border-light); }
+    .meta-tags .tag-badge:hover {
+        color: var(--color-link-dark); background-color: rgba(0, 121, 107, 0.15); border-color: var(--color-link-dark);
+    }
+}
 
 /* =========================================
-   L. 文章列表 (Post List)
+   N. 极简文章列表 (Archive Style - 左侧竖线交互)
    ========================================= */
 .post-list { 
-    margin: 40px 0;
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+    display: flex;
+    flex-direction: column;
 }
 
-/* --- 新的文章卡片样式 (结合了用户要求和归档页交互) --- */
-.post-item {
+.post-list-item {
     display: block; 
-    padding: 20px; 
-    text-decoration: none; 
-    color: var(--color-text); 
-    border-bottom: 1px solid var(--color-main-border); 
-
-    /* 归档页交互效果：左侧竖线高亮 */
-    transition: background-color 0.2s, border-left 0.2s;
-    padding-left: 15px; 
-    margin-left: -15px; 
-    width: calc(100% + 15px); 
+    /* 关键: 内边距和负边距调整，使其左侧距离与归档页列表项一致 (15px) */
+    padding: 20px 20px 20px 15px; /* 左侧内边距改为 15px (与归档页一致) */
+    
+    /* 1. 下面是一条虚线 */
+    border-bottom: 1px dashed var(--color-main-border); 
+    
+    /* 2. 默认左侧是透明的边框 (占位) */
     border-left: 4px solid transparent; 
+    
+    /* 3. 利用负边距向左拉伸盒子 (与内边距匹配，保证内容对齐) */
+    margin-left: -15px; 
+    width: calc(100% + 15px);
+    
+    background-color: transparent; 
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    
+    /* 移除所有卡片相关的阴影和圆角 */
+    border-radius: 0;
+    box-shadow: none;
 }
-@media (prefers-color-scheme: dark) {
-    .post-item { 
-        color: var(--color-text-dark); 
-    }
-}
-/* 最后一个元素移除底边框 */
-.post-item:last-child { border-bottom: none; }
 
 /* Hover/Focus 效果：模仿 Archive 页 */
-.post-item:hover, .post-item:focus { 
+.post-list-item:hover,
+.post-list-item:focus { 
     /* 悬停时背景微灰 */
-    background-color: rgba(0, 0, 0, 0.02);
-    /* 高亮后左边是一条竖线 (主题色) */
-    border-left-color: var(--color-primary); 
-    outline: none; 
+    background-color: rgba(0, 0, 0, 0.02); 
+    
+    /* 4. 高亮后左边是一条竖线 (主题色) */
+    border-left-color: var(--color-primary);
+    
+    outline: none;
+    /* 不上浮，保持稳重 */
     transform: none; 
 }
-@media (prefers-color-scheme: dark) {
-    .post-item:hover, .post-item:focus { 
-        background-color: rgba(255, 255, 255, 0.02); 
-        border-left-color: var(--color-link-dark); 
-    }
-}
 
+/* 最后一个元素移除底边框 */
+.post-list-item:last-child { border-bottom: none; }
 
-/* --- 内部排版：标题、摘要、元数据 (用户提供的样式) --- */
+/* --- 列表项内部排版 --- */
 
-.post-item h2 {
-    margin-top: 0;
-    margin-bottom: 8px;
-    color: var(--color-primary); 
-    font-size: 1.5rem;
+/* 1. 标题 */
+.post-list-item .post-title {
+    margin: 0 0 10px 0;
+    font-size: 1.6rem; 
+    font-weight: 700;
+    color: var(--color-main-text);
     line-height: 1.3;
     transition: color 0.2s;
 }
-
-@media (prefers-color-scheme: dark) {
-    .post-item h2 {
-        color: var(--color-link-dark);
-    }
-}
-
-.post-item p.excerpt {
-    margin-top: 0;
-    margin-bottom: 15px;
-    color: var(--color-text-secondary);
-    font-size: 1rem;
-    line-height: 1.5;
-}
-
-@media (prefers-color-scheme: dark) {
-    .post-item p.excerpt {
-        color: var(--color-text-secondary-dark);
-    }
-}
-
-.post-meta {
-    font-size: 0.85rem;
-    color: var(--color-text-secondary);
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
-@media (prefers-color-scheme: dark) {
-    .post-meta {
-        color: var(--color-text-secondary-dark);
-    }
-}
-
-
-.post-meta .tags-list {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: flex;
-    gap: 8px;
-}
-
-.post-meta .tags-list a {
-    color: var(--color-primary);
-    text-decoration: none;
-    padding: 3px 6px;
-    border: 1px solid var(--color-primary);
-    border-radius: 4px;
-    white-space: nowrap;
-    transition: background-color 0.2s, color 0.2s;
-}
-
-.post-meta .tags-list a:hover {
-    background-color: var(--color-primary);
-    color: var(--color-background);
-}
-
-
-@media (prefers-color-scheme: dark) {
-    .post-meta .tags-list a {
-        color: var(--color-link-dark);
-        border-color: var(--color-link-dark);
-    }
-    .post-meta .tags-list a:hover {
-        background-color: var(--color-link-dark);
-        color: var(--color-background-dark);
-    }
-}
-
-
-/* =========================================
-   M. 文章导航 (Post Navigation)
-   ========================================= */
-.post-navigation { 
-    display: flex; 
-    justify-content: space-between; 
-    margin: 40px 0; 
-    border-top: 1px dashed var(--color-main-border); 
-    padding-top: 30px; 
-}
-.post-navigation a {
-    display: block;
-    width: 48%;
-    padding: 15px 20px;
-    border: 1px solid var(--color-main-border);
-    border-radius: 6px;
-    transition: all 0.2s;
-    text-decoration: none;
-    line-height: 1.3;
-}
-.post-navigation a small { display: block; font-size: 0.8rem; color: var(--color-main-subtext); margin-bottom: 5px; }
-.post-navigation a h3 { margin: 0; font-size: 1.1rem; color: var(--color-main-text); font-weight: 600; }
-.post-navigation a:hover { 
-    border-color: var(--color-primary); 
-    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05); 
-    background-color: var(--color-primary-light); 
-    transform: translateY(-2px);
-}
-.post-navigation a:hover h3 { color: var(--color-primary); }
-@media (prefers-color-scheme: dark) {
-    .post-navigation a:hover { 
-        border-color: var(--color-link-dark); 
-        background-color: rgba(0, 121, 107, 0.1); 
-    }
-    .post-navigation a:hover h3 { color: var(--color-link-dark); }
-}
-.nav-link-placeholder { width: 48%; }
-.nav-next { text-align: right; }
-.nav-prev { text-align: left; }
-
-/* =========================================
-   N. 归档页面 (Archive & Tags List)
-   ========================================= */
-.page-archive .post-content ul { list-style: none; padding-left: 0; font-family: monospace; font-size: 0.9rem; }
-.page-archive .post-content li { 
-    padding: 8px 0; 
-    border-bottom: 1px dashed var(--color-main-border); 
-    display: flex; 
-    align-items: baseline; 
-    font-size: 1rem; 
-    transition: background-color 0.2s, border-left 0.2s;
-    /* Archive页面的左侧交互逻辑 */
-    padding-left: 15px; 
-    margin-left: -15px; 
-    width: calc(100% + 15px); 
-    border-left: 4px solid transparent;
-}
-.page-archive .post-content li:last-child { border-bottom: none; }
-.page-archive .post-content li:hover { 
-    background-color: rgba(0, 0, 0, 0.015); 
-    border-left-color: var(--color-primary); 
-}
-@media (prefers-color-scheme: dark) {
-    .page-archive .post-content li:hover { 
-        background-color: rgba(255, 255, 255, 0.015); 
-        border-left-color: var(--color-link-dark); 
-    }
-}
-
-.page-archive .post-content li a { 
-    color: var(--color-main-text); 
-    margin-right: auto; 
-    font-family: 'Inter', sans-serif; 
-    font-size: 1rem; 
-}
-.page-archive .post-content li a:hover { color: var(--color-primary); }
-
-.page-archive .post-content li .archive-date { 
-    color: var(--color-main-subtext); 
-    margin-left: 20px; 
-    flex-shrink: 0;
-    font-size: 0.9em;
-}
-
-.page-tags .post-content ul { list-style: none; padding-left: 0; }
-.page-tags .post-content li { 
-    display: inline-block; 
-    margin: 5px 10px 5px 0; 
-    font-size: 1.1rem;
-    font-weight: 500;
-}
-.page-tags .post-content li a { 
-    display: block; 
-    padding: 8px 15px; 
-    border: 1px solid var(--color-main-border); 
-    border-radius: 6px;
-    color: var(--color-main-text);
-    transition: all 0.2s;
-}
-.page-tags .post-content li a:hover { 
-    border-color: var(--color-primary); 
+.post-list-item:hover .post-title { 
     color: var(--color-primary); 
+}
+
+/* 2. 元数据行 */
+.post-list-meta-line {
+    display: flex;
+    align-items: center;
+    gap: 15px; 
+    margin-bottom: 15px;
+    font-size: 0.85rem;
+    color: var(--color-main-subtext);
+}
+
+.post-list-item .meta-date {
+    font-family: monospace;
+    opacity: 0.8;
+    margin: 0; padding: 0; border: none; background: none; display: inline; height: auto;
+}
+
+/* === 优化点 1: 悬停时日期颜色也变为主题色 === */
+.post-list-item:hover .meta-date {
+    color: var(--color-primary); 
+    opacity: 1; 
+}
+/* ========================================= */
+
+.post-list-item .tags-list {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none;
+}
+.post-list-item .tags-list li { padding: 0; margin: 0; border: none; }
+
+.post-list-item .tag-badge {
+    font-size: 0.8rem;
+    color: var(--color-main-subtext);
+    background-color: rgba(0,0,0,0.03); 
+    border: none; 
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1.2;
+    height: auto;
+    display: inline-block;
+    vertical-align: middle;
+}
+.post-list-item:hover .tag-badge { 
+    color: var(--color-primary);
     background-color: var(--color-primary-light);
 }
+
+/* 3. 摘要 */
+.post-list-item .post-excerpt {
+    color: var(--color-main-subtext); 
+    font-size: 1rem;
+    line-height: 1.65;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    opacity: 0.9;
+}
+
+/* 暗色模式下列表调整 */
 @media (prefers-color-scheme: dark) {
-    .page-tags .post-content li a:hover { 
-        border-color: var(--color-link-dark); 
+    .post-list-item:hover,
+    .post-list-item:focus {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-left-color: var(--color-link-dark); /* 暗色模式竖线颜色 */
+    }
+    
+    /* === 优化点 1: 暗色模式悬停时日期颜色也变为主题色 === */
+    .post-list-item:hover .meta-date {
         color: var(--color-link-dark); 
-        background-color: rgba(0, 121, 107, 0.1);
+    }
+    /* ========================================= */
+    
+    .post-list-item .tag-badge {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: var(--color-text-secondary-dark);
+    }
+    .post-list-item:hover .tag-badge {
+         color: var(--color-link-dark);
+         background-color: rgba(0, 121, 107, 0.2);
     }
 }
-.tag-count { font-size: 0.8em; color: var(--color-main-subtext); margin-left: 5px; }
+
 
 /* =========================================
-   O. 底部 (Footer)
+   P. 特殊页面样式 (Archive & Tags)
    ========================================= */
-footer { 
-    border-top: 1px solid var(--color-main-border); 
-    padding: 30px 0;
-    color: var(--color-main-subtext); 
-    font-size: 0.85rem;
-    text-align: center;
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+
+.tag-cloud-item {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: transparent; 
+    border: 1px solid var(--color-main-border);
+    border-radius: 4px; 
+    color: var(--color-main-text);
+    text-decoration: none;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease;
 }
-.footer-content { 
-    max-width: 800px; 
-    margin: 0 auto; 
-    padding: 0 20px; 
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+.tag-cloud-item:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background-color: rgba(0,0,0,0.02); 
+    transform: translateY(-1px);
 }
-.footer-content p { margin: 0; padding: 0; }
-.footer-links a { margin-left: 15px; color: var(--color-main-subtext); }
-.footer-links a:hover { color: var(--color-primary); }
+@media (prefers-color-scheme: dark) {
+    .tag-cloud-item:hover { background-color: rgba(255,255,255,0.05); }
+}
+
+/* Archive 页面 (保持原样，因其风格已与新首页统一) */
+.page-archive .post-content h2 { font-size: 1.4rem; margin-top: 2.5em; margin-bottom: 0.6em; color: var(--color-main-text); }
+.page-archive .post-content ul { list-style: none; padding-left: 0; font-family: monospace; font-size: 0.9rem; }
+.page-archive .post-content li {
+    padding: 8px 0; border-bottom: 1px dashed var(--color-main-border); 
+    display: flex; align-items: baseline; font-size: 1rem; transition: background-color 0.2s, border-left 0.2s;
+    /* Archive页面的左侧交互逻辑 */
+    padding-left: 15px; margin-left: -15px; width: calc(100% + 15px); border-left: 4px solid transparent;
+}
+.page-archive .post-content li:last-child { border-bottom: none; }
+.page-archive .post-content li:hover { background-color: rgba(0, 0, 0, 0.015); border-left-color: var(--color-primary); }
+.page-archive .post-content li a { color: var(--color-main-text); margin-right: auto; font-family: 'Inter', sans-serif; font-size: 1rem; }
+.page-archive .post-content li a:hover { color: var(--color-primary); }
+@media (prefers-color-scheme: dark) {
+    .page-archive .post-content li:hover { background-color: rgba(255, 255, 255, 0.03); border-left-color: var(--color-link-dark); }
+}
 
 /* =========================================
-   P. 响应式调整 (Media Queries)
+   L. 底部 (Footer)
+   ========================================= */
+footer {
+    padding: 40px 0; margin-top: auto; text-align: center; color: var(--color-main-subtext); 
+    font-size: 0.8rem; border-top: 1px solid var(--color-main-border);
+}
+.footer-content p { margin: 5px 0; }
+.footer-links a { 
+    color: var(--color-main-subtext); margin: 0 8px; display: inline-block; padding: 2px 6px; 
+    border-radius: 4px; background-color: rgba(0, 0, 0, 0.02); transition: all 0.2s ease;
+}
+.footer-links a:hover { 
+    color: var(--color-primary); background-color: rgba(0, 121, 107, 0.08); transform: translateY(-1px);
+}
+@media (prefers-color-scheme: dark) {
+    .footer-links a { background-color: rgba(255, 255, 255, 0.05); }
+    .footer-links a:hover { color: var(--color-link-dark); background-color: rgba(255, 255, 255, 0.1); }
+}
+
+/* =========================================
+   M. 按钮
+   ========================================= */
+.button {
+    display: inline-block; padding: 8px 16px; border-radius: 4px; font-size: 0.9rem; 
+    text-decoration: none !important; cursor: pointer; transition: all 0.2s ease;
+}
+.button-secondary { border: 1px solid var(--color-main-border); color: var(--color-main-subtext); }
+.button-secondary:hover {
+    border-color: var(--color-primary); color: var(--color-primary); transform: translateY(-1px); 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.button:active, .button-secondary:focus { transform: translateY(1px); box-shadow: none; }
+.button-small { padding: 5px 10px; font-size: 0.85rem; }
+
+/* =========================================
+   A11Y & Focus
+   ========================================= */
+.skip-link {
+    position: absolute; left: -9999px; z-index: 9999; padding: 10px 15px; 
+    background-color: var(--color-primary); color: white; text-decoration: none; top: 10px; 
+    border-radius: 4px; font-weight: bold;
+}
+.skip-link:focus { left: 50%; transform: translateX(-50%); border: 2px solid white; }
+
+a:focus, button:focus, .tag-cloud-item:focus {
+    outline: none; outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 2px; box-shadow: none;
+}
+.post-content pre a:focus, .post-content code a:focus { box-shadow: none; outline: 2px dotted currentColor; border-radius: 0; }
+
+/* =========================================
+   Z. 响应式布局
    ========================================= */
 @media (max-width: 900px) {
     .header-inner { flex-direction: column; align-items: flex-start; gap: 15px; padding: 0 20px; }
@@ -688,17 +696,82 @@ footer {
     .mobile-toc { display: block; }
     .page-post .content-area { flex-basis: 100%; max-width: 100%; }
     h1 { font-size: 1.7rem; }
-    h2 { font-size: 1.4rem; }
-    h3 { font-size: 1.2rem; }
+    .post-list-item .post-title { font-size: 1.4rem; } 
+    h1, h2, h3, h4, h5, h6 { scroll-margin-top: 130px; }
     
-    .post-navigation { flex-direction: column; gap: 20px; }
-    .post-navigation a { width: 100%; }
-    .nav-link-placeholder { display: none; }
-    
-    .page-archive .post-content li { flex-direction: column; align-items: flex-start; }
-    .page-archive .post-content li .archive-date { margin-left: 0; margin-top: 5px; font-size: 1em; }
-    
-    .footer-content { flex-direction: column; gap: 5px; }
-    .footer-content p { text-align: center; }
-    .footer-links { margin-top: 10px; }
+    .post-list-item { padding: 20px 15px; } 
+}
+
+/* =========================================
+   Task List
+   ========================================= */
+.task-list-item { list-style-type: none !important; position: relative; padding-left: 0; }
+.task-list-item input[type="checkbox"] { margin: 0 0.5em 0.2em -1.3em; vertical-align: middle; }
+.task-list-item label { font-weight: inherit; }
+.task-list-item input[type="checkbox"]:disabled { cursor: default; opacity: 0.7; }
+
+/* =========================================
+   Q. 文章上/下导航
+   ========================================= */
+.post-navigation {
+    display: flex; justify-content: space-between; gap: 30px; margin-top: 60px; 
+    padding-top: 30px; border-top: 1px solid var(--color-main-border);
+}
+.nav-link {
+    display: block; flex: 1; padding: 15px; border: 1px solid var(--color-main-border); 
+    border-radius: 6px; text-decoration: none !important; transition: border-color 0.2s, background-color 0.2s;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.nav-link:hover { border-color: var(--color-primary); background-color: rgba(0, 0, 0, 0.02); }
+@media (prefers-color-scheme: dark) {
+    .nav-link:hover { background-color: rgba(255, 255, 255, 0.05); }
+}
+.nav-link small { display: block; color: var(--color-main-subtext); font-size: 0.8rem; margin-bottom: 5px; font-weight: 500; }
+.nav-link h3 {
+    font-size: 1.1rem; font-weight: 600; margin: 0; line-height: 1.4; color: var(--color-main-text);
+    transition: color 0.2s, transform 0.2s ease-out; scroll-margin-top: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.nav-link:hover h3 { color: var(--color-primary); transform: translateY(-1px); }
+.nav-link.nav-prev { text-align: left; }
+.nav-link.nav-next { text-align: right; }
+.nav-link-placeholder { flex: 1; min-width: 10px; } 
+
+@media (max-width: 600px) {
+    .post-navigation { flex-direction: column; gap: 15px; margin-top: 40px; padding-top: 20px; }
+    .nav-link.nav-next { text-align: left; }
+    .nav-link h3 { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; height: auto; }
+    .nav-link small { margin-bottom: 3px; }
+}
+
+/* =========================================
+   R. 版权声明
+   ========================================= */
+.post-license {
+    margin: 40px 0 0; padding: 15px 25px 15px 20px; border: none; border-left: 4px solid var(--color-primary); 
+    border-radius: 0; background-color: var(--color-primary-light); font-size: 0.9rem; color: var(--color-main-subtext); line-height: 1.6;
+}
+@media (prefers-color-scheme: dark) {
+    .post-license { background-color: rgba(0, 121, 107, 0.15); border-left-color: var(--color-link-dark); }
+}
+.post-license p { margin: 5px 0; padding: 0; }
+.post-license a { text-decoration: underline; }
+.license-icon i {
+    display: inline-block; font-style: normal; font-weight: 700; margin-right: 2px; padding: 0 4px; 
+    border: 1px solid var(--color-primary); border-radius: 3px; color: var(--color-primary); font-size: 0.85em; 
+    line-height: 1.5; vertical-align: middle; transition: all 0.2s;
+}
+@media (prefers-color-scheme: dark) {
+    .license-icon i { border-color: var(--color-link-dark); color: var(--color-link-dark); }
+    .post-license a:hover .license-icon i { background-color: var(--color-link-dark); color: var(--color-background-dark); }
+}
+.post-license a:hover .license-icon i { background-color: var(--color-primary); color: var(--color-background); }
+.license-format-code {
+    margin-top: 10px; padding: 8px 12px; border-radius: 4px; overflow-x: auto; font-size: 0.9em; 
+    color: var(--color-main-text); background-color: var(--color-code-bg);
+}
+@media (prefers-color-scheme: dark) {
+    .license-format-code { background-color: var(--color-code-bg-dark); }
+}
+@media (max-width: 600px) {
+    .post-license { padding: 15px; margin: 30px 0 0; }
 }
