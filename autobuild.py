@@ -195,7 +195,7 @@ def build_site():
     new_manifest = {
         'posts': {}, 
         'static_files': {},
-        'templates': {}
+        'templates': {} # 模板和核心依赖项都存储在这里
     }
     
     # 存储需要重新生成 HTML 的文章对象
@@ -252,6 +252,36 @@ def build_site():
         
         new_manifest.setdefault('templates', {})[base_template_source] = current_template_hash
     # -----------------------------------------------------------
+    
+    # =========================================================================
+    # ⭐ 新增修复: 检查所有核心 Python 文件和模板文件变动
+    # 这一部分是解决问题的关键，确保构建逻辑更改时强制重建
+    # =========================================================================
+    CORE_DEPENDENCIES = [
+        'autobuild.py', 
+        'parser.py', 
+        'generator.py', 
+        'config.py',
+        # 重要的模板文件也应该纳入监控，如果它们不在上面的 base.html 检查中
+        os.path.join('templates', 'post.html'),
+        os.path.join('templates', 'list.html'),
+        os.path.join('templates', 'archive.html'),
+        os.path.join('templates', 'tags_list.html'),
+    ]
+
+    for core_file in CORE_DEPENDENCIES:
+        if os.path.exists(core_file):
+            current_core_hash = get_full_content_hash(core_file)
+            # 使用 'templates' 键来存储所有非文章/非静态资源的依赖项哈希
+            old_core_hash = old_manifest.get('templates', {}).get(core_file)
+            
+            if current_core_hash != old_core_hash:
+                theme_changed = True
+                print(f"   -> [CHANGE DETECTED] Core dependency {core_file} has changed. (Theme/Logic Change)")
+                
+            new_manifest.setdefault('templates', {})[core_file] = current_core_hash
+            
+    # =========================================================================
 
 
     # =========================================================================
@@ -288,13 +318,17 @@ def build_site():
         old_item = old_manifest.get('posts', {}).get(relative_path, {})
         old_hash = old_item.get('hash')
 
+        # 如果内容哈希不同 AND/OR 主题更改 AND/OR 链接信息丢失，则需要完全构建
         needs_full_build = (current_hash != old_hash) or ('link' not in old_item)
+        needs_rebuild_html = needs_full_build or theme_changed
         
         if needs_full_build:
             # 只有内容变更时才打印此信息
             if current_hash != old_hash:
                  print(f"   -> [CONTENT CHANGED] {os.path.basename(md_file)}")
             # 否则，如果是新增文件或缺失链接信息，下面会单独打印
+        elif theme_changed:
+            print(f"   -> [REBUILD HTML] {os.path.basename(md_file)} (Theme changed)")
         else:
             print(f"   -> [SKIPPED HTML] {os.path.basename(md_file)}")
             
@@ -319,7 +353,7 @@ def build_site():
                 'link': special_link, 'footer_time_info': mod_time_cn
             }
             # ⭐ 关键修复：404 页面应使用 generate_page_html，而不是 generate_post_page
-            if needs_full_build or theme_changed:
+            if needs_rebuild_html: # 使用 needs_rebuild_html
                 generator.generate_page_html(
                     special_post['content_html'], 
                     special_post['title'], 
@@ -339,7 +373,7 @@ def build_site():
                      'link': special_link, 'footer_time_info': mod_time_cn
                  }
                  # ⭐ 修复: 特殊页面也需要检查 theme_changed
-                 if needs_full_build or theme_changed:
+                 if needs_rebuild_html: # 使用 needs_rebuild_html
                      generator.generate_page_html(
                          special_post['content_html'], special_post['title'], 
                          'about', special_link, special_post['footer_time_info']
@@ -385,14 +419,15 @@ def build_site():
                 metadata_changed = True
                 break
                 
-        needs_rebuild = needs_full_build or metadata_changed
+        # 只要内容或元数据变化，列表页就需要重建
+        needs_rebuild_list = needs_full_build or metadata_changed
 
         if metadata_changed and not needs_full_build:
             print(f"   -> [METADATA CHANGED] {os.path.basename(md_file)}")
             posts_data_changed = True
 
         # 如果元数据变化或内容变化，都需要重建列表页
-        if needs_rebuild and not needs_full_build:
+        if needs_rebuild_list and not needs_full_build:
             posts_data_changed = True
         
         # 清理旧的 HTML 文件 (如果 Slug 变化)
@@ -418,8 +453,8 @@ def build_site():
         # 3. 更新 Manifest (保存 Hash 和所有关键元数据)
         new_manifest.setdefault('posts', {})[relative_path] = new_manifest_data
         
-        # 只有当内容或链接/元数据发生变化时，才需要重建文章详情页
-        if needs_rebuild:
+        # 只有当内容或链接/元数据发生变化，或者主题变动时，才需要重建文章详情页
+        if needs_rebuild_html:
             posts_to_build.append(post) 
             
     # 清理被删除的源文件
@@ -497,6 +532,7 @@ def build_site():
     if theme_changed and not posts_to_build:
         print("   -> [REBUILDING] ALL Post Pages (Theme changed, but no post content changed)")
 
+    # 如果主题/逻辑变动，posts_to_build_all 是所有文章，否则只是变动的文章
     for post in posts_to_build_all:
         generator.generate_post_page(post) 
 
