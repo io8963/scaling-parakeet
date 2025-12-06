@@ -22,9 +22,7 @@ env = Environment(
 
 # --- 辅助函数：路径和 URL (核心路径修正) ---
 
-if 'tag_to_slug' not in locals():
-    def tag_to_slug(tag_name: str) -> str:
-        return tag_name.lower().replace(' ', '-')
+# 【已移除】此处原有的 `if 'tag_to_slug' not in locals():` 冗余代码块已删除，因为函数已从 parser.py 导入。
 
 def get_site_root_prefix() -> str:
     """获取网站在部署环境中的相对子目录路径前缀。"""
@@ -46,8 +44,12 @@ def make_internal_url(path: str) -> str:
     site_root = get_site_root_prefix()
     
     # 1. 忽略大小写移除 .html 后缀
-    # ⚠️ 特殊处理：RSS 文件和 404 文件保留后缀
-    if normalized_path.lower().endswith('.html') and not normalized_path.lower().endswith(config.RSS_FILE) and not normalized_path.lower() == '/404.html':
+    # ⚠️ 特殊处理：RSS 文件、Sitemap 文件和 404 文件保留后缀或跳过目录化
+    # ⭐ 修复：增加对 config.SITEMAP_FILE 的检查
+    if normalized_path.lower().endswith('.html') and \
+       not normalized_path.lower().endswith(config.RSS_FILE) and \
+       not normalized_path.lower().endswith(config.SITEMAP_FILE) and \
+       not normalized_path.lower() == '/404.html':
         normalized_path = normalized_path[:-5]
     
     # 2. 确保路径末尾添加斜杠 (除了根目录和特殊文件)
@@ -56,6 +58,8 @@ def make_internal_url(path: str) -> str:
     elif normalized_path.lower() == '/404' or normalized_path.lower() == '/404.html':
         pass 
     elif normalized_path.lower().endswith(config.RSS_FILE):
+        pass
+    elif normalized_path.lower().endswith(config.SITEMAP_FILE): # ⭐ 修复：Sitemap 也跳过添加斜杠
         pass
     elif normalized_path != '/' and not normalized_path.endswith('/'):
         normalized_path = f'{normalized_path}/'
@@ -126,6 +130,7 @@ def generate_post_page(post: Dict[str, Any]):
 
         # [文件输出路径] 强制转换为 directory/index.html 结构
         if relative_link.lower() == '404.html':
+            # 如果 autobuild.py 错误地调用了此函数，在此处直接返回，防止生成错误页面
             return
         else:
             clean_name = relative_link[:-5] if relative_link.lower().endswith('.html') else relative_link
