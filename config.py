@@ -20,21 +20,6 @@ CSS_FILENAME = 'style.css'
 # 定义代码高亮使用的 CSS 类名
 CODE_HIGHLIGHT_CLASS = 'highlight'
 
-# 【新增】首页展示的文章数量
-MAX_POSTS_ON_INDEX = 5 
-
-# --- 文件系统配置 ---
-POSTS_DIR_NAME = "posts"
-PAGES_DIR = "pages"        # <-- 已添加
-TAGS_DIR_NAME = "tags"
-BUILD_DIR = "_site"
-STATIC_DIR = "assets"
-
-# 定义 Sitemap 和 RSS 文件名
-SITEMAP_FILE = "sitemap.xml"
-RSS_FILE = "rss.xml"
-
-
 # --- Markdown 配置 ---
 # 1. 扩展列表 (使用短名称)
 MARKDOWN_EXTENSIONS = [
@@ -61,7 +46,28 @@ MARKDOWN_EXTENSION_CONFIGS = {
         'guess_lang': True,            # 自动猜测语言
     },
     'pymdownx.tasklist': {
-        'custom_checkbox': True,
-        'clickable_checkbox': False,
-    },
+        'custom_checkbox': True,      # 允许使用 CSS 自定义样式
+        'clickable_checkbox': False,  # 静态页面通常设为不可点击
+    }
 }
+# --- Markdown 配置结束 ---
+
+
+# --- 列表配置 ---
+MAX_POSTS_ON_INDEX = 5 
+
+# --- 目录和文件配置 ---
+MARKDOWN_DIR = 'markdown'
+BUILD_DIR = '_site'
+POSTS_DIR_NAME = 'posts' 
+TAGS_DIR_NAME = 'tags' 
+STATIC_DIR = 'static'
+MEDIA_DIR = 'media'
+
+ABOUT_PAGE = 'about.md'
+
+# 特殊文件名称
+SITEMAP_FILE = 'sitemap.xml'
+RSS_FILE = 'rss.xml'
+ARCHIVE_FILE = 'archive.html' 
+TAGS_LIST_FILE = 'tags.html'
