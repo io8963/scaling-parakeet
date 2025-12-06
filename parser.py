@@ -7,7 +7,8 @@ import markdown
 from datetime import datetime, date
 from typing import Dict, Any, Tuple
 import config 
-import unicodedata # 引入 Unicode 库
+import unicodedata 
+from bs4 import BeautifulSoup # 引入 BeautifulSoup
 
 # 辅助函数 - 将日期时间对象标准化为日期对象
 def standardize_date(dt_obj: Any) -> date:
@@ -136,7 +137,6 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     # 动态注入 slugify 函数
     if 'toc' in extension_configs:
         extension_configs['toc']['slugify'] = my_custom_slugify
-    # 移除冗余的 elif 检查，因为 config.py 已经正确使用了短名称 'toc'
     
     md = markdown.Markdown(
         extensions=config.MARKDOWN_EXTENSIONS, 
@@ -148,30 +148,39 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     content_html = md.convert(content_markdown)
     
     # -------------------------------------------------------------------------
-    # [新增] UI 增强：图片懒加载 (Lazy Load)
+    # [重构] UI 增强：图片懒加载 (Lazy Load) 和表格包裹器
     # -------------------------------------------------------------------------
-    if '<img' in content_html:
-        # 使用正则表达式匹配 img 标签，并确保不重复添加 loading 属性
-        content_html = re.sub(
-            r'<img(?![^>]*loading=["\'][^"\']*["\'])',
-            r'<img loading="lazy"',
-            content_html
-        )
+    # 使用 BeautifulSoup 来进行安全、可靠的 HTML 变换
+    if '<img' in content_html or '<table' in content_html:
+        soup = BeautifulSoup(content_html, 'html.parser')
 
-    # -------------------------------------------------------------------------
-    # ⭐ FIX: 表格包裹器 (Table Wrapper) - 使用全局替换修复多表格结构错误的 BUG
-    # -------------------------------------------------------------------------
-    def wrap_table(match):
-        # match.group(0) 是完整的 <table>...</table> 字符串
-        return f'<div class="table-wrapper">{match.group(0)}</div>'
-        
-    # re.DOTALL 确保 . 匹配换行符
-    content_html = re.sub(
-        r'<table.*?</table>', 
-        wrap_table, 
-        content_html, 
-        flags=re.DOTALL
-    )
+        # 1. 图片懒加载 (Lazy Load)
+        for img in soup.find_all('img'):
+            # 只有当图片没有明确的 'loading' 属性时才添加 'lazy'
+            if not img.get('loading'):
+                img['loading'] = 'lazy'
+
+        # 2. 表格包裹器 (Table Wrapper)
+        for table in soup.find_all('table'):
+            # 找到 table 标签的父元素
+            parent = table.parent
+            if not parent:
+                continue
+
+            # 检查父元素是否已经是 table-wrapper，防止重复包裹
+            if 'class' in parent.attrs and 'table-wrapper' in parent['class']:
+                continue
+
+            # 创建新的 div 容器
+            wrapper_div = soup.new_tag('div', class_='table-wrapper')
+            
+            # 将 table 替换为 wrapper_div
+            table.replace_with(wrapper_div)
+            
+            # 将 table 放入 wrapper_div
+            wrapper_div.append(table)
+            
+        content_html = str(soup)
     
     # 3. 获取目录
     toc_html = md.toc if hasattr(md, 'toc') else ""
