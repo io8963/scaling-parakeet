@@ -1,4 +1,3 @@
-
 # parser.py
 
 import os
@@ -8,6 +7,7 @@ import markdown
 from datetime import datetime, date
 from typing import Dict, Any, Tuple
 import config 
+import unicodedata # <--- NEW IMPORT: 用于处理 Unicode 字符规范化
 
 # NEW: 辅助函数 - 将日期时间对象标准化为日期对象
 def standardize_date(dt_obj: Any) -> date:
@@ -29,14 +29,21 @@ def my_custom_slugify(s, separator):
 def tag_to_slug(tag_name: str) -> str:
     """
     [关键修复] 将标签名转换为 URL 友好的 slug。
-    使用更强的正则替换逻辑，移除所有非字母数字和非横线字符。
+    此版本使用 Unicode 规范化来处理重音符号等国际字符。
     """
     # 1. 小写
     slug = tag_name.lower()
-    # 2. 将非字母数字、非横线、非空格的字符替换为空
-    # 保留中文的\u4e00-\u9fa5
-    slug = re.sub(r'[^\w\s\u4e00-\u9fa5-]', '', slug) 
-    # 3. 将空格和多个横线替换为单个横线，并移除首尾横线
+
+    # 2. Unicode 规范化 (NFKD): 将重音字符分解为基字符和修饰符 (例如: 'Café' -> 'Cafe' + 修饰符)。
+    #    这是解决国际化字符问题的标准方法。
+    slug = unicodedata.normalize('NFKD', slug)
+    
+    # 3. 将所有非 \w (字母、数字、下划线)、非空格、非横线的字符移除。
+    #    在 Python 3 中，\w 默认是 Unicode-aware 的，能很好地覆盖中文、英文及其他语言的字母和数字。
+    #    执行此操作也会移除重音修饰符，从而得到干净的 ASCII 兼容字符。
+    slug = re.sub(r'[^\w\s-]', '', slug)
+    
+    # 4. 将空格和多个横线替换为单个横线，并移除首尾横线
     slug = re.sub(r'[\s-]+', '-', slug).strip('-')
     return slug
 
