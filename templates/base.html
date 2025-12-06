@@ -24,9 +24,12 @@
             <a href="{{site_root}}/" class="site-title">{{blog_title}}</a>
             <nav>
                 <a href="{{site_root}}/" {% if page_id == 'index' %}class="active-nav-link"{% endif %}>首页</a>
-                <a href="{{site_root}}/archive.html" {% if page_id == 'archive' %}class="active-nav-link"{% endif %}>归档</a>
-                <a href="{{site_root}}/tags.html" {% if page_id == 'tags' %}class="active-nav-link"{% endif %}>标签</a>
-                <a href="{{site_root}}/about.html" {% if page_id == 'about' %}class="active-nav-link"{% endif %}>关于</a>
+                {# [FIX] 导航链接：archive.html -> archive (由 make_internal_url 处理) #}
+                <a href="{{site_root}}/archive" {% if page_id == 'archive' %}class="active-nav-link"{% endif %}>归档</a>
+                {# [FIX] 导航链接：tags.html -> tags (由 make_internal_url 处理) #}
+                <a href="{{site_root}}/tags" {% if page_id == 'tags' %}class="active-nav-link"{% endif %}>标签</a>
+                {# [FIX] 导航链接：about.html -> about (由 make_internal_url 处理) #}
+                <a href="{{site_root}}/about" {% if page_id == 'about' %}class="active-nav-link"{% endif %}>关于</a>
             </nav>
         </div>
     </header>
@@ -47,7 +50,8 @@
                                     <div class="meta-tags">
                                         <ul class="tags-list">
                                         {% for tag in post_tags %}
-                                            <li><a href="{{site_root}}/tags/{{tag.slug}}.html" class="tag-badge">{{tag.name}}</a></li>
+                                            {# [MODIFIED] tag 链接: generator.py 中已使用 make_internal_url 处理 link，所以这里直接使用 tag.slug #}
+                                            <li><a href="{{site_root}}/tags/{{tag.slug}}" class="tag-badge">{{tag.name}}</a></li>
                                         {% endfor %}
                                         </ul>
                                     </div>
@@ -75,7 +79,8 @@
                         <div class="tag-meta-info">
                             <h1 class="page-list-title"># {{tag}}</h1>
                             <p style="color: var(--color-main-subtext); margin-bottom: 20px; font-size: 0.9rem;">共 {{posts | length}} 篇文章</p>
-                            <a href="{{site_root}}/tags.html" class="button button-secondary button-small">← 所有标签</a>
+                            {# [FIX] 链接到所有标签页 #}
+                            <a href="{{site_root}}/tags" class="button button-secondary button-small">← 所有标签</a>
                         </div>
                         <hr style="border: none; border-top: 1px solid var(--color-main-border); margin: 30px 0;">
                     {%- endif -%}
@@ -83,7 +88,8 @@
                     {%- if page_id != 'archive' -%}
                     <div class="post-list">
                     {% for post in posts %}
-                        <a href="{{site_root}}/{{post.link}}" class="post-list-item">
+                        {# [FIX] 列表文章链接：post.link 在 generator.py 中通过 make_internal_url 处理为无 .html 的链接 #}
+                        <a href="{{site_root}}{{post.link}}" class="post-list-item">
                             
                             <h2 class="post-title">{{post.title}}</h2>
                             
@@ -111,7 +117,8 @@
 
                     {%- if page_id == 'index' and posts|length == max_posts_on_index -%}
                     <div class="read-more-link-area">
-                        <a href="{{site_root}}/archive.html" class="button button-secondary">查看全部归档 →</a>
+                        {# [FIX] 链接到归档页 #}
+                        <a href="{{site_root}}/archive" class="button button-secondary">查看全部归档 →</a>
                     </div>
                     {%- endif -%}
 
@@ -157,7 +164,8 @@
                 <nav class="post-navigation">
                     {# Newer Article (时间上更近, 列表中的前一个) #}
                     {% if prev_post_nav %}
-                    <a href="{{site_root}}/{{prev_post_nav.link}}" class="nav-link nav-prev">
+                    {# [FIX] 导航链接：prev_post_nav.link 在 generator.py 中已通过 make_internal_url 处理 #}
+                    <a href="{{site_root}}{{prev_post_nav.link}}" class="nav-link nav-prev">
                         <small>← 上一篇 (较新)</small>
                         <h3>{{prev_post_nav.title}}</h3>
                     </a>
@@ -167,7 +175,8 @@
 
                     {# Older Article (时间上更远, 列表中的后一个) #}
                     {% if next_post_nav %}
-                    <a href="{{site_root}}/{{next_post_nav.link}}" class="nav-link nav-next">
+                    {# [FIX] 导航链接：next_post_nav.link 在 generator.py 中已通过 make_internal_url 处理 #}
+                    <a href="{{site_root}}{{next_post_nav.link}}" class="nav-link nav-next">
                         <small>下一篇 (较旧) →</small>
                         <h3>{{next_post_nav.title}}</h3>
                     </a>
