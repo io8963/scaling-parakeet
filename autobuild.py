@@ -5,7 +5,8 @@ import shutil
 import glob
 import hashlib
 import json
-from typing import List, Dict, Any, Set
+# ！！！关键修复：添加 Optional 导入！！！
+from typing import List, Dict, Any, Set, Optional
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta 
 import subprocess 
