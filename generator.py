@@ -8,9 +8,10 @@ from collections import defaultdict
 from typing import List, Dict, Any, Tuple, Optional 
 from jinja2 import Environment, FileSystemLoader
 import json 
-import re # 引入 re 用于 JSON-LD 中的图片提取
+import re 
 import config
 from parser import tag_to_slug 
+from bs4 import BeautifulSoup # 引入 BeautifulSoup
 
 # --- Jinja2 环境配置配置 ---
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
@@ -22,8 +23,6 @@ env = Environment(
 )
 
 # --- 辅助函数：路径和 URL (核心路径修正) ---
-
-# 【已移除】此处原有的 `if 'tag_to_slug' not in locals():` 冗余代码块已删除，因为函数已从 parser.py 导入。
 
 def get_site_root_prefix() -> str:
     """获取网站在部署环境中的相对子目录路径前缀。"""
@@ -129,17 +128,26 @@ def get_json_ld_schema(post: Dict[str, Any]) -> str:
     """⭐ NEW FEATURE: 生成 Article 类型的 JSON-LD 结构化数据。"""
     base_url = config.BASE_URL.rstrip('/')
     
-    # 1. 获取图片URL (简化逻辑：假设文章中第一张图片作为封面，否则使用默认)
+    # 1. 获取图片URL (使用 BeautifulSoup 安全提取)
     image_url = f"{base_url}{config.SITE_ROOT}/static/default-cover.png" # Fallback 
     
     # 尝试从 HTML 内容中提取第一张图片的 src
-    img_match = re.search(r'<img.*?src=["\'](.*?)["\']', post['content_html'])
-    if img_match:
-        relative_path = img_match.group(1).lstrip('/')
+    # [重构]: 使用 BeautifulSoup 查找第一个 img 标签
+    soup = BeautifulSoup(post['content_html'], 'html.parser')
+    img_tag = soup.find('img')
+    
+    if img_tag and 'src' in img_tag.attrs:
+        relative_path = img_tag['src'].lstrip('/')
         # 如果是相对路径 (media/ 或 static/)，则转为绝对 URL
         if not relative_path.startswith(('http', '//')):
             # 使用 make_internal_url 确保路径前缀正确
-            image_url = f"{base_url}{make_internal_url('/' + relative_path)}"
+            # 注意: make_internal_url 预期路径是 /path/to/file 而不是 /path/to/file/
+            # 对于图片资源，需要避免添加末尾斜杠
+            # 这里简单地使用 site_root + relative_path 更合适，因为 make_internal_url 是为 'pretty URL' 模式设计的。
+            site_root = get_site_root_prefix()
+            image_url = f"{base_url}{site_root}/{relative_path}"
+            image_url = image_url.replace('//', '/') # 避免双斜杠
+            image_url = image_url.replace(':/', '://') # 修正协议后的双斜杠
         else:
             # 外部链接或绝对路径
             image_url = relative_path
