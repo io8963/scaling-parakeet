@@ -47,16 +47,18 @@ jobs:
     - name: Cache Python dependencies
       # 启用 Pip 缓存以加速后续构建
       uses: actions/cache@v4
-      id: pip-cache # 新增 ID，用于判断缓存是否命中
+      id: pip-cache
       with:
         path: ~/.cache/pip
         key: ${{ runner.os }}-pip-${{ hashFiles('requirements.txt') }}
         restore-keys: |
           ${{ runner.os }}-pip-
         
-    - name: Install Python Dependencies
-      # 仅在缓存未命中时（即 requirements.txt 更改时）才重新安装依赖
-      if: steps.pip-cache.outputs.cache-hit != 'true'
+    # ------------------------------------------------------------------
+    # ⭐ 核心修复：确保依赖总是被安装
+    # ------------------------------------------------------------------
+    - name: Install Python Dependencies (Ensure YAML is installed)
+      # 即使缓存命中，也应运行此步骤。Pip 会在缓存命中的情况下跳过重新下载，但会完成安装到虚拟环境的步骤。
       run: pip install -r requirements.txt
       
     # ------------------------------------------------------------------
