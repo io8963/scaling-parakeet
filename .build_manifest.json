@@ -8,24 +8,24 @@
             "hash": "84ebeb5a238b762659bcb34dd67e368ea40593408ec6e8db0ab7e0743c6d7b85",
             "link": "hidden"
         },
-        "markdown/test.md": {
-            "hash": "51fc80ce8ff430accf075668721e5233c05c8da6493bb51710b059f2a904472e",
-            "title": "📖 网站更新：纯净、高效、专注的阅读体验",
-            "date_str": "2025-12-06",
-            "link": "posts/test.html",
-            "tags_list": [
-                "公告",
-                "建站日志"
-            ],
-            "hidden": false,
-            "status": "published"
-        },
         "markdown/01.md": {
             "hash": "f6bf014a78b44e892a8bafbcd53588c0e93628a060895d29c39ca9e9b87cfe11",
             "title": "🚀 欢迎来到 Data Li 的个人网站！",
             "date_str": "2025-12-01",
             "link": "posts/01.html",
             "tags_list": [
+                "建站日志"
+            ],
+            "hidden": false,
+            "status": "published"
+        },
+        "markdown/log-01.md": {
+            "hash": "51fc80ce8ff430accf075668721e5233c05c8da6493bb51710b059f2a904472e",
+            "title": "📖 网站更新：纯净、高效、专注的阅读体验",
+            "date_str": "2025-12-06",
+            "link": "posts/log-01.html",
+            "tags_list": [
+                "公告",
                 "建站日志"
             ],
             "hidden": false,
