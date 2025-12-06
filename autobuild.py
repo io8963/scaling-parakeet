@@ -80,8 +80,8 @@ def format_file_mod_time(filepath: str) -> str:
     def format_dt(dt: datetime, source: str) -> str:
         # 确保 datetime 对象带有正确的时区信息
         if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
-            # 假设时间戳来自 os.path.getmtime 是本地时间，先转换为带时区对象
-            dt = datetime.fromtimestamp(dt.timestamp(), tz=TIMEZONE_INFO) 
+            # ⭐ 关键修复 1: 将 Naive 对象（如 os.path.getmtime 的输出）视为 UTC，再转换为目标时区 UTC+8
+            dt = dt.replace(tzinfo=timezone.utc).astimezone(TIMEZONE_INFO) 
         else:
             # 否则直接转换为 UTC+8
             dt = dt.astimezone(TIMEZONE_INFO)
@@ -117,7 +117,8 @@ def format_file_mod_time(filepath: str) -> str:
     # --- 2. 尝试获取文件系统修改时间 (次级回退) ---
     try:
         timestamp = os.path.getmtime(filepath)
-        fs_mtime = datetime.fromtimestamp(timestamp)
+        # ⭐ 关键修复 2: 明确将时间戳转换为 UTC time-zone aware 对象
+        fs_mtime = datetime.fromtimestamp(timestamp, tz=timezone.utc)
         return format_dt(fs_mtime, 'Filesystem')
         
     except FileNotFoundError:
