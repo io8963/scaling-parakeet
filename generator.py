@@ -1,4 +1,4 @@
-# generator.py (核心链接修复和标签链接清洗版 + JSON-LD)
+# generator.py (完整内容 - 包含归档/标签生成修复和本次的 KeyError 修复)
 
 import os
 import shutil 
@@ -11,7 +11,7 @@ import json
 import re 
 import config
 from parser import tag_to_slug 
-from bs4 import BeautifulSoup # 引入 BeautifulSoup
+from bs4 import BeautifulSoup
 
 # --- Jinja2 环境配置配置 ---
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
@@ -63,7 +63,6 @@ def make_internal_url(path: str) -> str:
 
 def generate_post_page(post: Dict[str, Any]):
     """生成单篇文章页面 (posts/slug/index.html)"""
-    # ... (代码保持不变)
     post_slug_dir = os.path.join(config.BUILD_DIR, config.POSTS_DIR_NAME, post['slug'])
     os.makedirs(post_slug_dir, exist_ok=True)
     output_path = os.path.join(post_slug_dir, 'index.html')
@@ -100,7 +99,6 @@ def generate_post_page(post: Dict[str, Any]):
             "@type": "WebPage",
             "@id": f"{config.BASE_URL.rstrip('/')}{make_internal_url(f'{config.POSTS_DIR_NAME}/{post['slug']}')}"
         }
-        # 更多属性可以根据需要添加，如 image, publisher 等
     }
     
     context = {
@@ -118,7 +116,8 @@ def generate_post_page(post: Dict[str, Any]):
         'canonical_url': f"{config.BASE_URL.rstrip('/')}{make_internal_url(f'{config.POSTS_DIR_NAME}/{post['slug']}')}",
         'prev_post_nav': prev_post_nav,
         'next_post_nav': next_post_nav,
-        'footer_time_info': post['build_time_info'],
+        # ⭐ 修复: 使用正确的键 'footer_time_info'
+        'footer_time_info': post['footer_time_info'], 
         'json_ld_schema': json.dumps(json_ld, ensure_ascii=False, indent=4)
     }
 
@@ -202,8 +201,7 @@ def generate_archive_html(posts: List[Dict[str, Any]], build_time_info: str):
 
 def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]], build_time_info: str):
     """
-    [FIXED] 生成标签列表页面 (tags-list/index.html)
-    该函数现在生成标签列表的 HTML 并传递给通用生成器。
+    生成标签列表页面 (tags-list/index.html)
     """
     # 1. 生成标签列表 HTML 字符串
     html_parts = []
@@ -263,7 +261,6 @@ def generate_tag_page(tag: str, posts: List[Dict[str, Any]], build_time_info: st
 
 def generate_about_html(build_time_info: str):
     """生成关于页面 (about/index.html)"""
-    # ... (代码保持不变)
     try:
         about_path = os.path.join(config.CONTENT_DIR, 'about.md')
         if not os.path.exists(about_path):
@@ -271,7 +268,9 @@ def generate_about_html(build_time_info: str):
             return
 
         with open(about_path, 'r', encoding='utf-8') as f:
-            metadata, content_html, toc_html = parser.get_metadata_and_content(f.read())
+            # 需要导入 parser 模块
+            from parser import get_metadata_and_content 
+            metadata, content_html, toc_html = get_metadata_and_content(f.read())
         
         # 调用通用页面生成函数
         generate_page_html(
@@ -339,7 +338,8 @@ def generate_page_html(content_html: str, page_title: str, page_id: str, canonic
         
         
 def generate_sitemap(posts: List[Dict[str, Any]]) -> str:
-    # ... (代码保持不变)
+    """生成 Sitemap XML 文件内容"""
+    from datetime import date, time # 确保导入
     items = []
     # 首页
     items.append(f'<url><loc>{config.BASE_URL.rstrip('/')}{make_internal_url('/')}</loc><lastmod>{datetime.now(timezone.utc).isoformat()}</lastmod><changefreq>weekly</changefreq><priority>1.0</priority></url>')
@@ -360,12 +360,13 @@ def generate_sitemap(posts: List[Dict[str, Any]]) -> str:
         else:
              last_modified_utc = datetime.now(timezone.utc) # Fallback
              
+        # 格式化为 'YYYY-MM-DDTHH:MM:SSZ' 格式 (移除微秒)
         items.append(f'<url><loc>{config.BASE_URL.rstrip('/')}{post_url}</loc><lastmod>{last_modified_utc.isoformat().split('.')[0]}Z</lastmod><changefreq>weekly</changefreq><priority>0.7</priority></url>')
 
     # 单个标签页 (仅获取 slug, 假设它们生成了)
     all_tags = set()
     for post in posts:
-        for tag in post['tags']:
+        for tag in post.get('tags', []): # 确保 post['tags'] 存在
             all_tags.add(tag_to_slug(tag['name']))
             
     for tag_slug in all_tags:
@@ -376,7 +377,7 @@ def generate_sitemap(posts: List[Dict[str, Any]]) -> str:
 
 
 def generate_robots_txt() -> None:
-    # ... (代码保持不变)
+    """生成 robots.txt 文件内容"""
     robots_content = f"""
 User-agent: *
 Allow: /
@@ -390,7 +391,7 @@ Sitemap: {config.BASE_URL.rstrip('/')}/sitemap.xml
 
     
 def generate_rss(posts: List[Dict[str, Any]]) -> str:
-    # ... (代码保持不变)
+    """生成 RSS XML 文件内容"""
     items = []
     # 只取最新的 15 篇
     for post in posts[:15]:
