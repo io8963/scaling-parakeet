@@ -510,7 +510,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 /* 2. 元数据行 */
 .post-list-meta-line {
     display: flex;
-    align-items: center;
+    align-items: baseline; /* FIXED: 确保日期和标签文字的基线对齐 */
     gap: 15px; 
     margin-bottom: 15px;
     font-size: 0.85rem;
