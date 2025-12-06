@@ -254,7 +254,7 @@ def build_site():
     # -----------------------------------------------------------
     
     # =========================================================================
-    # ⭐ 新增修复: 检查所有核心 Python 文件和模板文件变动
+    # ⭐ 核心修复: 检查所有核心 Python 文件和模板文件变动 (解决您的根本问题)
     # 这一部分是解决问题的关键，确保构建逻辑更改时强制重建
     # =========================================================================
     CORE_DEPENDENCIES = [
@@ -262,7 +262,7 @@ def build_site():
         'parser.py', 
         'generator.py', 
         'config.py',
-        # 重要的模板文件也应该纳入监控，如果它们不在上面的 base.html 检查中
+        # 重要的模板文件
         os.path.join('templates', 'post.html'),
         os.path.join('templates', 'list.html'),
         os.path.join('templates', 'archive.html'),
@@ -282,7 +282,6 @@ def build_site():
             new_manifest.setdefault('templates', {})[core_file] = current_core_hash
             
     # =========================================================================
-
 
     # =========================================================================
     # ⭐ 新增: 复制 CNAME 文件到 _site 部署目录 (解决自定义域名问题)
@@ -318,16 +317,15 @@ def build_site():
         old_item = old_manifest.get('posts', {}).get(relative_path, {})
         old_hash = old_item.get('hash')
 
-        # 如果内容哈希不同 AND/OR 主题更改 AND/OR 链接信息丢失，则需要完全构建
         needs_full_build = (current_hash != old_hash) or ('link' not in old_item)
-        needs_rebuild_html = needs_full_build or theme_changed
-        
+        needs_rebuild_html = needs_full_build or theme_changed # <-- 使用 theme_changed 来控制 HTML 重建
+
         if needs_full_build:
             # 只有内容变更时才打印此信息
             if current_hash != old_hash:
                  print(f"   -> [CONTENT CHANGED] {os.path.basename(md_file)}")
             # 否则，如果是新增文件或缺失链接信息，下面会单独打印
-        elif theme_changed:
+        elif theme_changed: # 只有主题变动时，才打印这条，否则上面的 needs_full_build 已经打印
             print(f"   -> [REBUILD HTML] {os.path.basename(md_file)} (Theme changed)")
         else:
             print(f"   -> [SKIPPED HTML] {os.path.basename(md_file)}")
@@ -436,14 +434,17 @@ def build_site():
              old_html_path_parts = old_item['link'].strip('/').split('/')
              old_html_dir = os.path.join(config.BUILD_DIR, *old_html_path_parts)
              
-             if os.path.exists(old_html_dir) and os.path.isdir(old_html_dir):
-                 # 删除旧的 /slug/ 目录
-                 shutil.rmtree(old_html_dir) 
-                 print(f"   -> [CLEANUP] Deleted old post directory: {old_html_dir}")
-             elif os.path.exists(old_html_dir):
-                # 处理 /post.html 模式（如果存在）
-                os.remove(old_html_dir)
-                print(f"   -> [CLEANUP] Deleted old HTML file: {old_html_dir}")
+             try:
+                 if os.path.exists(old_html_dir) and os.path.isdir(old_html_dir):
+                     # 删除旧的 /slug/ 目录
+                     shutil.rmtree(old_html_dir) 
+                     print(f"   -> [CLEANUP] Deleted old post directory: {old_html_dir}")
+                 elif os.path.exists(old_html_dir):
+                    # 处理 /post.html 模式（如果存在）
+                    os.remove(old_html_dir)
+                    print(f"   -> [CLEANUP] Deleted old HTML file: {old_html_dir}")
+             except Exception as e:
+                 print(f"   -> [WARNING] Failed to clean up old post path {old_html_dir}: {e}")
                 
         for tag_data in post.get('tags', []):
             tag_map[tag_data['name']].append(post)
@@ -470,15 +471,19 @@ def build_site():
             deleted_html_path_parts = deleted_link.strip('/').split('/')
             deleted_html_dir = os.path.join(config.BUILD_DIR, *deleted_html_path_parts)
             
-            if os.path.exists(deleted_html_dir) and os.path.isdir(deleted_html_dir):
-                shutil.rmtree(deleted_html_dir)
-                print(f"   -> [CLEANUP] Deleted post directory: {deleted_html_dir}")
-            else:
-                # 处理 /post.html 模式（如果存在）
-                deleted_html_file = os.path.join(config.BUILD_DIR, deleted_link.strip('/'))
-                if os.path.exists(deleted_html_file):
-                    os.remove(deleted_html_file)
-                    print(f"   -> [CLEANUP] Deleted post HTML file: {deleted_html_file}")
+            try:
+                if os.path.exists(deleted_html_dir) and os.path.isdir(deleted_html_dir):
+                    shutil.rmtree(deleted_html_dir)
+                    print(f"   -> [CLEANUP] Deleted post directory: {deleted_html_dir}")
+                else:
+                    # 处理 /post.html 模式（如果存在）
+                    deleted_html_file = os.path.join(config.BUILD_DIR, deleted_link.strip('/'))
+                    if os.path.exists(deleted_html_file):
+                        os.remove(deleted_html_file)
+                        print(f"   -> [CLEANUP] Deleted post HTML file: {deleted_html_file}")
+            except Exception as e:
+                 print(f"   -> [WARNING] Failed to clean up deleted path {deleted_html_dir}: {e}")
+                 
             # 从新清单中移除已删除的文章记录
             new_manifest['posts'].pop(deleted_path, None)
 
