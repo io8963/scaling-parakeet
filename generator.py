@@ -12,7 +12,7 @@ import re
 import config
 from parser import tag_to_slug 
 from bs4 import BeautifulSoup 
-import minify_html # <-- 关键修改：替换 htmlmin 为 minify_html
+import minify_html # <-- 导入名为 minify_html，与新的包名 (minify-html) 匹配
 
 # --- Jinja2 环境配置配置 ---
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
@@ -126,7 +126,7 @@ def process_posts_for_template(posts: List[Dict[str, Any]]) -> List[Dict[str, An
 # --- 核心生成函数 ---
 
 def minify_html_content(html_content: str) -> str:
-    """对生成的 HTML 内容进行最小化处理 (使用 python-minify-html)"""
+    """对生成的 HTML 内容进行最小化处理 (使用 minify_html)"""
     # 使用 minify_html 最小化 HTML。它基于 Rust，性能优越。
     # **注意：** 默认配置已经非常激进，安全地移除了空白、注释和不必要的属性引号等。
     minified_content = minify_html.minify(
