@@ -1,25 +1,22 @@
-# parser.py - 修复版本
+
+# parser.py
 
 import os
 import re
 import yaml
 import markdown
-# 关键修复：导入 datetime, date, timezone
-from datetime import datetime, date, timezone 
+from datetime import datetime, date
 from typing import Dict, Any, Tuple
 import config 
 
-# NEW: 辅助函数 - 将日期时间对象标准化为 datetime 对象 (修复: 确保时间精度)
-def standardize_date(dt_obj: Any) -> datetime:
-    """将 datetime 或 date 对象标准化为 datetime 对象，确保包含时间信息。"""
+# NEW: 辅助函数 - 将日期时间对象标准化为日期对象
+def standardize_date(dt_obj: Any) -> date:
+    """将 datetime 或 date 对象标准化为 date 对象。"""
     if isinstance(dt_obj, datetime):
-        # 如果是 datetime 对象，直接返回
-        return dt_obj
+        return dt_obj.date()
     elif isinstance(dt_obj, date):
-        # 如果是 date 对象，则将其转换为当天的 00:00:00 的 datetime
-        return datetime.combine(dt_obj, datetime.min.time())
-    # 如果没有日期，使用当前的完整时间
-    return datetime.now() 
+        return dt_obj
+    return date.today() 
 
 # NEW: 辅助函数 - 针对中文的 slugify
 def my_custom_slugify(s, separator):
@@ -73,16 +70,14 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     
     # --- 元数据处理 ---
     
-    # 1. date (核心修复: 确保 metadata['date'] 是完整的 datetime 对象)
+    # 1. date
     raw_date = metadata.get('date')
     if raw_date:
-        metadata['date'] = standardize_date(raw_date) # 返回 datetime 对象
-        # 格式化时使用完整的日期时间，以便在 RSS/Sitemap 中保持精度
-        metadata['date_formatted'] = metadata['date'].strftime('%Y-%m-%d %H:%M:%S')
+        metadata['date'] = standardize_date(raw_date)
+        metadata['date_formatted'] = metadata['date'].strftime('%Y-%m-%d')
     else:
-        # 如果没有提供日期，则使用当前的完整时间
-        metadata['date'] = datetime.now()
-        metadata['date_formatted'] = metadata['date'].strftime('%Y-%m-%d %H:%M:%S')
+        metadata['date'] = date.today()
+        metadata['date_formatted'] = metadata['date'].strftime('%Y-%m-%d')
         
     # 2. tags
     tags_list = metadata.get('tags', [])
