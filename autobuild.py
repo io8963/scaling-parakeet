@@ -53,7 +53,11 @@ def get_full_content_hash(filepath: str) -> str:
     """计算文件的完整 SHA256 哈希值。用于 Manifest。"""
     h = hashlib.sha256()
     try:
-        with open(filepath, 'rb') as file:
+        # 使用路径相对路径进行存储，但在计算哈希时使用绝对路径
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        full_path = os.path.join(script_dir, filepath)
+
+        with open(full_path, 'rb') as file:
             while True:
                 chunk = file.read(4096)
                 if not chunk:
@@ -167,34 +171,68 @@ def build_site():
     
     # 加载上次的构建清单
     old_manifest = load_manifest()
-    new_manifest = {}
+    new_manifest = {
+        'posts': {}, 
+        'static_files': {},
+        'templates': {}
+    }
     
     # 存储需要重新生成 HTML 的文章对象
     posts_to_build: List[Dict[str, Any]] = [] 
     # 标志位：文章集合信息是否变化 (影响列表页、RSS、Sitemap)
     posts_data_changed = False      
-    
+    # ⭐ 新增标志位：主题或模板文件是否变化
+    theme_changed = False
+
     # -------------------------------------------------------------------------
-    # [2/5] 资源处理
+    # [2/5] 资源处理 & 主题/模板变动检查 (新增)
     # -------------------------------------------------------------------------
-    print("\n[2/5] Processing Assets...")
+    print("\n[2/5] Processing Assets and Checking Theme Changes...")
     assets_dir = os.path.join(config.BUILD_DIR, 'assets')
     os.makedirs(assets_dir, exist_ok=True)
     
     # 复制静态文件 (使用顶部定义的 STATIC_OUTPUT_DIR)
     if os.path.exists(config.STATIC_DIR):
         shutil.copytree(config.STATIC_DIR, STATIC_OUTPUT_DIR, dirs_exist_ok=True)
-    
-    # CSS 哈希和复制 (保持不变)
+
+    # -----------------------------------------------------------
+    # ⭐ 修复: 检查 CSS 文件变动，并设置 theme_changed
+    # -----------------------------------------------------------
     css_source = 'assets/style.css'
     if os.path.exists(css_source):
         css_hash = hash_file(css_source)
         new_css = f"style.{css_hash}.css"
         config.CSS_FILENAME = new_css
         shutil.copy2(css_source, os.path.join(assets_dir, new_css))
+
+        # 检查 CSS 文件内容是否变动 (使用 get_full_content_hash)
+        current_css_content_hash = get_full_content_hash(css_source)
+        old_css_content_hash = old_manifest.get('static_files', {}).get(css_source)
+
+        if current_css_content_hash != old_css_content_hash:
+            theme_changed = True
+            print(f"   -> [CHANGE DETECTED] {css_source} content has changed. (Theme Change)")
+        
+        new_manifest['static_files'][css_source] = current_css_content_hash
     else:
         config.CSS_FILENAME = 'style.css'
+
+    # -----------------------------------------------------------
+    # ⭐ 修复: 检查 base.html 模板文件变动，并设置 theme_changed
+    # -----------------------------------------------------------
+    base_template_source = os.path.join('templates', 'base.html')
+    if os.path.exists(base_template_source):
+        current_template_hash = get_full_content_hash(base_template_source)
+        old_template_hash = old_manifest.get('templates', {}).get(base_template_source)
+
+        if current_template_hash != old_template_hash:
+            theme_changed = True
+            print(f"   -> [CHANGE DETECTED] {base_template_source} has changed. (Theme Change)")
         
+        new_manifest['templates'][base_template_source] = current_template_hash
+    # -----------------------------------------------------------
+
+
     # =========================================================================
     # ⭐ 新增: 复制 CNAME 文件到 _site 部署目录 (解决自定义域名问题)
     # =========================================================================
@@ -259,7 +297,8 @@ def build_site():
                 **metadata, 'content_html': content_html, 'toc_html': '', 
                 'link': special_link, 'footer_time_info': mod_time_cn
             }
-            if needs_full_build:
+            # ⭐ 修复: 特殊页面也需要检查 theme_changed
+            if needs_full_build or theme_changed:
                  generator.generate_post_page(special_post)
             new_manifest[relative_path] = {'hash': current_hash, 'link': special_link}
             continue 
@@ -271,7 +310,8 @@ def build_site():
                      **metadata, 'content_html': content_html, 'toc_html': '', 
                      'link': special_link, 'footer_time_info': mod_time_cn
                  }
-                 if needs_full_build:
+                 # ⭐ 修复: 特殊页面也需要检查 theme_changed
+                 if needs_full_build or theme_changed:
                      generator.generate_page_html(
                          special_post['content_html'], special_post['title'], 
                          'about', special_link, special_post['footer_time_info']
@@ -348,7 +388,7 @@ def build_site():
         parsed_posts.append(post)
 
         # 3. 更新 Manifest (保存 Hash 和所有关键元数据)
-        new_manifest[relative_path] = new_manifest_data
+        new_manifest['posts'][relative_path] = new_manifest_data
         
         # 只有当内容或链接/元数据发生变化时，才需要重建文章详情页
         if needs_rebuild:
@@ -357,25 +397,26 @@ def build_site():
     # 清理被删除的源文件
     deleted_paths = set(old_manifest.keys()) - source_md_paths
     for deleted_path in deleted_paths:
-        item = old_manifest[deleted_path]
-        deleted_link = item.get('link')
-        print(f"   -> [DELETED] Source file {deleted_path} removed.")
-        posts_data_changed = True 
-        
-        if deleted_link and deleted_link != 'hidden' and deleted_link != '404.html':
-            # 确保路径是基于 BUILD_DIR 的
-            deleted_html_path_parts = deleted_link.strip('/').split('/')
-            deleted_html_dir = os.path.join(config.BUILD_DIR, *deleted_html_path_parts)
+        if deleted_path in old_manifest: # 确保只处理文章 (非 static_files/templates)
+            item = old_manifest[deleted_path]
+            deleted_link = item.get('link')
+            print(f"   -> [DELETED] Source file {deleted_path} removed.")
+            posts_data_changed = True 
             
-            if os.path.exists(deleted_html_dir) and os.path.isdir(deleted_html_dir):
-                shutil.rmtree(deleted_html_dir)
-                print(f"   -> [CLEANUP] Deleted post directory: {deleted_html_dir}")
-            else:
-                 # 处理 /post.html 模式（如果存在）
-                deleted_html_file = os.path.join(config.BUILD_DIR, deleted_link.strip('/'))
-                if os.path.exists(deleted_html_file):
-                    os.remove(deleted_html_file)
-                    print(f"   -> [CLEANUP] Deleted post HTML file: {deleted_html_file}")
+            if deleted_link and deleted_link != 'hidden' and deleted_link != '404.html':
+                # 确保路径是基于 BUILD_DIR 的
+                deleted_html_path_parts = deleted_link.strip('/').split('/')
+                deleted_html_dir = os.path.join(config.BUILD_DIR, *deleted_html_path_parts)
+                
+                if os.path.exists(deleted_html_dir) and os.path.isdir(deleted_html_dir):
+                    shutil.rmtree(deleted_html_dir)
+                    print(f"   -> [CLEANUP] Deleted post directory: {deleted_html_dir}")
+                else:
+                    # 处理 /post.html 模式（如果存在）
+                    deleted_html_file = os.path.join(config.BUILD_DIR, deleted_link.strip('/'))
+                    if os.path.exists(deleted_html_file):
+                        os.remove(deleted_html_file)
+                        print(f"   -> [CLEANUP] Deleted post HTML file: {deleted_html_file}")
                 
     final_parsed_posts = sorted(parsed_posts, key=lambda p: p['date'], reverse=True)
     
@@ -419,14 +460,20 @@ def build_site():
     # -------------------------------------------------------------------------
     print("\n[5/5] Generating HTML...")
     
-    # 1. 生成普通文章详情页 (只生成变动的)
-    for post in posts_to_build:
+    # 1. 生成普通文章详情页 
+    # ⭐ 修复: 如果主题变动，重建所有文章页
+    posts_to_build_all = final_parsed_posts if theme_changed else posts_to_build
+    
+    if theme_changed and not posts_to_build:
+        print("   -> [REBUILDING] ALL Post Pages (Theme changed, but no post content changed)")
+
+    for post in posts_to_build_all:
         generator.generate_post_page(post) 
 
     # 2. 生成列表页 (应用增量逻辑)
-    # 只要 posts_data_changed 为 True，就重建所有列表页
-    if not old_manifest or posts_data_changed:
-        print("   -> [REBUILDING] Index, Archive, Tags, RSS (Post data changed)")
+    # ⭐ 修复: 只要 posts_data_changed 为 True，或者主题/模板文件有变动，就重建所有列表页
+    if not old_manifest or posts_data_changed or theme_changed: # <-- 关键修改
+        print("   -> [REBUILDING] Index, Archive, Tags, RSS (Post data or Theme changed)")
         
         generator.generate_index_html(final_parsed_posts, global_build_time_cn) 
         generator.generate_archive_html(final_parsed_posts, global_build_time_cn) 
@@ -444,9 +491,10 @@ def build_site():
             f.write(generator.generate_rss(final_parsed_posts))
             
     else:
-        print("   -> [SKIPPED] Index, Archive, Tags, RSS (No post data change)")
+        print("   -> [SKIPPED] Index, Archive, Tags, RSS (No post data or Theme change)")
 
     # 3. 保存新的构建清单
+    # ⭐ 修复: 保存 new_manifest，其中包含 posts, static_files, templates 的哈希值
     save_manifest(new_manifest)
     print("   -> Manifest file updated.")
     
