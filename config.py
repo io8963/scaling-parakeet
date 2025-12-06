@@ -42,7 +42,7 @@ MARKDOWN_EXTENSION_CONFIGS = {
         'linenums': False,             
         'css_class': CODE_HIGHLIGHT_CLASS, # 强制指定类名为 'highlight'
         'use_pygments': True,          # 强制使用 Pygments
-        'noclasses': True,             # True = 使用内联样式 (直接生成带颜色的 HTML)
+        'noclasses': False,            # ⭐ 关键修复：改为 False，使用 CSS 类而不是内联样式
         'guess_lang': True,            # 自动猜测语言
     },
     'pymdownx.tasklist': {
