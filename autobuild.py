@@ -5,8 +5,7 @@ import shutil
 import glob
 import hashlib
 import json
-# ！！！关键修复：添加 Optional 导入！！！
-from typing import List, Dict, Any, Set, Optional
+from typing import List, Dict, Any, Set, Optional 
 from collections import defaultdict
 from datetime import datetime, timezone, timedelta 
 import subprocess 
@@ -15,6 +14,16 @@ import shlex
 import config
 from parser import get_metadata_and_content
 import generator
+
+# =========================================================================
+# 【关键修复】将组合后的输出目录变量移到此处，以解决 config 模块属性缺失的问题
+# =========================================================================
+# 这些变量现在是 autobuild.py 模块的全局变量，确保可用
+POSTS_OUTPUT_DIR = os.path.join(config.BUILD_DIR, config.POSTS_DIR_NAME)
+TAGS_OUTPUT_DIR = os.path.join(config.BUILD_DIR, config.TAGS_DIR_NAME)
+STATIC_OUTPUT_DIR = os.path.join(config.BUILD_DIR, config.STATIC_DIR)
+# =========================================================================
+
 
 # [恢复] 定义清单文件路径
 MANIFEST_FILE = os.path.join(os.path.dirname(__file__), '.build_manifest.json')
@@ -56,6 +65,7 @@ def get_full_content_hash(filepath: str) -> str:
 
 # --- 检查依赖 & Hash 文件 (保持不变) ---
 try:
+    # 尝试导入 Pygments 以确保代码高亮功能可用
     import pygments
 except ImportError:
     pass
@@ -133,6 +143,11 @@ def format_file_mod_time(filepath: str) -> str:
     return format_dt(now_utc, 'Fallback')
 
 
+# 检查文章是否应被隐藏
+def is_post_hidden(post: Dict[str, Any]) -> bool:
+    """检查文章是否应被隐藏。"""
+    return post.get('status', 'published').lower() == 'draft' or post.get('hidden') is True
+
 def build_site():
     print("\n" + "="*40)
     print("   🚀 STARTING BUILD PROCESS (Incremental Build Enabled)")
@@ -145,10 +160,11 @@ def build_site():
     
     # [关键修复: 移除 shutil.rmtree] 确保目录存在，不清理，从而保留上次的构建文件
     os.makedirs(config.BUILD_DIR, exist_ok=True) 
-    os.makedirs(config.POSTS_OUTPUT_DIR, exist_ok=True)
-    os.makedirs(config.TAGS_OUTPUT_DIR, exist_ok=True)
-    os.makedirs(config.STATIC_OUTPUT_DIR, exist_ok=True)
-
+    # !!! 引用当前文件顶层定义的变量，修复 AttributeError !!!
+    os.makedirs(POSTS_OUTPUT_DIR, exist_ok=True) 
+    os.makedirs(TAGS_OUTPUT_DIR, exist_ok=True)
+    os.makedirs(STATIC_OUTPUT_DIR, exist_ok=True)
+    
     # 加载上次的构建清单
     old_manifest = load_manifest()
     new_manifest = {}
@@ -165,8 +181,9 @@ def build_site():
     assets_dir = os.path.join(config.BUILD_DIR, 'assets')
     os.makedirs(assets_dir, exist_ok=True)
     
+    # 复制静态文件 (使用顶部定义的 STATIC_OUTPUT_DIR)
     if os.path.exists(config.STATIC_DIR):
-        shutil.copytree(config.STATIC_DIR, config.STATIC_OUTPUT_DIR, dirs_exist_ok=True)
+        shutil.copytree(config.STATIC_DIR, STATIC_OUTPUT_DIR, dirs_exist_ok=True)
     
     # CSS 哈希和复制 (保持不变)
     css_source = 'assets/style.css'
@@ -253,6 +270,7 @@ def build_site():
             continue
             
         # --- 普通文章处理 ---
+        # 链接格式：posts/slug.html (在 generator.py 中会被清洗为 /posts/slug/ 格式)
         post_link = os.path.join(config.POSTS_DIR_NAME, f"{slug}.html").replace('\\', '/')
         post = {
             **metadata, 
@@ -298,11 +316,19 @@ def build_site():
         
         # 清理旧的 HTML 文件 (如果 Slug 变化)
         if old_item.get('link') and old_item.get('link') != post_link and old_item.get('link') != 'hidden' and old_item.get('link') != '404.html':
-             old_html_path = os.path.join(config.BUILD_DIR, old_item['link'].strip('/'))
-             if os.path.exists(old_html_path):
-                os.remove(old_html_path)
-                print(f"   -> [CLEANUP] Deleted old HTML file: {old_html_path}")
-
+             # 确保路径是基于 BUILD_DIR 的，而不是相对于根目录
+             old_html_path_parts = old_item['link'].strip('/').split('/')
+             old_html_dir = os.path.join(config.BUILD_DIR, *old_html_path_parts)
+             
+             if os.path.exists(old_html_dir) and os.path.isdir(old_html_dir):
+                 # 删除旧的 /slug/ 目录
+                 shutil.rmtree(old_html_dir) 
+                 print(f"   -> [CLEANUP] Deleted old post directory: {old_html_dir}")
+             elif os.path.exists(old_html_dir):
+                # 处理 /post.html 模式（如果存在）
+                os.remove(old_html_dir)
+                print(f"   -> [CLEANUP] Deleted old HTML file: {old_html_dir}")
+                
         for tag_data in post.get('tags', []):
             tag_map[tag_data['name']].append(post)
             
@@ -324,10 +350,19 @@ def build_site():
         posts_data_changed = True 
         
         if deleted_link and deleted_link != 'hidden' and deleted_link != '404.html':
-            deleted_html_path = os.path.join(config.BUILD_DIR, deleted_link.strip('/'))
-            if os.path.exists(deleted_html_path):
-                os.remove(deleted_html_path)
-                print(f"   -> [CLEANUP] Deleted post HTML file: {deleted_html_path}")
+            # 确保路径是基于 BUILD_DIR 的
+            deleted_html_path_parts = deleted_link.strip('/').split('/')
+            deleted_html_dir = os.path.join(config.BUILD_DIR, *deleted_html_path_parts)
+            
+            if os.path.exists(deleted_html_dir) and os.path.isdir(deleted_html_dir):
+                shutil.rmtree(deleted_html_dir)
+                print(f"   -> [CLEANUP] Deleted post directory: {deleted_html_dir}")
+            else:
+                 # 处理 /post.html 模式（如果存在）
+                deleted_html_file = os.path.join(config.BUILD_DIR, deleted_link.strip('/'))
+                if os.path.exists(deleted_html_file):
+                    os.remove(deleted_html_file)
+                    print(f"   -> [CLEANUP] Deleted post HTML file: {deleted_html_file}")
                 
     final_parsed_posts = sorted(parsed_posts, key=lambda p: p['date'], reverse=True)
     
@@ -336,20 +371,27 @@ def build_site():
     # -------------------------------------------------------------------------
     # [4/5] P/N Navigation Injection & Build Time
     # -------------------------------------------------------------------------
-    for i, post in enumerate(final_parsed_posts):
-        prev_post_data = final_parsed_posts[i - 1] if i > 0 else None
-        next_post_data = final_parsed_posts[i + 1] if i < len(final_parsed_posts) - 1 else None
+    
+    # 仅对可见文章生成上/下导航
+    visible_posts_for_nav = [p for p in final_parsed_posts if not is_post_hidden(p)]
+    
+    for i, post in enumerate(visible_posts_for_nav):
+        # 找到 post 在 final_parsed_posts 中的原始引用 (用于 posts_to_build 列表)
+        original_post = next(p for p in final_parsed_posts if p['link'] == post['link'])
 
-        post['prev_post_nav'] = None
+        prev_post_data = visible_posts_for_nav[i - 1] if i > 0 else None
+        next_post_data = visible_posts_for_nav[i + 1] if i < len(visible_posts_for_nav) - 1 else None
+
+        original_post['prev_post_nav'] = None
         if prev_post_data:
-            post['prev_post_nav'] = {
+            original_post['prev_post_nav'] = {
                 'title': prev_post_data['title'],
                 'link': prev_post_data['link']
             }
 
-        post['next_post_nav'] = None
+        original_post['next_post_nav'] = None
         if next_post_data:
-            post['next_post_nav'] = {
+            original_post['next_post_nav'] = {
                 'title': next_post_data['title'],
                 'link': next_post_data['link']
             }
