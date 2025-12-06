@@ -1,4 +1,4 @@
-# generator.py (Cloudflare/GitHub 最佳兼容性版本)
+# generator.py (Cloudflare/GitHub 最终修复版)
 
 import os
 import shutil 
@@ -23,6 +23,7 @@ env = Environment(
 # --- 辅助函数：路径和 URL (核心路径修正) ---
 
 if 'tag_to_slug' not in locals():
+    # 确保 generator.py 中也能使用 tag_to_slug
     def tag_to_slug(tag_name: str) -> str:
         return tag_name.lower().replace(' ', '-')
 
@@ -42,20 +43,21 @@ def make_internal_url(path: str) -> str:
     if not path:
         return ""
         
-    # 标准化输入路径
     normalized_path = path if path.startswith('/') else f'/{path}'
     site_root = get_site_root_prefix()
     
     # 1. 忽略大小写移除 .html 后缀
-    if normalized_path.lower().endswith('.html'):
+    # ⚠️ 特殊处理：RSS 文件和 404 文件保留后缀
+    if normalized_path.lower().endswith('.html') and not normalized_path.lower().endswith(config.RSS_FILE) and not normalized_path.lower() == '/404.html':
         normalized_path = normalized_path[:-5]
-        
-    # 2. 确保路径末尾添加斜杠 (除了根目录)
-    # Cloudflare 对 /slug/ 的支持最好，能避免相对路径资源加载失败
+    
+    # 2. 确保路径末尾添加斜杠 (除了根目录和特殊文件)
     if normalized_path.lower() == '/index': 
         normalized_path = '/'
-    elif normalized_path.lower() == '/404':
-        pass # 404 页面保留原样
+    elif normalized_path.lower() == '/404' or normalized_path.lower() == '/404.html':
+        pass 
+    elif normalized_path.lower().endswith(config.RSS_FILE):
+        pass
     elif normalized_path != '/' and not normalized_path.endswith('/'):
         normalized_path = f'{normalized_path}/'
     
@@ -82,7 +84,6 @@ def process_posts_for_template(posts: List[Dict[str, Any]]) -> List[Dict[str, An
     """
     cleaned_posts = []
     for post in posts:
-        # 创建副本，以免污染原始数据
         new_post = post.copy()
         
         # 清洗主链接
@@ -112,14 +113,12 @@ def generate_post_page(post: Dict[str, Any]):
         if not relative_link:
             return
 
-        # [文件输出路径] 
-        # 将 "post.html" 转换为 "post/index.html"
-        # 这样物理文件结构就匹配了 /post/ 的 URL
+        # [文件输出路径] 强制转换为 directory/index.html 结构
         if relative_link.lower() == '404.html':
-            output_path = os.path.join(config.BUILD_DIR, relative_link.lstrip('/'))
-            page_id_override = '404'
+            # 404 页面在 autobuild.py 中单独处理，这里跳过
+            return
         else:
-            # 移除 .html
+            # 移除 .html，作为目录名
             clean_name = relative_link[:-5] if relative_link.lower().endswith('.html') else relative_link
             clean_name = clean_name.strip('/')
             output_dir = os.path.join(config.BUILD_DIR, clean_name)
@@ -175,8 +174,7 @@ def generate_index_html(sorted_posts: List[Dict[str, Any]], build_time_info: str
             'blog_title': config.BLOG_TITLE,
             'blog_description': config.BLOG_DESCRIPTION,
             'blog_author': config.BLOG_AUTHOR,
-            # [关键] 传入清洗后的文章列表
-            'posts': process_posts_for_template(visible_posts),
+            'posts': process_posts_for_template(visible_posts), # 关键：传入清洗后的文章列表
             'max_posts_on_index': config.MAX_POSTS_ON_INDEX,
             'site_root': get_site_root_prefix(),
             'current_year': datetime.now().year,
@@ -203,8 +201,6 @@ def generate_archive_html(sorted_posts: List[Dict[str, Any]], build_time_info: s
         
         visible_posts = [p for p in sorted_posts if not is_post_hidden(p)]
         
-        # 归档页的列表也需要清洗链接，但这里我们主要用于按年份分组
-        # 为了保证 HTML 里的链接正确，我们手动处理 archive_html 字符串
         archive_by_year = defaultdict(list)
         for post in visible_posts:
             archive_by_year[post['date'].year].append(post)
@@ -217,7 +213,7 @@ def generate_archive_html(sorted_posts: List[Dict[str, Any]], build_time_info: s
         for year, posts in sorted_archive:
             archive_html += f"<h2>{year} ({len(posts)} 篇)</h2>\n<ul>\n"
             for post in posts:
-                # [关键] 这里直接调用 make_internal_url 生成纯净链接
+                # 关键：这里直接调用 make_internal_url 生成纯净链接
                 link = make_internal_url(post['link']) 
                 archive_html += f"<li><a href=\"{link}\">{post['title']}</a> - {post['date_formatted']}</li>\n"
             archive_html += "</ul>\n"
@@ -297,7 +293,7 @@ def generate_tag_page(tag_name: str, sorted_tag_posts: List[Dict[str, Any]], bui
 
         template = env.get_template('base.html')
         
-        # [关键] 清洗列表
+        # 关键：清洗列表
         processed_posts = process_posts_for_template(sorted_tag_posts)
         
         context = {
@@ -322,7 +318,7 @@ def generate_tag_page(tag_name: str, sorted_tag_posts: List[Dict[str, Any]], bui
     except Exception as e:
         print(f"Error tag page {tag_name}: {e}")
 
-# --- 辅助生成：Robots, Sitemap, RSS ---
+# --- 辅助生成：Robots, Sitemap, RSS (确保使用 make_internal_url 清洗路径) ---
 
 def generate_robots_txt():
     """生成 robots.txt"""
@@ -341,9 +337,10 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
     base_url = config.BASE_URL.rstrip('/')
     
     # 静态页面
-    for path, prio in [('/', '1.0'), ('/archive', '0.8'), ('/tags', '0.8')]:
+    # 确保 /archive 和 /tags 使用 directory-style url /archive/ 和 /tags/
+    for path, prio in [('/', '1.0'), ('/archive', '0.8'), ('/tags', '0.8'), ('/404', '0.1'), (config.RSS_FILE, '0.1')]:
         urls.append(f"<url><loc>{base_url}{make_internal_url(path)}</loc><priority>{prio}</priority></url>")
-    
+
     if os.path.exists(os.path.join(config.BUILD_DIR, 'about', 'index.html')):
          urls.append(f"<url><loc>{base_url}{make_internal_url('/about')}</loc><priority>0.8</priority></url>")
 
@@ -352,7 +349,7 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
     for post in parsed_posts:
         if is_post_hidden(post) or not post.get('link'): continue
         
-        # 这里的 post['link'] 还是带 .html 的，所以要 clean
+        # post['link'] 是原始的 xxx.html，使用 make_internal_url 清洗
         link = f"{base_url}{make_internal_url(post['link'])}"
         lastmod = post['date'].strftime('%Y-%m-%d')
         urls.append(f"<url><loc>{link}</loc><lastmod>{lastmod}</lastmod><priority>0.6</priority></url>")
@@ -366,7 +363,7 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
         link = f"{base_url}{make_internal_url(f'{config.TAGS_DIR_NAME}/{slug}')}"
         urls.append(f"<url><loc>{link}</loc><priority>0.5</priority></url>")
 
-    return f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{"".join(urls)}</urlset>'
+    return f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="[http://www.sitemaps.org/schemas/sitemap/0.9](http://www.sitemaps.org/schemas/sitemap/0.9)">{"".join(urls)}</urlset>'
 
 def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
     """生成 RSS Feed"""
@@ -376,22 +373,26 @@ def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
     
     for post in visible_posts[:10]:
         if not post.get('link'): continue
+        # RSS 中的 link 必须是绝对 URL，并使用 make_internal_url 清洗为 /slug/ 格式
         link = f"{base_url}{make_internal_url(post['link'])}"
         pub_date = datetime.combine(post['date'], datetime.min.time(), tzinfo=timezone.utc).strftime('%a, %d %b %Y %H:%M:%S +0000') 
         items.append(f"<item><title>{post['title']}</title><link>{link}</link><pubDate>{pub_date}</pubDate><guid isPermaLink=\"true\">{link}</guid><description><![CDATA[{post['content_html']}]]></description></item>")
     
-    rss_link = make_internal_url(config.RSS_FILE)
-    return f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>{config.BLOG_TITLE}</title><link>{base_url}{make_internal_url("/")}</link><description>{config.BLOG_DESCRIPTION}</description><language>zh-cn</language><atom:link href="{base_url}{rss_link}" rel="self" type="application/rss+xml" /><lastBuildDate>{datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")}</lastBuildDate>{"".join(items)}</channel></rss>'
+    # RSS 文件本身链接保留 .xml 后缀
+    rss_link = make_internal_url(config.RSS_FILE) 
+    return f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="[http://www.w3.org/2005/Atom](http://www.w3.org/2005/Atom)"><channel><title>{config.BLOG_TITLE}</title><link>{base_url}{make_internal_url("/")}</link><description>{config.BLOG_DESCRIPTION}</description><language>zh-cn</language><atom:link href="{base_url}{rss_link}" rel="self" type="application/rss+xml" /><lastBuildDate>{datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")}</lastBuildDate>{"".join(items)}</channel></rss>'
 
 def generate_page_html(content_html: str, page_title: str, page_id: str, canonical_path_with_html: str, build_time_info: str):
     """生成通用页面 (输出为 page_id/index.html)"""
     try:
+        # [文件输出路径] 强制转换为 directory/index.html 结构
         output_dir = os.path.join(config.BUILD_DIR, page_id)
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, 'index.html')
         
         template = env.get_template('base.html')
-        canonical_path = make_internal_url(canonical_path_with_html)
+        # canonical_path 也会被 make_internal_url 清洗为 /slug/
+        canonical_path = make_internal_url(canonical_path_with_html) 
         
         context = {
             'page_id': page_id,
