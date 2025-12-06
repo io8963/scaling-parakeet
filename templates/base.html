@@ -24,7 +24,6 @@
             <a href="{{site_root}}/" class="site-title">{{blog_title}}</a>
             <nav>
                 <a href="{{site_root}}/" {% if page_id == 'index' %}class="active-nav-link"{% endif %}>首页</a>
-                {# [FIX] 导航链接：强制以 / 结尾，匹配 generator.py 生成的目录结构 #}
                 <a href="{{site_root}}/archive/" {% if page_id == 'archive' %}class="active-nav-link"{% endif %}>归档</a>
                 <a href="{{site_root}}/tags/" {% if page_id == 'tags' %}class="active-nav-link"{% endif %}>标签</a>
                 <a href="{{site_root}}/about/" {% if page_id == 'about' %}class="active-nav-link"{% endif %}>关于</a>
@@ -48,7 +47,6 @@
                                     <div class="meta-tags">
                                         <ul class="tags-list">
                                         {% for tag in post_tags %}
-                                            {# [FIX] 标签链接：构造为 /tags/slug/ #}
                                             <li><a href="{{site_root}}/tags/{{tag.slug}}/" class="tag-badge">{{tag.name}}</a></li>
                                         {% endfor %}
                                         </ul>
@@ -85,7 +83,6 @@
                     {%- if page_id != 'archive' -%}
                     <div class="post-list">
                     {% for post in posts %}
-                        {# [FIX] post.link 已由 Python 清除 .html 后缀，此处直接渲染 #}
                         <a href="{{site_root}}{{post.link}}" class="post-list-item">
                             
                             <h2 class="post-title">{{post.title}}</h2>
@@ -155,7 +152,6 @@
                 {%- if page_id == 'post' and (prev_post_nav or next_post_nav) -%}
                 <nav class="post-navigation">
                     {% if prev_post_nav %}
-                    {# [FIX] prev_post_nav.link 已由 Python 清除后缀 #}
                     <a href="{{site_root}}{{prev_post_nav.link}}" class="nav-link nav-prev">
                         <small>← 上一篇 (较新)</small>
                         <h3>{{prev_post_nav.title}}</h3>
@@ -165,7 +161,6 @@
                     {% endif %}
 
                     {% if next_post_nav %}
-                    {# [FIX] next_post_nav.link 已由 Python 清除后缀 #}
                     <a href="{{site_root}}{{next_post_nav.link}}" class="nav-link nav-next">
                         <small>下一篇 (较旧) →</small>
                         <h3>{{next_post_nav.title}}</h3>
