@@ -40,17 +40,5 @@
         ],
         "hidden": false,
         "status": "published"
-    },
-    "markdown/03.md": {
-        "hash": "30c106afaf9e939a4ed6cb725f170f95fee69a0cf0b32b2fe272c5b706242f6d",
-        "title": "🛠️ 解决静态博客构建中的两大陷阱：时间戳不一致与增量构建失效",
-        "date_str": "2025-12-05",
-        "link": "posts/03.html",
-        "tags_list": [
-            "公告",
-            "建站日志"
-        ],
-        "hidden": false,
-        "status": "published"
     }
 }
