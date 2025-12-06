@@ -7,9 +7,9 @@ import markdown
 from datetime import datetime, date
 from typing import Dict, Any, Tuple
 import config 
-import unicodedata # <--- NEW IMPORT: 用于处理 Unicode 字符规范化
+import unicodedata # 引入 Unicode 库
 
-# NEW: 辅助函数 - 将日期时间对象标准化为日期对象
+# 辅助函数 - 将日期时间对象标准化为日期对象
 def standardize_date(dt_obj: Any) -> date:
     """将 datetime 或 date 对象标准化为 date 对象。"""
     if isinstance(dt_obj, datetime):
@@ -18,29 +18,42 @@ def standardize_date(dt_obj: Any) -> date:
         return dt_obj
     return date.today() 
 
-# NEW: 辅助函数 - 针对中文的 slugify
-def my_custom_slugify(s, separator):
-    """一个简单的中文友好的 slugify 函数"""
+# -------------------------------------------------------------------------
+# 【TOC/目录专用 Slugify】: 专为 Markdown TOC 扩展设计
+# -------------------------------------------------------------------------
+def my_custom_slugify(s: str, separator: str) -> str:
+    """
+    自定义 slugify 函数，用于 Markdown TOC 锚点生成。
+    兼容中文和国际字符。
+    """
     s = str(s).lower().strip()
-    s = re.sub(r'[\s]+', separator, s) 
-    s = re.sub(r'[^\w\s-]', '', s) 
-    return s.strip(separator)
+    
+    # 1. Unicode 规范化 (NFKD) 处理重音等字符
+    s = unicodedata.normalize('NFKD', s)
+    
+    # 2. 移除所有非 \w (字母、数字、下划线, 包含中文), 非空格, 非横线的字符
+    s = re.sub(r'[^\w\s-]', '', s)
+    
+    # 3. 将空格和多个横线替换为单个横线，并移除首尾横线
+    s = re.sub(r'[\s-]+', separator, s).strip(separator)
+    return s
 
+# -------------------------------------------------------------------------
+# 【标签/Tag 专用 Slugify】: 用于生成标签页面的 URL
+# -------------------------------------------------------------------------
 def tag_to_slug(tag_name: str) -> str:
     """
-    [关键修复] 将标签名转换为 URL 友好的 slug。
-    此版本使用 Unicode 规范化来处理重音符号等国际字符。
+    [中文兼容性优化] 将标签名转换为 URL 友好的 slug。
+    此版本兼容中文、英文及其他国际字符，并保留中文字符（最终会 URL 编码）。
     """
     # 1. 小写
     slug = tag_name.lower()
 
-    # 2. Unicode 规范化 (NFKD): 将重音字符分解为基字符和修饰符 (例如: 'Café' -> 'Cafe' + 修饰符)。
-    #    这是解决国际化字符问题的标准方法。
+    # 2. Unicode 规范化 (NFKD): 处理重音符号等国际字符。
     slug = unicodedata.normalize('NFKD', slug)
     
-    # 3. 将所有非 \w (字母、数字、下划线)、非空格、非横线的字符移除。
-    #    在 Python 3 中，\w 默认是 Unicode-aware 的，能很好地覆盖中文、英文及其他语言的字母和数字。
-    #    执行此操作也会移除重音修饰符，从而得到干净的 ASCII 兼容字符。
+    # 3. 移除所有非 \w (字母、数字、下划线, 包含中文), 非空格, 非横线的字符。
+    #    Python 3 的 \w 默认是 Unicode-aware 的，会正确保留中文字符。
     slug = re.sub(r'[^\w\s-]', '', slug)
     
     # 4. 将空格和多个横线替换为单个横线，并移除首尾横线
