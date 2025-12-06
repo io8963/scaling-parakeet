@@ -14,7 +14,6 @@ import shlex
 import config
 from parser import get_metadata_and_content
 import generator
-import rcssmin # <-- 导入：用于 CSS Minify
 
 # =========================================================================
 # 【关键修复】将组合后的输出目录变量移到此处，以解决 config 模块属性缺失的问题
@@ -42,376 +41,535 @@ def load_manifest() -> Dict[str, Any]:
     except (FileNotFoundError, json.JSONDecodeError):
         return {}
 
-def save_manifest(manifest_data: Dict[str, Any]):
+def save_manifest(manifest: Dict[str, Any]):
     """保存当前的构建清单文件。"""
     try:
         with open(MANIFEST_FILE, 'w', encoding='utf-8') as f:
-            json.dump(manifest_data, f, indent=4, ensure_ascii=False)
-    except Exception as e:
-        print(f"Error saving manifest: {e}")
+            json.dump(manifest, f, ensure_ascii=False, indent=4)
+    except IOError as e:
+        print(f"警告：无法写入构建清单文件 {MANIFEST_FILE}: {e}")
 
-# --- 文件哈希辅助函数 ---
-def calculate_file_hash(filepath: str) -> str:
+def get_full_content_hash(filepath: str) -> str:
+    """计算文件的完整 SHA256 哈希值。用于 Manifest。"""
+    h = hashlib.sha256()
+    try:
+        # 使用路径相对路径进行存储，但在计算哈希时使用绝对路径
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        full_path = os.path.join(script_dir, filepath)
+
+        with open(full_path, 'rb') as file:
+            while True:
+                chunk = file.read(4096)
+                if not chunk:
+                    break
+                h.update(chunk)
+    except IOError:
+        return ""
+    return h.hexdigest()
+
+# [新增] 辅助函数：计算文件哈希
+def get_file_hash(filepath: str) -> Optional[str]:
     """计算文件的 SHA256 哈希值。"""
     try:
-        hasher = hashlib.sha256()
+        # 获取脚本所在目录的绝对路径，用于构建文件的完整路径
+        script_dir = os.path.dirname(os.path.abspath(__file__))
+        full_path = os.path.join(script_dir, filepath)
+
+        if not os.path.exists(full_path):
+            return None
+            
+        sha256 = hashlib.sha256()
+        with open(full_path, 'rb') as f:
+            # 分块读取文件以处理大文件
+            for byte_block in iter(lambda: f.read(4096), b""):
+                sha256.update(byte_block)
+        return sha256.hexdigest()
+    except Exception:
+        return None
+
+
+# 检查依赖 & Hash 文件 (保持不变)
+try:
+    # 尝试导入 Pygments 以确保代码高亮功能可用
+    import pygments
+except ImportError:
+    pass
+
+def hash_file(filepath: str) -> str:
+    """计算文件的 SHA256 哈希值前 8 位。用于 CSS 文件名。"""
+    hasher = hashlib.sha256()
+    try:
         with open(filepath, 'rb') as f:
-            # 分块读取，适用于大文件
-            for chunk in iter(lambda: f.read(4096), b''):
-                hasher.update(chunk)
-        return hasher.hexdigest()
+            hasher.update(f.read())
+        return hasher.hexdigest()[:8]
     except FileNotFoundError:
-        return ""
-    except Exception as e:
-        print(f"Error hashing {filepath}: {e}")
-        return ""
+        return 'nohash'
 
-# --- Git 时间辅助函数 ---
-def get_git_author_time(filepath: str) -> Optional[datetime]:
-    """使用 Git 命令获取文件的最新修改时间 (Author Date)，并转换为 UTC+8。"""
-    if not os.path.exists('.git'):
-        return None # 如果不是 Git 仓库，则返回 None
-
-    try:
-        # 获取最新的提交 AuthorDate
-        cmd = shlex.split(f'git log -1 --format=%aI -- {filepath}')
-        result = subprocess.run(cmd, capture_output=True, text=True, check=True, encoding='utf-8')
-        date_iso = result.stdout.strip()
+# [修复后的 FUNCTION] 获取文件的最后修改时间 (Git -> Filesystem -> Fallback with Microseconds)
+def format_file_mod_time(filepath: str) -> str:
+    """
+    获取文件的最后修改时间。
+    优先级：1. Git Author Time -> 2. 文件系统修改时间 -> 3. 当前构建时间。
+    并确保输出包含微秒以保证唯一性。
+    """
+    
+    def format_dt(dt: datetime, source: str) -> str:
+        # 确保 datetime 对象带有正确的时区信息
+        if dt.tzinfo is None or dt.tzinfo.utcoffset(dt) is None:
+            # ⭐ 关键修复 1: 将 Naive 对象（如 os.path.getmtime 的输出）视为 UTC，再转换为目标时区 UTC+8
+            dt = dt.replace(tzinfo=timezone.utc).astimezone(TIMEZONE_INFO) 
+        else:
+            # 否则直接转换为 UTC+8
+            dt = dt.astimezone(TIMEZONE_INFO)
+            
+        # [核心修复] 使用微秒 (%f) 格式化时间
+        time_str = dt.strftime('%Y-%m-%d %H:%M:%S.%f')
         
-        if date_iso:
-            # 解析 ISO 8601 格式的时间，并将其转换为 UTC+8
-            dt_utc = datetime.fromisoformat(date_iso).astimezone(timezone.utc)
-            dt_cn = dt_utc.astimezone(TIMEZONE_INFO)
-            return dt_cn
-    except subprocess.CalledProcessError as e:
-        # 文件可能没有被 Git 追踪
-        pass
-    except ValueError:
-        # 日期格式解析失败
-        pass
-    except Exception as e:
-        print(f"Error getting Git time for {filepath}: {e}")
+        # 移除末尾的零和点，使输出更简洁，但保留非零微秒
+        time_str = time_str.rstrip('0').rstrip('.')
+        
+        return f"本文构建时间: {time_str} (UTC+8 - {source})"
     
-    return None
+    # --- 1. 尝试获取 Git 最后提交时间 (Author Time) ---
+    try:
+        git_command = ['git', 'log', '-1', '--pretty=format:%aI', '--', filepath]
+        result = subprocess.run(git_command, capture_output=True, text=True, cwd=os.getcwd())
+        
+        if result.returncode == 0:
+            git_time_str = result.stdout.strip()
+            if git_time_str:
+                try:
+                    mtime_dt_tz = datetime.fromisoformat(git_time_str)
+                except ValueError:
+                    if git_time_str.endswith('Z'):
+                        git_time_str = git_time_str.replace('Z', '+00:00')
+                    mtime_dt_tz = datetime.fromisoformat(git_time_str)
+                
+                return format_dt(mtime_dt_tz, 'Git')
 
-# --- 关键：静态文件复制和 CSS Minify ---
-def copy_static_files(old_manifest: Dict[str, Any], new_manifest: Dict[str, Any]):
-    """
-    复制静态资源，包括 CSS 文件。
-    如果 style.css 内容有变化，则重新生成带有哈希名的 CSS 文件。
-    """
-    print("--- 3. 复制静态资源 ---")
+    except Exception as e:
+        pass 
     
-    # 确保输出目录存在
+    # --- 2. 尝试获取文件系统修改时间 (次级回退) ---
+    try:
+        timestamp = os.path.getmtime(filepath)
+        # ⭐ 关键修复 2: 明确将时间戳转换为 UTC time-zone aware 对象
+        fs_mtime = datetime.fromtimestamp(timestamp, tz=timezone.utc)
+        return format_dt(fs_mtime, 'Filesystem')
+        
+    except FileNotFoundError:
+        pass
+
+    except Exception as e:
+        pass
+        
+    # --- 3. 最终回退：使用当前构建时间 ---
+    now_utc = datetime.now(timezone.utc)
+    return format_dt(now_utc, 'Fallback')
+
+
+# 检查文章是否应被隐藏
+def is_post_hidden(post: Dict[str, Any]) -> bool:
+    """检查文章是否应被隐藏。"""
+    return post.get('status', 'published').lower() == 'draft' or post.get('hidden') is True
+
+def build_site():
+    print("\n" + "="*40)
+    print("   🚀 STARTING BUILD PROCESS (Incremental Build Enabled)")
+    print("="*40 + "\n")
+    
+    # -------------------------------------------------------------------------
+    # [1/5] 准备工作 & 增量构建初始化 (启用增量构建)
+    # -------------------------------------------------------------------------
+    print("[1/5] Preparing build directory and loading manifest...")
+    
+    # [关键修复: 移除 shutil.rmtree] 确保目录存在，不清理，从而保留上次的构建文件
+    os.makedirs(config.BUILD_DIR, exist_ok=True) 
+    # !!! 引用当前文件顶层定义的变量，修复 AttributeError !!!
+    os.makedirs(POSTS_OUTPUT_DIR, exist_ok=True) 
+    os.makedirs(TAGS_OUTPUT_DIR, exist_ok=True)
     os.makedirs(STATIC_OUTPUT_DIR, exist_ok=True)
-
-    # 1. 处理 style.css
-    css_source_path = os.path.join('assets', 'style.css')
-    css_output_base = 'style' # 例如：style.css
     
-    try:
-        with open(css_source_path, 'r', encoding='utf-8') as f:
-            css_content = f.read()
-            
-        # ⭐⭐⭐ CSS Minification 核心逻辑 ⭐⭐⭐
-        minified_css_content = rcssmin.cssmin(css_content) 
-        print("   -> CSS Minify: 原始大小 {} bytes -> 最小化大小 {} bytes".format(
-            len(css_content.encode('utf-8')), 
-            len(minified_css_content.encode('utf-8'))
-        ))
-        
-        # 计算最小化后的内容的哈希
-        minified_hash = hashlib.sha256(minified_css_content.encode('utf-8')).hexdigest()[:8]
-        new_css_filename = f"{css_output_base}.{minified_hash}.css"
-        css_output_path = os.path.join(STATIC_OUTPUT_DIR, new_css_filename)
-        
-        # 将新文件名存入 config 供 generator.py 使用
-        config.CSS_FILENAME = new_css_filename
-        
-        # 检查是否需要重新写入文件
-        manifest_key = 'assets/style.css'
-        old_hash = old_manifest.get(manifest_key, {}).get('hash')
-        
-        if minified_hash != old_hash:
-            # 如果哈希变了，或哈希文件名变了，则写入新文件
-            with open(css_output_path, 'w', encoding='utf-8') as f:
-                f.write(minified_css_content)
-            print(f"   -> Generated new CSS file: {new_css_filename}")
-        else:
-            # 如果哈希没变，则沿用旧文件名
-            old_css_filename = old_manifest.get(manifest_key, {}).get('output_filename', 'style.css')
-            config.CSS_FILENAME = old_css_filename
-            print(f"   -> [SKIP] CSS file unchanged. Using: {config.CSS_FILENAME}")
-
-        # 记录到新清单
-        new_manifest[manifest_key] = { 'hash': minified_hash, 'output_filename': config.CSS_FILENAME }
-
-    except Exception as e:
-        print(f"Error processing style.css: {e}")
-        # 如果出错，继续使用默认值
-        config.CSS_FILENAME = 'style.css'
-        
-    # 2. 处理其他静态文件 (e.g., CNAME, favicons, robots.txt 等)
-    static_files = glob.glob('assets/*.*') # 查找 assets 目录下的所有文件
-    # 排除 style.css，因为它已被特殊处理
-    files_to_copy = [f for f in static_files if os.path.basename(f) != 'style.css'] 
-    
-    # 复制 CNAME
-    cname_path = 'CNAME'
-    if os.path.exists(cname_path):
-        files_to_copy.append(cname_path)
-
-    for source_path in files_to_copy:
-        file_name = os.path.basename(source_path)
-        
-        # 确定目标路径 (对于 CNAME, 直接到 _site/; 对于 assets/*.* 到 _site/assets/)
-        if source_path == 'CNAME':
-            output_path = os.path.join(config.BUILD_DIR, file_name)
-        else:
-            output_path = os.path.join(STATIC_OUTPUT_DIR, file_name)
-            
-        manifest_key = source_path
-        new_file_hash = calculate_file_hash(source_path)
-        old_file_hash = old_manifest.get(manifest_key, {}).get('hash')
-
-        if new_file_hash != old_file_hash:
-            # 复制文件
-            shutil.copy2(source_path, output_path)
-            print(f"   -> Copied/Updated: {file_name}")
-            new_manifest[manifest_key] = {'hash': new_file_hash}
-        else:
-            print(f"   -> [SKIP] Static file {file_name} unchanged.")
-            new_manifest[manifest_key] = old_manifest[manifest_key]
-
-
-# --- 核心构建逻辑 ---
-def run_build():
-    """执行完整的静态站点生成过程。"""
-    global_build_time = datetime.now(TIMEZONE_INFO)
-    # 格式化构建时间信息 (中文友好)
-    global_build_time_cn = global_build_time.strftime("%Y-%m-%d %H:%M:%S")
-
-    print(f"--- 1. 开始构建 (Time: {global_build_time_cn} UTC+8) ---")
-    
-    # 初始化清单
+    # 加载上次的构建清单
     old_manifest = load_manifest()
-    new_manifest: Dict[str, Any] = {}
+    new_manifest = {
+        'posts': {}, 
+        'static_files': {},
+        'templates': {} # 模板和核心依赖项都存储在这里
+    }
     
+    # 存储需要重新生成 HTML 的文章对象
+    posts_to_build: List[Dict[str, Any]] = [] 
+    # 标志位：文章集合信息是否变化 (影响列表页、RSS、Sitemap)
+    posts_data_changed = False      
+    # ⭐ 新增标志位：主题或模板文件是否变化
     theme_changed = False
-    # 检查模板文件是否变化（简化：如果任何一个模板文件变化，则认为主题变化）
-    template_files = glob.glob(os.path.join(os.path.dirname(__file__), 'templates', '*.html'))
-    for t_file in template_files:
-        t_hash = calculate_file_hash(t_file)
-        t_key = f'template:{os.path.basename(t_file)}'
-        if t_hash != old_manifest.get(t_key, {}).get('hash'):
+
+    # -------------------------------------------------------------------------
+    # [2/5] 资源处理 & 主题/模板变动检查 (新增)
+    # -------------------------------------------------------------------------
+    print("\n[2/5] Processing Assets and Checking Theme Changes...")
+    assets_dir = os.path.join(config.BUILD_DIR, 'assets')
+    os.makedirs(assets_dir, exist_ok=True)
+    
+    # 复制静态文件 (使用顶部定义的 STATIC_OUTPUT_DIR)
+    if os.path.exists(config.STATIC_DIR):
+        shutil.copytree(config.STATIC_DIR, STATIC_OUTPUT_DIR, dirs_exist_ok=True)
+
+    # -----------------------------------------------------------
+    # ⭐ 修复: 检查 CSS 文件变动，并设置 theme_changed
+    # -----------------------------------------------------------
+    css_source = 'assets/style.css'
+    if os.path.exists(css_source):
+        css_hash = hash_file(css_source)
+        new_css = f"style.{css_hash}.css"
+        config.CSS_FILENAME = new_css
+        shutil.copy2(css_source, os.path.join(assets_dir, new_css))
+
+        # 检查 CSS 文件内容是否变动 (使用 get_full_content_hash)
+        current_css_content_hash = get_full_content_hash(css_source)
+        old_css_content_hash = old_manifest.get('static_files', {}).get(css_source)
+
+        if current_css_content_hash != old_css_content_hash:
             theme_changed = True
-            print(f"   -> Template file changed: {os.path.basename(t_file)}")
-        new_manifest[t_key] = {'hash': t_hash}
-    if theme_changed:
-        print("   -> Theme/Template changed. Forcing all content rebuild.")
+            print(f"   -> [CHANGE DETECTED] {css_source} content has changed. (Theme Change)")
+        
+        new_manifest.setdefault('static_files', {})[css_source] = current_css_content_hash
+    else:
+        config.CSS_FILENAME = 'style.css'
 
-    # ------------------------------------------------------------------
-    # 步骤 2: 清理旧构建目录 (如果存在)
-    # ------------------------------------------------------------------
-    if os.path.exists(config.BUILD_DIR):
-        print(f"--- 2. 清理 {config.BUILD_DIR} 目录 ---")
-        try:
-            shutil.rmtree(config.BUILD_DIR)
-        except OSError as e:
-            print(f"Error: Directory cleanup failed: {e}")
-            return
-    os.makedirs(config.BUILD_DIR, exist_ok=True)
+    # -----------------------------------------------------------
+    # ⭐ 修复: 检查 base.html 模板文件变动，并设置 theme_changed
+    # -----------------------------------------------------------
+    base_template_source = os.path.join('templates', 'base.html')
+    if os.path.exists(base_template_source):
+        current_template_hash = get_full_content_hash(base_template_source)
+        old_template_hash = old_manifest.get('templates', {}).get(base_template_source)
 
+        if current_template_hash != old_template_hash:
+            theme_changed = True
+            print(f"   -> [CHANGE DETECTED] {base_template_source} has changed. (Theme Change)")
+        
+        new_manifest.setdefault('templates', {})[base_template_source] = current_template_hash
+    # -----------------------------------------------------------
+    
+    # =========================================================================
+    # ⭐ 核心修复: 检查所有核心 Python 文件和模板文件变动 (解决您的根本问题)
+    # 这一部分是解决问题的关键，确保构建逻辑更改时强制重建
+    # =========================================================================
+    CORE_DEPENDENCIES = [
+        'autobuild.py', 
+        'parser.py', 
+        'generator.py', 
+        'config.py',
+        # 重要的模板文件
+        os.path.join('templates', 'post.html'),
+        os.path.join('templates', 'list.html'),
+        os.path.join('templates', 'archive.html'),
+        os.path.join('templates', 'tags_list.html'),
+    ]
 
-    # ------------------------------------------------------------------
-    # 步骤 3: 复制静态资源 (在这一步会更新 config.CSS_FILENAME)
-    # ------------------------------------------------------------------
-    copy_static_files(old_manifest, new_manifest)
+    for core_file in CORE_DEPENDENCIES:
+        if os.path.exists(core_file):
+            current_core_hash = get_full_content_hash(core_file)
+            # 使用 'templates' 键来存储所有非文章/非静态资源的依赖项哈希
+            old_core_hash = old_manifest.get('templates', {}).get(core_file)
+            
+            if current_core_hash != old_core_hash:
+                theme_changed = True
+                print(f"   -> [CHANGE DETECTED] Core dependency {core_file} has changed. (Theme/Logic Change)")
+                
+            new_manifest.setdefault('templates', {})[core_file] = current_core_hash
+            
+    # =========================================================================
 
+    # =========================================================================
+    # ⭐ 新增: 复制 CNAME 文件到 _site 部署目录 (解决自定义域名问题)
+    # =========================================================================
+    cname_path_source = os.path.join(os.path.dirname(__file__), 'CNAME')
+    cname_path_dest = os.path.join(config.BUILD_DIR, 'CNAME')
 
-    # ------------------------------------------------------------------
-    # ⭐ 步骤 4: 处理文章 (Posts) - 核心修复部分
-    # ------------------------------------------------------------------
-    print(f"--- 4. 处理文章 ({config.POSTS_DIR_NAME}) ---")
-    os.makedirs(POSTS_OUTPUT_DIR, exist_ok=True)
-    all_posts: List[Dict[str, Any]] = []
+    if os.path.exists(cname_path_source):
+        print("   -> Copying CNAME file...")
+        shutil.copyfile(cname_path_source, cname_path_dest)
+    else:
+        print("   -> WARNING: CNAME file not found. Custom domain might fail (404).")
+    # =========================================================================
+
+    # -------------------------------------------------------------------------
+    # [3/5] 解析 Markdown (增量构建核心)
+    # -------------------------------------------------------------------------
+    print("\n[3/5] Parsing Markdown Files...")
+    
+    md_files = glob.glob(os.path.join(config.MARKDOWN_DIR, '*.md'))
+    if not md_files: md_files = glob.glob('*.md')
+    
+    parsed_posts = []
     tag_map = defaultdict(list)
-    
-    md_files = glob.glob(os.path.join(config.POSTS_DIR_NAME, '*.md'))
-    
+    source_md_paths: Set[str] = set()
+
     for md_file in md_files:
+        relative_path = os.path.relpath(md_file, os.path.dirname(__file__)).replace('\\', '/')
+        source_md_paths.add(relative_path)
+        
+        # [增量逻辑] 检查内容哈希
+        current_hash = get_full_content_hash(md_file)
+        old_item = old_manifest.get('posts', {}).get(relative_path, {})
+        old_hash = old_item.get('hash')
+
+        needs_full_build = (current_hash != old_hash) or ('link' not in old_item)
+        needs_rebuild_html = needs_full_build or theme_changed # <-- 使用 theme_changed 来控制 HTML 重建
+
+        if needs_full_build:
+            # 只有内容变更时才打印此信息
+            if current_hash != old_hash:
+                 print(f"   -> [CONTENT CHANGED] {os.path.basename(md_file)}")
+            # 否则，如果是新增文件或缺失链接信息，下面会单独打印
+        elif theme_changed: # 只有主题变动时，才打印这条，否则上面的 needs_full_build 已经打印
+            print(f"   -> [REBUILD HTML] {os.path.basename(md_file)} (Theme changed)")
+        else:
+            print(f"   -> [SKIPPED HTML] {os.path.basename(md_file)}")
+            
+        # 解析内容 (即使跳过 HTML，也要解析元数据来构建列表页)
+        metadata, content_md, content_html, toc_html = get_metadata_and_content(md_file)
+        
+        mod_time_cn = format_file_mod_time(md_file) # 使用修复后的时间获取逻辑
+
+        # 自动补全 slug 和特殊页面处理 (保持不变)
+        if 'slug' not in metadata:
+            filename_slug = os.path.splitext(os.path.basename(md_file))[0]
+            metadata['slug'] = filename_slug
+
+        slug = str(metadata['slug']).lower()
         file_name = os.path.basename(md_file)
-        manifest_key = md_file
-        new_file_hash = calculate_file_hash(md_file)
-        old_file_hash = old_manifest.get(manifest_key, {}).get('hash')
         
-        # 检查文件是否需要重建 (文件哈希变动 或 主题变动)
-        if new_file_hash != old_file_hash or theme_changed:
+        # --- 特殊页面处理 (404 / about) ---
+        if slug == '404' or file_name == '404.md':
+            special_link = '404.html'
+            special_post = { 
+                **metadata, 'content_html': content_html, 'toc_html': '', 
+                'link': special_link, 'footer_time_info': mod_time_cn
+            }
+            # ⭐ 关键修复：404 页面应使用 generate_page_html，而不是 generate_post_page
+            if needs_rebuild_html: # 使用 needs_rebuild_html
+                generator.generate_page_html(
+                    special_post['content_html'], 
+                    special_post['title'], 
+                    '404', 
+                    special_link, 
+                    special_post['footer_time_info']
+                )
+
+            new_manifest.setdefault('posts', {})[relative_path] = {'hash': current_hash, 'link': special_link}
+            continue 
+
+        if metadata.get('hidden') is True: 
+            if slug == 'about' or file_name == config.ABOUT_PAGE:
+                 special_link = 'about.html'
+                 special_post = { 
+                     **metadata, 'content_html': content_html, 'toc_html': '', 
+                     'link': special_link, 'footer_time_info': mod_time_cn
+                 }
+                 # ⭐ 修复: 特殊页面也需要检查 theme_changed
+                 if needs_rebuild_html: # 使用 needs_rebuild_html
+                     generator.generate_page_html(
+                         special_post['content_html'], special_post['title'], 
+                         'about', special_link, special_post['footer_time_info']
+                     )
+            new_manifest.setdefault('posts', {})[relative_path] = {'hash': current_hash, 'link': 'hidden'}
+            continue 
+
+        if not all(k in metadata for k in ['date', 'title']): 
+            continue
             
-            # 1. 解析 Markdown 文件
-            metadata, content_markdown, content_html, toc_html = get_metadata_and_content(md_file)
-            
-            if not metadata:
-                print(f" -> [ERROR] Skipping post {md_file} due to missing metadata.")
+        # --- 普通文章处理 ---
+        # 链接格式：posts/slug.html (在 generator.py 中会被清洗为 /posts/slug/ 格式)
+        post_link = os.path.join(config.POSTS_DIR_NAME, f"{slug}.html").replace('\\', '/')
+        post = {
+            **metadata, 
+            'content_markdown': content_md,
+            'content_html': content_html,
+            'toc_html': toc_html,
+            'link': post_link,
+            'footer_time_info': mod_time_cn 
+        }
+        
+        # 1. 准备 NEW metadata for comparison (critical fields for list pages)
+        new_manifest_data = {
+            'hash': current_hash,
+            'title': post.get('title', ''),
+            'date_str': post['date'].strftime('%Y-%m-%d') if post.get('date') else '',
+            'link': post_link, 
+            # 存储排好序的标签名称列表，以便准确对比
+            'tags_list': sorted([t['name'] for t in post.get('tags', [])]),
+            'hidden': post.get('hidden', False),
+            'status': post.get('status', 'published'),
+        }
+
+        # 2. 检查元数据是否变化 (忽略 hash 字段)
+        metadata_changed = False
+        for key, new_value in new_manifest_data.items():
+            if key == 'hash': 
                 continue
-
-            # 2. 收集文章数据
-            post: Dict[str, Any] = {
-                'md_path': md_file,
-                # 修复链接：使用 slug 而不是文件名作为链接
-                'link': f"{config.POSTS_DIR_NAME}/{metadata['slug']}.html", 
-                'title': metadata.get('title', file_name),
-                'date_obj': metadata.get('date_obj'),
-                'date_str': metadata.get('date_str', 'Unknown'),
-                'tags': metadata.get('tags', []),
-                'summary': metadata.get('summary', content_markdown[:200].strip()),
-                'content_html': content_html, # 包含完整的 HTML 内容
-                'toc_html': toc_html,
-                'is_hidden': metadata.get('hidden', False), # 检查是否隐藏
-            }
-
-            # 尝试获取 Git Author Time 作为最终发布时间 (如果 date 字段缺失)
-            if post['date_obj'] is None:
-                 git_time = get_git_author_time(md_file)
-                 post['date_obj'] = git_time or global_build_time
-                 post['date_str'] = (git_time or global_build_time).strftime('%Y-%m-%d %H:%M:%S')
-
-            # 3. 生成文章 HTML
-            if not post['is_hidden']:
-                # generator.py 内部会触发 HTML Minify
-                generator.generate_post_html(post, global_build_time_cn)
-                
-            # 4. 收集用于生成索引/归档/标签的数据
-            all_posts.append(post)
-            for tag in post['tags']:
-                tag_map[tag].append(post)
-                
-            # 5. 更新清单
-            new_manifest[manifest_key] = {
-                'hash': new_file_hash, 
-                'link': generator.make_internal_url(post['link']), # 使用 pretty URL 格式保存
-            }
             
-        else:
-            # 文件未变，沿用旧清单数据
-            post = {'is_hidden': False} # 必须有一个 placeholder
-            # 必须从旧清单中恢复链接信息，否则在生成 Index/Sitemap 时会丢失链接
-            if 'link' in old_manifest.get(manifest_key, {}):
-                restored_link = old_manifest[manifest_key]['link']
-                # 提取 slug (例如 /posts/hello-world/ -> hello-world)
-                slug = restored_link.strip('/').split('/')[-1]
-                # 恢复为 posts/slug.html 的原始格式，供后续处理
-                post['link'] = f"{config.POSTS_DIR_NAME}/{slug}.html"
-            
-            all_posts.append(post)
-            new_manifest[manifest_key] = old_manifest[manifest_key]
-            print(f"   -> [SKIP] Post {file_name} unchanged.")
-    
-    # 对文章按日期排序 (最新在前)
-    # 这里的 all_posts 包含所有文章（包括跳过的），但跳过的文章中 post['date_obj'] 可能为 None
-    # 过滤掉没有 date_obj 的（即那些没有被解析且不是新文章的），并重新解析一次元数据
-    # 确保排序是基于实际日期的。
-    posts_to_sort: List[Dict[str, Any]] = []
-    for post in all_posts:
-        if 'date_obj' in post and post['date_obj']:
-            posts_to_sort.append(post)
-        elif 'md_path' in post:
-            # 如果是跳过的文章，但需要其日期进行排序，重新解析 metadata 即可
-            # 重新解析是安全的，因为它只读取元数据部分
-            try:
-                metadata, _, _, _ = get_metadata_and_content(post['md_path'], only_metadata=True)
-                post['date_obj'] = metadata.get('date_obj')
-                post['is_hidden'] = metadata.get('hidden', False)
-                if post['date_obj']:
-                    posts_to_sort.append(post)
-            except Exception as e:
-                print(f" -> [WARN] Could not retrieve metadata for sorting/hiding: {post.get('md_path', 'N/A')}. Error: {e}")
+            # 使用 str() 确保布尔值、列表等数据类型能被准确对比
+            if str(new_value) != str(old_item.get(key)):
+                metadata_changed = True
+                break
                 
-    
-    # 按照日期排序（降序：最新在前）
-    # ⚠️ 修复：过滤掉 is_hidden=True 的文章，只对可见文章进行排序和导航链接生成
-    visible_posts = [p for p in posts_to_sort if not generator.is_post_hidden(p)]
-    visible_posts.sort(key=lambda x: x['date_obj'], reverse=True)
-    
+        # 只要内容或元数据变化，列表页就需要重建
+        needs_rebuild_list = needs_full_build or metadata_changed
 
-    # ------------------------------------------------------------------
-    # 步骤 5: 处理独立页面 (Pages)
-    # ------------------------------------------------------------------
-    print(f"--- 5. 处理独立页面 ({config.PAGES_DIR}) ---")
-    os.makedirs(config.BUILD_DIR, exist_ok=True) # 独立页面直接在 _site/ 根目录
-    
-    page_files = glob.glob(os.path.join(config.PAGES_DIR, '*.md'))
-    for page_file in page_files:
-        file_name = os.path.basename(page_file)
-        base_name = os.path.splitext(file_name)[0]
-        manifest_key = page_file
-        new_file_hash = calculate_file_hash(page_file)
-        old_file_hash = old_manifest.get(manifest_key, {}).get('hash')
+        if metadata_changed and not needs_full_build:
+            print(f"   -> [METADATA CHANGED] {os.path.basename(md_file)}")
+            posts_data_changed = True
+
+        # 如果元数据变化或内容变化，都需要重建列表页
+        if needs_rebuild_list and not needs_full_build:
+            posts_data_changed = True
         
-        # 检查文件是否需要重建 (文件哈希变动 或 主题变动)
-        if new_file_hash != old_file_hash or theme_changed:
-            metadata, content_markdown, content_html, toc_html = get_metadata_and_content(page_file)
+        # 清理旧的 HTML 文件 (如果 Slug 变化)
+        if old_item.get('link') and old_item.get('link') != post_link and old_item.get('link') != 'hidden' and old_item.get('link') != '404.html':
+             # 确保路径是基于 BUILD_DIR 的，而不是相对于根目录
+             old_html_path_parts = old_item['link'].strip('/').split('/')
+             old_html_dir = os.path.join(config.BUILD_DIR, *old_html_path_parts)
+             
+             try:
+                 if os.path.exists(old_html_dir) and os.path.isdir(old_html_dir):
+                     # 删除旧的 /slug/ 目录
+                     shutil.rmtree(old_html_dir) 
+                     print(f"   -> [CLEANUP] Deleted old post directory: {old_html_dir}")
+                 elif os.path.exists(old_html_dir):
+                    # 处理 /post.html 模式（如果存在）
+                    os.remove(old_html_dir)
+                    print(f"   -> [CLEANUP] Deleted old HTML file: {old_html_dir}")
+             except Exception as e:
+                 print(f"   -> [WARNING] Failed to clean up old post path {old_html_dir}: {e}")
+                
+        for tag_data in post.get('tags', []):
+            tag_map[tag_data['name']].append(post)
             
-            # generator.py 内部会触发 HTML Minify
-            generator.generate_page_html(
-                content_html=content_html, 
-                page_title=metadata.get('title', base_name.title()),
-                page_id=base_name,
-                # 修复：独立页面应该生成在 /base_name/index.html 或 /base_name.html。这里使用 /base_name.html
-                canonical_path_with_html=f'/{base_name}.html',
-                build_time_info=global_build_time_cn
-            )
+        parsed_posts.append(post)
+
+        # 3. 更新 Manifest (保存 Hash 和所有关键元数据)
+        new_manifest.setdefault('posts', {})[relative_path] = new_manifest_data
+        
+        # 只有当内容或链接/元数据发生变化，或者主题变动时，才需要重建文章详情页
+        if needs_rebuild_html:
+            posts_to_build.append(post) 
             
-            new_manifest[manifest_key] = {'hash': new_file_hash}
-        else:
-            print(f"   -> [SKIP] Page {file_name} unchanged.")
-            new_manifest[manifest_key] = old_manifest[manifest_key]
+    # 清理被删除的源文件
+    deleted_paths = set(old_manifest.get('posts', {}).keys()) - source_md_paths
+    for deleted_path in deleted_paths:
+        item = old_manifest['posts'][deleted_path]
+        deleted_link = item.get('link')
+        print(f"   -> [DELETED] Source file {deleted_path} removed.")
+        posts_data_changed = True 
+        
+        if deleted_link and deleted_link != 'hidden' and deleted_link != '404.html':
+            # 确保路径是基于 BUILD_DIR 的
+            deleted_html_path_parts = deleted_link.strip('/').split('/')
+            deleted_html_dir = os.path.join(config.BUILD_DIR, *deleted_html_path_parts)
+            
+            try:
+                if os.path.exists(deleted_html_dir) and os.path.isdir(deleted_html_dir):
+                    shutil.rmtree(deleted_html_dir)
+                    print(f"   -> [CLEANUP] Deleted post directory: {deleted_html_dir}")
+                else:
+                    # 处理 /post.html 模式（如果存在）
+                    deleted_html_file = os.path.join(config.BUILD_DIR, deleted_link.strip('/'))
+                    if os.path.exists(deleted_html_file):
+                        os.remove(deleted_html_file)
+                        print(f"   -> [CLEANUP] Deleted post HTML file: {deleted_html_file}")
+            except Exception as e:
+                 print(f"   -> [WARNING] Failed to clean up deleted path {deleted_html_dir}: {e}")
+                 
+            # 从新清单中移除已删除的文章记录
+            new_manifest['posts'].pop(deleted_path, None)
 
-    # ------------------------------------------------------------------
-    # ⭐ 步骤 6: 生成主页、归档、标签页和站点地图 - 核心修复部分
-    # ------------------------------------------------------------------
-    print("--- 6. 生成站点页面 (Index, Archive, Tags, Sitemap, RSS) ---")
+
+    final_parsed_posts = sorted(parsed_posts, key=lambda p: p['date'], reverse=True)
     
-    # 1. 生成文章之间的导航链接 (Prev/Next)
-    generator.add_prev_next_links(visible_posts)
+    print(f"   -> Successfully parsed {len(final_parsed_posts)} blog posts. ({len(posts_to_build)} HTML files rebuilt)")
 
-    # 2. 生成主页 (Index)
-    generator.generate_index_html(visible_posts, global_build_time_cn)
+    # -------------------------------------------------------------------------
+    # [4/5] P/N Navigation Injection & Build Time
+    # -------------------------------------------------------------------------
     
-    # 3. 生成归档页 (Archive)
-    generator.generate_archive_html(visible_posts, global_build_time_cn)
+    # 仅对可见文章生成上/下导航
+    visible_posts_for_nav = [p for p in final_parsed_posts if not is_post_hidden(p)]
     
-    # 4. 生成标签列表页
-    generator.generate_tags_list_html(tag_map, global_build_time_cn)
+    for i, post in enumerate(visible_posts_for_nav):
+        # 找到 post 在 final_parsed_posts 中的原始引用 (用于 posts_to_build 列表)
+        original_post = next(p for p in final_parsed_posts if p['link'] == post['link'])
+
+        prev_post_data = visible_posts_for_nav[i - 1] if i > 0 else None
+        next_post_data = visible_posts_for_nav[i + 1] if i < len(visible_posts_for_nav) - 1 else None
+
+        original_post['prev_post_nav'] = None
+        if prev_post_data:
+            original_post['prev_post_nav'] = {
+                'title': prev_post_data['title'],
+                'link': prev_post_data['link']
+            }
+
+        original_post['next_post_nav'] = None
+        if next_post_data:
+            original_post['next_post_nav'] = {
+                'title': next_post_data['title'],
+                'link': next_post_data['link']
+            }
+
+    now_utc = datetime.now(timezone.utc)
+    now_utc8 = now_utc.astimezone(TIMEZONE_INFO)
+    # 列表页使用不带微秒的简洁格式
+    global_build_time_cn = f"网站构建时间: {now_utc8.strftime('%Y-%m-%d %H:%M:%S')} (UTC+8)"
     
-    # 5. 生成每个标签的文章列表页
-    for tag, posts_list in tag_map.items():
-        # 标签页内的文章也应只显示可见文章
-        visible_tag_posts = [p for p in posts_list if not generator.is_post_hidden(p)]
-        # 标签页内的文章也按日期排序
-        visible_tag_posts.sort(key=lambda x: x['date_obj'], reverse=True)
-        generator.generate_tag_page(tag, visible_tag_posts, global_build_time_cn)
-
-    # 6. 生成 Sitemap
-    generator.generate_sitemap(visible_posts, page_files)
+    # -------------------------------------------------------------------------
+    # [5/5] 生成 HTML (应用增量逻辑)
+    # -------------------------------------------------------------------------
+    print("\n[5/5] Generating HTML...")
     
-    # 7. 生成 RSS
-    generator.generate_rss(visible_posts, global_build_time)
+    # 1. 生成普通文章详情页 
+    # ⭐ 修复: 如果主题变动，重建所有文章页
+    posts_to_build_all = final_parsed_posts if theme_changed else posts_to_build
+    
+    if theme_changed and not posts_to_build:
+        print("   -> [REBUILDING] ALL Post Pages (Theme changed, but no post content changed)")
 
+    # 如果主题/逻辑变动，posts_to_build_all 是所有文章，否则只是变动的文章
+    for post in posts_to_build_all:
+        generator.generate_post_page(post) 
 
-    # ------------------------------------------------------------------
-    # 步骤 7: 保存清单
-    # ------------------------------------------------------------------
-    print("--- 7. 保存构建清单 ---\n")
-    # 检查 new_manifest 是否包含任何文章链接，如果 build_manifest.json 依然是空的，说明 post processing 失败
-    post_link_count = sum(1 for k in new_manifest.keys() if k.startswith('posts/'))
-    print(f"   -> Manifest contains {post_link_count} posts links.")
+    # 2. 生成列表页 (应用增量逻辑)
+    # ⭐ 修复: 只要 posts_data_changed 为 True，或者主题/模板文件有变动，就重建所有列表页
+    if not old_manifest or posts_data_changed or theme_changed: # <-- 关键修改
+        print("   -> [REBUILDING] Index, Archive, Tags, RSS (Post data or Theme changed)")
+        
+        generator.generate_index_html(final_parsed_posts, global_build_time_cn) 
+        generator.generate_archive_html(final_parsed_posts, global_build_time_cn) 
+        generator.generate_tags_list_html(tag_map, global_build_time_cn) 
 
+        for tag, posts in tag_map.items():
+            sorted_tag = sorted(posts, key=lambda p: p['date'], reverse=True)
+            generator.generate_tag_page(tag, sorted_tag, global_build_time_cn) 
+
+        generator.generate_robots_txt()
+        
+        with open(os.path.join(config.BUILD_DIR, config.SITEMAP_FILE), 'w', encoding='utf-8') as f:
+            f.write(generator.generate_sitemap(final_parsed_posts))
+        with open(os.path.join(config.BUILD_DIR, config.RSS_FILE), 'w', encoding='utf-8') as f:
+            f.write(generator.generate_rss(final_parsed_posts))
+            
+    else:
+        print("   -> [SKIPPED] Index, Archive, Tags, RSS (No post data or Theme change)")
+
+    # 3. 保存新的构建清单
+    # ⭐ 修复: 保存 new_manifest，其中包含 posts, static_files, templates 的哈希值
     save_manifest(new_manifest)
-    print(f"--- 构建完成 (耗时: {(datetime.now(TIMEZONE_INFO) - global_build_time).total_seconds():.2f}s) ---")
+    print("   -> Manifest file updated.")
     
-    
-# 【移除原文件中冗余的 is_post_hidden 临时定义，统一由 generator.py 提供】
+    print("\n✅ BUILD COMPLETE")
 
 if __name__ == '__main__':
-    run_build()
+    build_site()
