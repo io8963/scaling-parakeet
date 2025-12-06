@@ -47,6 +47,10 @@
         "assets/style.css": "d73c8200488bf9d7015364780beebaac0e8419f45f27812b6a3de417a359a804"
     },
     "templates": {
-        "templates/base.html": "5fe2ecc2fe3af8efe575e7ccc52dafcf73608cf39b26ecd7d91ba98b55f614b2"
+        "templates/base.html": "5fe2ecc2fe3af8efe575e7ccc52dafcf73608cf39b26ecd7d91ba98b55f614b2",
+        "autobuild.py": "11f9230ddbc5f8a1213bedb7039c3873ab8a6208c086cda7ffae83f5bbe3e0f3",
+        "parser.py": "7b170fe3021e842899bd0b39dc3ccb778d8c0129ec8b10a7b4452d5b6cc99d41",
+        "generator.py": "33a29faa3ece061a4d5081374264b1a4eae0556130addadfedb12c517cd30552",
+        "config.py": "d9277c833f80df69868df06261362fd654860948897434f0be4980aacab09666"
     }
 }
