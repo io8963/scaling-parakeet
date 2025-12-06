@@ -136,8 +136,7 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     # 动态注入 slugify 函数
     if 'toc' in extension_configs:
         extension_configs['toc']['slugify'] = my_custom_slugify
-    elif 'markdown.extensions.toc' in extension_configs:
-        extension_configs['markdown.extensions.toc']['slugify'] = my_custom_slugify
+    # 移除冗余的 elif 检查，因为 config.py 已经正确使用了短名称 'toc'
     
     md = markdown.Markdown(
         extensions=config.MARKDOWN_EXTENSIONS, 
@@ -150,7 +149,6 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     
     # -------------------------------------------------------------------------
     # [新增] UI 增强：图片懒加载 (Lazy Load)
-    # 为所有 <img> 标签强制添加 loading="lazy" 属性
     # -------------------------------------------------------------------------
     if '<img' in content_html:
         # 使用正则表达式匹配 img 标签，并确保不重复添加 loading 属性
@@ -161,14 +159,19 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
         )
 
     # -------------------------------------------------------------------------
-    # UI 增强：表格包裹器 (Table Wrapper)
-    # 直接给 table 加上 wrapper div
+    # ⭐ FIX: 表格包裹器 (Table Wrapper) - 使用全局替换修复多表格结构错误的 BUG
     # -------------------------------------------------------------------------
-    if '<table>' in content_html:
-        # 避免在已经有 wrapper 的情况下重复添加（虽然 Markdown 不太可能生成）
-        if '<div class="table-wrapper">' not in content_html:
-            content_html = content_html.replace('<table>', '<div class="table-wrapper"><table>')
-            content_html = content_html.replace('</table>', '</table></div>')
+    def wrap_table(match):
+        # match.group(0) 是完整的 <table>...</table> 字符串
+        return f'<div class="table-wrapper">{match.group(0)}</div>'
+        
+    # re.DOTALL 确保 . 匹配换行符
+    content_html = re.sub(
+        r'<table.*?</table>', 
+        wrap_table, 
+        content_html, 
+        flags=re.DOTALL
+    )
     
     # 3. 获取目录
     toc_html = md.toc if hasattr(md, 'toc') else ""
