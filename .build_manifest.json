@@ -44,7 +44,7 @@
         }
     },
     "static_files": {
-        "assets/style.css": "f426a0b18ddfa0029b57cf00a2fd98f9a557af27e1f6305d70d559bbfcb7f3fa"
+        "assets/style.css": "d73c8200488bf9d7015364780beebaac0e8419f45f27812b6a3de417a359a804"
     },
     "templates": {
         "templates/base.html": "5fe2ecc2fe3af8efe575e7ccc52dafcf73608cf39b26ecd7d91ba98b55f614b2",
