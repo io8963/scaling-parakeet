@@ -552,19 +552,30 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     background-color: var(--color-primary-light);
 }
 
-/* 3. 摘要 */
+/* 3. 摘要 (修复错位和截断) */
 .post-list-item .post-excerpt {
     color: var(--color-main-subtext); 
-    font-size: 1rem;
-    line-height: 1.65;
-    margin: 0;
+    font-size: 0.95rem; /* 调整为略小，更紧凑 */
+    line-height: 1.6; /* 调整行高 */
+    
+    /* 【核心修复】：显式设置水平边距为 0 和内边距为 0，防止内嵌块级元素错位 */
+    margin-left: 0; 
+    margin-right: 0; 
+    padding: 0;
+
+    margin-top: 10px; /* 标题和元数据之后的间隔 */
+    margin-bottom: 0; /* 列表项底部无边距 */
+    
+    /* 限制为 2 行，防止过长，并强制截断 */
     display: -webkit-box;
-    -webkit-line-clamp: 3;
+    -webkit-line-clamp: 2; 
     -webkit-box-orient: vertical;
     overflow: hidden;
-    font-family: 'Inter', sans-serif;
-    opacity: 0.9;
+    text-overflow: ellipsis;
+    /* 2 lines * 1.6 line-height (约) */
+    max-height: 3.2em; 
 }
+
 
 /* 暗色模式下列表调整 */
 @media (prefers-color-scheme: dark) {
