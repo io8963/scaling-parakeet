@@ -5,4 +5,5 @@ Pygments==2.17.2
 pymdown-extensions==10.7
 beautifulsoup4==4.12.3
 rcssmin==1.1.2
-python-minify-html==0.16.0 # 替换 htmlmin
+# 将 python-minify-html==0.16.0 替换为最新的稳定版本 0.18.1
+minify-html==0.18.1
