@@ -47,7 +47,7 @@
         "assets/style.css": "d73c8200488bf9d7015364780beebaac0e8419f45f27812b6a3de417a359a804"
     },
     "templates": {
-        "templates/base.html": "5fe2ecc2fe3af8efe575e7ccc52dafcf73608cf39b26ecd7d91ba98b55f614b2",
+        "templates/base.html": "8385e7226c2c2f015470cff9a8634f9039012a85bd804978fa058e58c0a4d3ee",
         "autobuild.py": "34815e6ebcea79ec3bff32ee04be996877abb82f254fa7a543ce2140200eedde",
         "parser.py": "cd6f5f49fc69e8e12f85ee9a804374df6b3012da8cf41254fa4fa9f5a51b462b",
         "generator.py": "e0a91d212fc340df68c954e0081225ac7a847129a9f4a3025c347f47fa2bb230",
