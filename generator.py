@@ -1,4 +1,4 @@
-# generator.py (核心链接修复和标签链接清洗版)
+# generator.py (核心链接修复和标签链接清洗版 + JSON-LD)
 
 import os
 import shutil 
@@ -8,6 +8,7 @@ from collections import defaultdict
 from typing import List, Dict, Any, Tuple, Optional 
 from jinja2 import Environment, FileSystemLoader
 import json 
+import re # 引入 re 用于 JSON-LD 中的图片提取
 import config
 from parser import tag_to_slug 
 
@@ -27,10 +28,14 @@ env = Environment(
 def get_site_root_prefix() -> str:
     """获取网站在部署环境中的相对子目录路径前缀。"""
     root = config.REPO_SUBPATH.strip()
+    # 确保 config.SITE_ROOT 始终是 REPO_SUBPATH 的规范化版本
     if not root or root == '/':
+        # 如果是根路径部署，则返回空字符串
+        config.SITE_ROOT = '' 
         return ''
     root = root.rstrip('/')
-    return root if root.startswith('/') else f'/{root}'
+    config.SITE_ROOT = root if root.startswith('/') else f'/{root}'
+    return config.SITE_ROOT
 
 def make_internal_url(path: str) -> str:
     """
@@ -45,7 +50,6 @@ def make_internal_url(path: str) -> str:
     
     # 1. 忽略大小写移除 .html 后缀
     # ⚠️ 特殊处理：RSS 文件、Sitemap 文件和 404 文件保留后缀或跳过目录化
-    # ⭐ 修复：增加对 config.SITEMAP_FILE 的检查
     if normalized_path.lower().endswith('.html') and \
        not normalized_path.lower().endswith(config.RSS_FILE) and \
        not normalized_path.lower().endswith(config.SITEMAP_FILE) and \
@@ -121,6 +125,58 @@ def process_posts_for_template(posts: List[Dict[str, Any]]) -> List[Dict[str, An
 
 # --- 核心生成函数 ---
 
+def get_json_ld_schema(post: Dict[str, Any]) -> str:
+    """⭐ NEW FEATURE: 生成 Article 类型的 JSON-LD 结构化数据。"""
+    base_url = config.BASE_URL.rstrip('/')
+    
+    # 1. 获取图片URL (简化逻辑：假设文章中第一张图片作为封面，否则使用默认)
+    image_url = f"{base_url}{config.SITE_ROOT}/static/default-cover.png" # Fallback 
+    
+    # 尝试从 HTML 内容中提取第一张图片的 src
+    img_match = re.search(r'<img.*?src=["\'](.*?)["\']', post['content_html'])
+    if img_match:
+        relative_path = img_match.group(1).lstrip('/')
+        # 如果是相对路径 (media/ 或 static/)，则转为绝对 URL
+        if not relative_path.startswith(('http', '//')):
+            # 使用 make_internal_url 确保路径前缀正确
+            image_url = f"{base_url}{make_internal_url('/' + relative_path)}"
+        else:
+            # 外部链接或绝对路径
+            image_url = relative_path
+    
+    # 2. 构造 Schema
+    schema = {
+        "@context": "https://schema.org",
+        "@type": "Article",
+        "headline": post['title'],
+        "image": image_url,
+        # 使用 isoformat() 输出标准格式
+        "datePublished": post['date'].isoformat(),
+        "dateModified": post['date'].isoformat(), 
+        "author": {
+            "@type": "Person",
+            "name": config.BLOG_AUTHOR
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": config.BLOG_TITLE,
+            "logo": {
+                "@type": "ImageObject",
+                # 假设 logo 在 static/logo.png
+                "url": f"{base_url}{get_site_root_prefix()}/static/logo.png" 
+            }
+        },
+        "description": post.get('excerpt', config.BLOG_DESCRIPTION),
+        "mainEntityOfPage": {
+            "@type": "WebPage",
+            "url": f"{base_url}{make_internal_url(post['link'])}"
+        }
+    }
+    
+    # 3. 序列化为 JSON 字符串
+    return json.dumps(schema, ensure_ascii=False, indent=4)
+
+
 def generate_post_page(post: Dict[str, Any]):
     """生成单篇文章页面 (输出为 slug/index.html)"""
     try:
@@ -145,6 +201,9 @@ def generate_post_page(post: Dict[str, Any]):
         # 准备数据：清洗当前文章的导航链接和标签链接
         processed_list = process_posts_for_template([post])
         current_post_processed = processed_list[0]
+        
+        # ⭐ NEW FIX: 生成 JSON-LD Schema
+        json_ld_schema = get_json_ld_schema(post)
 
         context = {
             'page_id': page_id_override,
@@ -164,6 +223,7 @@ def generate_post_page(post: Dict[str, Any]):
             'css_filename': config.CSS_FILENAME,
             'canonical_url': f"{config.BASE_URL.rstrip('/')}{make_internal_url(relative_link)}",
             'footer_time_info': post.get('footer_time_info', ''),
+            'json_ld_schema': json_ld_schema, # ⭐ NEW FIX: 注入 Schema
         }
 
         html_content = template.render(context)
@@ -174,6 +234,10 @@ def generate_post_page(post: Dict[str, Any]):
     except Exception as e:
         print(f"Error generating post {post.get('title')}: {e}")
 
+
+# 以下 generate_index_html, generate_archive_html, generate_tags_list_html, 
+# generate_tag_page, generate_robots_txt, generate_sitemap, generate_rss, 
+# generate_page_html 保持与上次提供的一致，确保所有链接修复完整。
 
 def generate_index_html(sorted_posts: List[Dict[str, Any]], build_time_info: str):
     """生成首页 (index.html)"""
@@ -216,8 +280,6 @@ def generate_archive_html(sorted_posts: List[Dict[str, Any]], build_time_info: s
         visible_posts = [p for p in sorted_posts if not is_post_hidden(p)]
         
         archive_by_year = defaultdict(list)
-        # 注意：这里不对 post 进行 process_posts_for_template，因为只在内部生成 HTML
-        # 只需要确保 post['link'] 是干净的。
         for post in visible_posts:
             archive_by_year[post['date'].year].append(post)
         
@@ -417,6 +479,7 @@ def generate_page_html(content_html: str, page_title: str, page_id: str, canonic
             'css_filename': config.CSS_FILENAME,
             'canonical_url': f"{config.BASE_URL.rstrip('/')}{canonical_path}",
             'footer_time_info': build_time_info,
+            'json_ld_schema': None, # 通用页面不需要 Schema
         }
         
         html_content = template.render(context)
