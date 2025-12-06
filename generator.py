@@ -1,4 +1,4 @@
-# generator.py (核心链接修复和标签链接清洗版 + JSON-LD)
+# generator.py (核心链接修复和标签链接清洗版 + JSON-LD + HTML Minify 修复)
 
 import os
 import shutil 
@@ -11,7 +11,8 @@ import json
 import re 
 import config
 from parser import tag_to_slug 
-from bs4 import BeautifulSoup # 引入 BeautifulSoup
+from bs4 import BeautifulSoup 
+import minify_html # <-- 关键修改：替换 htmlmin 为 minify_html
 
 # --- Jinja2 环境配置配置 ---
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
@@ -62,7 +63,7 @@ def make_internal_url(path: str) -> str:
         pass 
     elif normalized_path.lower().endswith(config.RSS_FILE):
         pass
-    elif normalized_path.lower().endswith(config.SITEMAP_FILE): # ⭐ 修复：Sitemap 也跳过添加斜杠
+    elif normalized_path.lower().endswith(config.SITEMAP_FILE):
         pass
     elif normalized_path != '/' and not normalized_path.endswith('/'):
         normalized_path = f'{normalized_path}/'
@@ -124,6 +125,20 @@ def process_posts_for_template(posts: List[Dict[str, Any]]) -> List[Dict[str, An
 
 # --- 核心生成函数 ---
 
+def minify_html_content(html_content: str) -> str:
+    """对生成的 HTML 内容进行最小化处理 (使用 python-minify-html)"""
+    # 使用 minify_html 最小化 HTML。它基于 Rust，性能优越。
+    # **注意：** 默认配置已经非常激进，安全地移除了空白、注释和不必要的属性引号等。
+    minified_content = minify_html.minify(
+        html_content, 
+        do_not_minify_doctype=True, # 保留 DOCTYPE
+        keep_comments=False,        # 移除普通注释
+        minify_css=True,            # 最小化 <style> 标签和 style 属性中的 CSS
+        minify_js=True,             # 最小化 <script> 标签中的 JS (推荐保留)
+        keep_html_and_head_opening_tags=True, # 保持 html 和 head 标签，避免兼容性问题
+    )
+    return minified_content
+
 def get_json_ld_schema(post: Dict[str, Any]) -> str:
     """⭐ NEW FEATURE: 生成 Article 类型的 JSON-LD 结构化数据。"""
     base_url = config.BASE_URL.rstrip('/')
@@ -140,9 +155,6 @@ def get_json_ld_schema(post: Dict[str, Any]) -> str:
         relative_path = img_tag['src'].lstrip('/')
         # 如果是相对路径 (media/ 或 static/)，则转为绝对 URL
         if not relative_path.startswith(('http', '//')):
-            # 使用 make_internal_url 确保路径前缀正确
-            # 注意: make_internal_url 预期路径是 /path/to/file 而不是 /path/to/file/
-            # 对于图片资源，需要避免添加末尾斜杠
             # 这里简单地使用 site_root + relative_path 更合适，因为 make_internal_url 是为 'pretty URL' 模式设计的。
             site_root = get_site_root_prefix()
             image_url = f"{base_url}{site_root}/{relative_path}"
@@ -234,18 +246,20 @@ def generate_post_page(post: Dict[str, Any]):
             'json_ld_schema': json_ld_schema, # ⭐ NEW FIX: 注入 Schema
         }
 
+        # 1. 渲染 HTML
         html_content = template.render(context)
+        
+        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
+        minified_html_content = minify_html_content(html_content)
+
+        # 2. 写入最小化后的内容
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
+            f.write(minified_html_content)
         print(f"Generated: {output_path}")
 
     except Exception as e:
         print(f"Error generating post {post.get('title')}: {e}")
 
-
-# 以下 generate_index_html, generate_archive_html, generate_tags_list_html, 
-# generate_tag_page, generate_robots_txt, generate_sitemap, generate_rss, 
-# generate_page_html 保持与上次提供的一致，确保所有链接修复完整。
 
 def generate_index_html(sorted_posts: List[Dict[str, Any]], build_time_info: str):
     """生成首页 (index.html)"""
@@ -269,9 +283,15 @@ def generate_index_html(sorted_posts: List[Dict[str, Any]], build_time_info: str
             'footer_time_info': build_time_info,
         }
         
+        # 1. 渲染 HTML
         html_content = template.render(context)
+        
+        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
+        minified_html_content = minify_html_content(html_content)
+        
+        # 2. 写入最小化后的内容
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
+            f.write(minified_html_content)
         print("Generated: index.html")
     except Exception as e:
         print(f"Error index.html: {e}")
@@ -319,9 +339,15 @@ def generate_archive_html(sorted_posts: List[Dict[str, Any]], build_time_info: s
             'footer_time_info': build_time_info,
         }
         
+        # 1. 渲染 HTML
         html_content = template.render(context)
+        
+        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
+        minified_html_content = minify_html_content(html_content)
+        
+        # 2. 写入最小化后的内容
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
+            f.write(minified_html_content)
         print("Generated: archive/index.html")
     except Exception as e:
         print(f"Error archive.html: {e}")
@@ -361,9 +387,15 @@ def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]], build_time
             'footer_time_info': build_time_info,
         }
         
+        # 1. 渲染 HTML
         html_content = template.render(context)
+        
+        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
+        minified_html_content = minify_html_content(html_content)
+        
+        # 2. 写入最小化后的内容
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
+            f.write(minified_html_content)
         print("Generated: tags/index.html")
     except Exception as e:
         print(f"Error tags.html: {e}")
@@ -397,9 +429,15 @@ def generate_tag_page(tag_name: str, sorted_tag_posts: List[Dict[str, Any]], bui
             'footer_time_info': build_time_info,
         }
         
+        # 1. 渲染 HTML
         html_content = template.render(context)
+        
+        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
+        minified_html_content = minify_html_content(html_content)
+        
+        # 2. 写入最小化后的内容
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
+            f.write(minified_html_content)
         print(f"Generated tag page: {tag_name}")
     except Exception as e:
         print(f"Error tag page {tag_name}: {e}")
@@ -490,9 +528,15 @@ def generate_page_html(content_html: str, page_title: str, page_id: str, canonic
             'json_ld_schema': None, # 通用页面不需要 Schema
         }
         
+        # 1. 渲染 HTML
         html_content = template.render(context)
+        
+        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
+        minified_html_content = minify_html_content(html_content)
+        
+        # 2. 写入最小化后的内容
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(html_content)
+            f.write(minified_html_content)
         print(f"Generated: {page_id}/index.html")
     except Exception as e:
         print(f"Error {page_id}: {e}")
