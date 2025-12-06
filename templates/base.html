@@ -83,25 +83,26 @@
                     {%- if page_id != 'archive' -%}
                     <div class="post-list">
                     {% for post in posts %}
-                        <a href="{{post.link}}" class="post-item">
+                        <a href="{{post.link}}" class="post-list-item">
                             
-                            <h2>{{post.title}}</h2>
+                            <h2 class="post-title">{{post.title}}</h2>
                             
-                            {% if post.excerpt %}
-                                <p class="excerpt">{{post.excerpt}}</p>
-                            {% endif %}
-
-                            <div class="post-meta">
+                            <div class="post-list-meta-line">
                                 <span class="meta-date">{{post.date_formatted}}</span>
 
                                 {% if post.tags %}
+                                    <span style="opacity: 0.5;">·</span> 
                                     <ul class="tags-list">
                                     {% for tag in post.tags %}
-                                        <li><a href="{{tag.link}}">{{tag.name}}</a></li>
+                                        <li><a href="{{tag.link}}" class="tag-badge">{{tag.name}}</a></li>
                                     {% endfor %}
                                     </ul>
                                 {% endif %}
                             </div>
+
+                            {% if post.excerpt %}
+                                <p class="post-excerpt">{{post.excerpt}}</p>
+                            {% endif %}
                             
                         </a>
                     {% endfor %}
