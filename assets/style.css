@@ -184,6 +184,12 @@ header nav a {
 }
 header nav a:hover, header nav a.active-nav-link { color: var(--color-main-text); }
 
+@media (prefers-color-scheme: dark) {
+    .site-title { color: #ededed; }
+    header nav a:hover, header nav a.active-nav-link { color: #ededed; }
+}
+
+
 /* =========================================
    H. 主内容区域
    ========================================= */
@@ -242,6 +248,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 @media (prefers-color-scheme: dark) {
     .toc-area li a:hover, .toc-area li a:focus { color: var(--color-link-dark); background-color: rgba(0, 121, 107, 0.1); }
+    .toc-area > ul > li > a { color: #ededed; }
 }
 
 .page-post .toc-area { display: block; }
@@ -530,10 +537,20 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 /* ========================================= */
 
+/* 强制重置标签列表样式，防止错位 */
 .post-list-item .tags-list {
-    display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none;
+    display: flex; flex-wrap: wrap; gap: 8px; 
+    list-style: none;
+    padding-left: 0 !important; /* 关键：强制移除列表内边距，解决错位 */
+    margin: 0;
 }
-.post-list-item .tags-list li { padding: 0; margin: 0; border: none; }
+.post-list-item .tags-list li { 
+    list-style: none; /* 再次确保 li 没有标记 */
+    padding: 0; 
+    margin: 0; 
+    border: none; 
+}
+
 
 .post-list-item .tag-badge {
     font-size: 0.8rem;
