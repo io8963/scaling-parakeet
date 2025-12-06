@@ -5,7 +5,7 @@ import os
 # --- 站点配置 ---
 BASE_URL = "https://aa0.site/"
 # ！！！关键修改：请将 "/your-repo-name" 替换为您实际的子目录路径或 GitHub 仓库名
-REPO_SUBPATH = "/scaling-parakeet-main" 
+REPO_SUBPATH = "" 
 
 # 内部链接的根路径
 SITE_ROOT = REPO_SUBPATH.rstrip('/')
