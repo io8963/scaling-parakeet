@@ -24,7 +24,7 @@
             <a href="{{site_root}}/" class="site-title">{{blog_title}}</a>
             <nav>
                 <a href="{{site_root}}/" {% if page_id == 'index' %}class="active-nav-link"{% endif %}>首页</a>
-                {# [FIXED] 导航链接：使用带斜杠的链接 #}
+                {# [FIX] 导航链接：强制以 / 结尾，匹配 generator.py 生成的目录结构 #}
                 <a href="{{site_root}}/archive/" {% if page_id == 'archive' %}class="active-nav-link"{% endif %}>归档</a>
                 <a href="{{site_root}}/tags/" {% if page_id == 'tags' %}class="active-nav-link"{% endif %}>标签</a>
                 <a href="{{site_root}}/about/" {% if page_id == 'about' %}class="active-nav-link"{% endif %}>关于</a>
@@ -48,7 +48,7 @@
                                     <div class="meta-tags">
                                         <ul class="tags-list">
                                         {% for tag in post_tags %}
-                                            {# [FIXED] tag 链接：使用带斜杠的链接 #}
+                                            {# [FIX] 标签链接：构造为 /tags/slug/ #}
                                             <li><a href="{{site_root}}/tags/{{tag.slug}}/" class="tag-badge">{{tag.name}}</a></li>
                                         {% endfor %}
                                         </ul>
@@ -77,7 +77,6 @@
                         <div class="tag-meta-info">
                             <h1 class="page-list-title"># {{tag}}</h1>
                             <p style="color: var(--color-main-subtext); margin-bottom: 20px; font-size: 0.9rem;">共 {{posts | length}} 篇文章</p>
-                            {# [FIXED] 链接到所有标签页 #}
                             <a href="{{site_root}}/tags/" class="button button-secondary button-small">← 所有标签</a>
                         </div>
                         <hr style="border: none; border-top: 1px solid var(--color-main-border); margin: 30px 0;">
@@ -86,7 +85,7 @@
                     {%- if page_id != 'archive' -%}
                     <div class="post-list">
                     {% for post in posts %}
-                        {# [FIXED] post.link 现在在 generator.py 中已通过 make_internal_url 处理为带斜杠的链接 #}
+                        {# [FIX] post.link 已由 Python 清除 .html 后缀，此处直接渲染 #}
                         <a href="{{site_root}}{{post.link}}" class="post-list-item">
                             
                             <h2 class="post-title">{{post.title}}</h2>
@@ -115,7 +114,6 @@
 
                     {%- if page_id == 'index' and posts|length == max_posts_on_index -%}
                     <div class="read-more-link-area">
-                        {# [FIXED] 链接到归档页 #}
                         <a href="{{site_root}}/archive/" class="button button-secondary">查看全部归档 →</a>
                     </div>
                     {%- endif -%}
@@ -129,8 +127,7 @@
                     </div>
                 {%- endif -%}
                 
-                {# ------------------------------------------------------------------------ #}
-                {# 版权声明 (License Notice) #}
+                {# 版权声明 #}
                 {%- if page_id == 'post' -%}
                 <div class="post-license">
                     <p>
@@ -142,7 +139,6 @@
                         本文依据 <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-NC 4.0 许可协议</a> 发布。
                     </p>
                     <p>转载请遵循协议，务必保留作者署名及原文链接。推荐使用以下标准格式：</p>
-                    
                     <div class="license-format-code">
                         <code>
                             本文标题：{{post.title}}
@@ -154,15 +150,12 @@
                     </div>
                 </div>
                 {%- endif -%}
-                {# ------------------------------------------------------------------------ #}
                 
-                {# ------------------------------------------------------------------------ #}
                 {# 文章上/下导航 #}
                 {%- if page_id == 'post' and (prev_post_nav or next_post_nav) -%}
                 <nav class="post-navigation">
-                    {# Newer Article #}
                     {% if prev_post_nav %}
-                    {# prev_post_nav.link 在 generator.py 中已通过 make_internal_url 处理为带斜杠的链接 #}
+                    {# [FIX] prev_post_nav.link 已由 Python 清除后缀 #}
                     <a href="{{site_root}}{{prev_post_nav.link}}" class="nav-link nav-prev">
                         <small>← 上一篇 (较新)</small>
                         <h3>{{prev_post_nav.title}}</h3>
@@ -171,9 +164,8 @@
                     <div class="nav-link-placeholder"></div>
                     {% endif %}
 
-                    {# Older Article #}
                     {% if next_post_nav %}
-                    {# next_post_nav.link 在 generator.py 中已通过 make_internal_url 处理为带斜杠的链接 #}
+                    {# [FIX] next_post_nav.link 已由 Python 清除后缀 #}
                     <a href="{{site_root}}{{next_post_nav.link}}" class="nav-link nav-next">
                         <small>下一篇 (较旧) →</small>
                         <h3>{{next_post_nav.title}}</h3>
@@ -183,7 +175,6 @@
                     {% endif %}
                 </nav>
                 {%- endif -%}
-                {# ------------------------------------------------------------------------ #}
                 
             </div>
             
