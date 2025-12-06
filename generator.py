@@ -3,7 +3,7 @@
 import os
 import shutil 
 import glob   
-from datetime import datetime, timezone, date # 确保导入了 date, datetime 和 timezone
+from datetime import datetime, timezone
 from collections import defaultdict
 from typing import List, Dict, Any, Tuple, Optional 
 from jinja2 import Environment, FileSystemLoader
@@ -450,10 +450,7 @@ def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
     return f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{"".join(urls)}</urlset>'
 
 def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
-    """
-    生成 RSS Feed。
-    【已修复 TypeError: replace() got an unexpected keyword argument 'tzinfo' 的版本】
-    """
+    """生成 RSS Feed"""
     items = []
     base_url = config.BASE_URL.rstrip('/')
     visible_posts = [p for p in parsed_posts if not is_post_hidden(p)]
@@ -461,18 +458,11 @@ def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
     for post in visible_posts[:10]:
         if not post.get('link'): continue
         link = f"{base_url}{make_internal_url(post['link'])}"
-        
-        # ⭐ 修复核心：使用 datetime.combine 将 date 对象转换为带时区信息的 datetime 对象
         pub_date = datetime.combine(post['date'], datetime.min.time(), tzinfo=timezone.utc).strftime('%a, %d %b %Y %H:%M:%S +0000') 
-        
         items.append(f"<item><title>{post['title']}</title><link>{link}</link><pubDate>{pub_date}</pubDate><guid isPermaLink=\"true\">{link}</guid><description><![CDATA[{post['content_html']}]]></description></item>")
     
     rss_link = make_internal_url(config.RSS_FILE) 
-    
-    # 确保 lastBuildDate 也带有 UTC 时区信息
-    last_build_date = datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")
-    
-    return f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>{config.BLOG_TITLE}</title><link>{base_url}{make_internal_url("/")}</link><description>{config.BLOG_DESCRIPTION}</description><language>zh-cn</language><atom:link href="{base_url}{rss_link}" rel="self" type="application/rss+xml" /><lastBuildDate>{last_build_date}</lastBuildDate>{"".join(items)}</channel></rss>'
+    return f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>{config.BLOG_TITLE}</title><link>{base_url}{make_internal_url("/")}</link><description>{config.BLOG_DESCRIPTION}</description><language>zh-cn</language><atom:link href="{base_url}{rss_link}" rel="self" type="application/rss+xml" /><lastBuildDate>{datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")}</lastBuildDate>{"".join(items)}</channel></rss>'
 
 def generate_page_html(content_html: str, page_title: str, page_id: str, canonical_path_with_html: str, build_time_info: str):
     """生成通用页面 (输出为 page_id/index.html)"""
