@@ -1,4 +1,4 @@
-# generator.py (核心链接修复和标签链接清洗版 + JSON-LD + HTML Minify 修复)
+# generator.py (核心链接修复和标签链接清洗版 + JSON-LD)
 
 import os
 import shutil 
@@ -8,11 +8,17 @@ from collections import defaultdict
 from typing import List, Dict, Any, Tuple, Optional 
 from jinja2 import Environment, FileSystemLoader
 import json 
-import re 
+import re # 引入 re 用于 JSON-LD 中的图片提取
 import config
 from parser import tag_to_slug 
-from bs4 import BeautifulSoup 
-import minify_html # <-- 导入名为 minify_html，与新的包名 (minify-html) 匹配
+
+# 导入 HTML 最小化工具
+try:
+    import minify_html
+except ImportError:
+    print("Warning: minify-html library not found. HTML output will not be minified.")
+    minify_html = None
+
 
 # --- Jinja2 环境配置配置 ---
 TEMPLATE_DIR = os.path.join(os.path.dirname(__file__), 'templates')
@@ -39,140 +45,69 @@ def get_site_root_prefix() -> str:
 
 def make_internal_url(path: str) -> str:
     """
-    生成规范化的内部 URL。
-    强制转换为 '目录模式' (Pretty URL): /slug/
+    将相对路径（如 posts/slug.html）转换为带 SITE_ROOT 前缀的 URL。
+    同时将 posts/slug.html 转换为 posts/slug/ 形式 (Pretty URL)
     """
-    if not path:
-        return ""
+    if path.startswith('/'):
+        # 对于根路径链接 (如 /archive/)
+        return f"{config.SITE_ROOT}{path}"
+    
+    # 转换为 Pretty URL 结构 (posts/slug.html -> posts/slug/)
+    if path.endswith('.html'):
+        path = path[:-5] # 移除 .html
+        path = path.replace(f"{config.POSTS_DIR_NAME}/", f"{config.POSTS_DIR_NAME}/") # 保持 posts/ 前缀
+        path += '/' # 加上尾部斜杠
+
+    return f"{config.SITE_ROOT}/{path}".replace('//', '/')
+
+
+# --- 辅助函数：HTML 最小化 ---
+def minify_html_output(html_content: str) -> str:
+    """如果安装了 minify_html，则对内容进行最小化处理。"""
+    if minify_html:
+        try:
+            # ⭐ 核心修复：移除不兼容的参数 'do_not_minify_doctype'
+            return minify_html.minify(
+                html_content,
+                keep_comments=False,
+                keep_html_and_head_opening_tags=True,
+                keep_spaces_between_attributes=False,
+                minify_css=True,
+                minify_js=True,
+                remove_processing_instructions=True,
+            )
+        except TypeError as e:
+            # 如果 minify-html 版本太老，不支持某些参数，则打印警告并返回原始内容
+            print(f"Warning: HTML Minify failed due to library version issue ({e}). Skipping minify for this page.")
+            return html_content
+        except Exception as e:
+            print(f"Error during HTML Minify: {e}. Skipping minify.")
+            return html_content
+    return html_content
+
+# --- 辅助函数：JSON-LD Schema ---
+
+def generate_post_schema(post: Dict[str, Any]) -> str:
+    """生成文章页面的 Article Schema JSON-LD"""
+    canonical_url = f"{config.BASE_URL.rstrip('/')}{make_internal_url(post['link'])}"
+    
+    # 尝试从内容中提取第一张图片作为 schema 的图片
+    image_match = re.search(r'<img.*?src=["\'](.*?)["\'].*?>', post['content_html'])
+    image_url = image_match.group(1) if image_match else None
+    
+    # 如果图片是相对路径，尝试将其转换为绝对路径 (假设图片在站点根目录下)
+    if image_url and image_url.startswith('/'):
+        image_url = f"{config.BASE_URL.rstrip('/')}{image_url}"
+    elif not image_url:
+        # 如果没有图片，可以考虑使用默认 Logo 或不设置
+        image_url = None # 留空或使用默认 Logo URL
         
-    normalized_path = path if path.startswith('/') else f'/{path}'
-    site_root = get_site_root_prefix()
-    
-    # 1. 忽略大小写移除 .html 后缀
-    # ⚠️ 特殊处理：RSS 文件、Sitemap 文件和 404 文件保留后缀或跳过目录化
-    if normalized_path.lower().endswith('.html') and \
-       not normalized_path.lower().endswith(config.RSS_FILE) and \
-       not normalized_path.lower().endswith(config.SITEMAP_FILE) and \
-       not normalized_path.lower() == '/404.html':
-        normalized_path = normalized_path[:-5]
-    
-    # 2. 确保路径末尾添加斜杠 (除了根目录和特殊文件)
-    if normalized_path.lower() == '/index': 
-        normalized_path = '/'
-    elif normalized_path.lower() == '/404' or normalized_path.lower() == '/404.html':
-        pass 
-    elif normalized_path.lower().endswith(config.RSS_FILE):
-        pass
-    elif normalized_path.lower().endswith(config.SITEMAP_FILE):
-        pass
-    elif normalized_path != '/' and not normalized_path.endswith('/'):
-        normalized_path = f'{normalized_path}/'
-    
-    # 3. 组合 site_root 和 normalized_path
-    if not site_root:
-        return normalized_path
-    
-    if normalized_path == '/':
-        return f"{site_root}/"
-    
-    return f"{site_root}{normalized_path}"
-
-def is_post_hidden(post: Dict[str, Any]) -> bool:
-    """检查文章是否应被隐藏。"""
-    return post.get('status', 'published').lower() == 'draft' or post.get('hidden') is True
-
-# --- [关键修复] 数据清洗函数 ---
-
-def process_posts_for_template(posts: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """
-    深度清洗文章列表。
-    复制 post 对象，并将其中的 'link' 属性强制转换为 Pretty URL。
-    同时，为所有标签添加一个已清洗的 'link' 属性。
-    """
-    cleaned_posts = []
-    for post in posts:
-        new_post = post.copy()
-        
-        # 清洗主链接
-        if 'link' in new_post:
-            new_post['link'] = make_internal_url(new_post['link'])
-            
-        # 清洗导航链接 (上一篇/下一篇)
-        if 'prev_post_nav' in new_post and new_post['prev_post_nav']:
-            nav = new_post['prev_post_nav'].copy()
-            nav['link'] = make_internal_url(nav['link'])
-            new_post['prev_post_nav'] = nav
-            
-        if 'next_post_nav' in new_post and new_post['next_post_nav']:
-            nav = new_post['next_post_nav'].copy()
-            nav['link'] = make_internal_url(nav['link'])
-            new_post['next_post_nav'] = nav
-            
-        # ！！！新增关键修复：清洗标签链接！！！
-        if 'tags' in new_post and new_post['tags']:
-            cleaned_tags = []
-            for tag in new_post['tags']:
-                tag_copy = tag.copy()
-                # 构造标签的路径
-                tag_path = f"{config.TAGS_DIR_NAME}/{tag_copy['slug']}"
-                # 使用 make_internal_url 清洗，生成 /tags/slug/ 格式的完整链接
-                tag_copy['link'] = make_internal_url(tag_path) 
-                cleaned_tags.append(tag_copy)
-            new_post['tags'] = cleaned_tags
-            
-        cleaned_posts.append(new_post)
-    return cleaned_posts
-
-# --- 核心生成函数 ---
-
-def minify_html_content(html_content: str) -> str:
-    """对生成的 HTML 内容进行最小化处理 (使用 minify_html)"""
-    # 使用 minify_html 最小化 HTML。它基于 Rust，性能优越。
-    # **注意：** 默认配置已经非常激进，安全地移除了空白、注释和不必要的属性引号等。
-    minified_content = minify_html.minify(
-        html_content, 
-        do_not_minify_doctype=True, # 保留 DOCTYPE
-        keep_comments=False,        # 移除普通注释
-        minify_css=True,            # 最小化 <style> 标签和 style 属性中的 CSS
-        minify_js=True,             # 最小化 <script> 标签中的 JS (推荐保留)
-        keep_html_and_head_opening_tags=True, # 保持 html 和 head 标签，避免兼容性问题
-    )
-    return minified_content
-
-def get_json_ld_schema(post: Dict[str, Any]) -> str:
-    """⭐ NEW FEATURE: 生成 Article 类型的 JSON-LD 结构化数据。"""
-    base_url = config.BASE_URL.rstrip('/')
-    
-    # 1. 获取图片URL (使用 BeautifulSoup 安全提取)
-    image_url = f"{base_url}{config.SITE_ROOT}/static/default-cover.png" # Fallback 
-    
-    # 尝试从 HTML 内容中提取第一张图片的 src
-    # [重构]: 使用 BeautifulSoup 查找第一个 img 标签
-    soup = BeautifulSoup(post['content_html'], 'html.parser')
-    img_tag = soup.find('img')
-    
-    if img_tag and 'src' in img_tag.attrs:
-        relative_path = img_tag['src'].lstrip('/')
-        # 如果是相对路径 (media/ 或 static/)，则转为绝对 URL
-        if not relative_path.startswith(('http', '//')):
-            # 这里简单地使用 site_root + relative_path 更合适，因为 make_internal_url 是为 'pretty URL' 模式设计的。
-            site_root = get_site_root_prefix()
-            image_url = f"{base_url}{site_root}/{relative_path}"
-            image_url = image_url.replace('//', '/') # 避免双斜杠
-            image_url = image_url.replace(':/', '://') # 修正协议后的双斜杠
-        else:
-            # 外部链接或绝对路径
-            image_url = relative_path
-    
-    # 2. 构造 Schema
     schema = {
-        "@context": "https://schema.org",
+        "@context": "[https://schema.org](https://schema.org)",
         "@type": "Article",
         "headline": post['title'],
-        "image": image_url,
-        # 使用 isoformat() 输出标准格式
-        "datePublished": post['date'].isoformat(),
-        "dateModified": post['date'].isoformat(), 
+        "description": post['summary'],
+        "mainEntityOfPage": canonical_url,
         "author": {
             "@type": "Person",
             "name": config.BLOG_AUTHOR
@@ -180,327 +115,348 @@ def get_json_ld_schema(post: Dict[str, Any]) -> str:
         "publisher": {
             "@type": "Organization",
             "name": config.BLOG_TITLE,
-            "logo": {
-                "@type": "ImageObject",
-                # 假设 logo 在 static/logo.png
-                "url": f"{base_url}{get_site_root_prefix()}/static/logo.png" 
-            }
+            # 可以添加 logo 信息
+            # "logo": {"@type": "ImageObject", "url": "..."}
         },
-        "description": post.get('excerpt', config.BLOG_DESCRIPTION),
-        "mainEntityOfPage": {
-            "@type": "WebPage",
-            "url": f"{base_url}{make_internal_url(post['link'])}"
-        }
+        "datePublished": post['date_obj'].isoformat() if 'date_obj' in post else datetime.now(timezone.utc).isoformat(),
+        "dateModified": post['date_obj'].isoformat() if 'date_obj' in post else datetime.now(timezone.utc).isoformat(),
+        "url": canonical_url,
+        "wordCount": len(re.sub(r'<[^>]*>', '', post['content_html']).split()), # 估算字数
     }
     
-    # 3. 序列化为 JSON 字符串
-    return json.dumps(schema, ensure_ascii=False, indent=4)
+    if image_url:
+        schema['image'] = [image_url]
 
+    return json.dumps(schema, indent=4, ensure_ascii=False)
+
+
+# --- 核心生成函数 ---
 
 def generate_post_page(post: Dict[str, Any]):
-    """生成单篇文章页面 (输出为 slug/index.html)"""
+    """生成单篇文章页面 (输出为 posts/slug/index.html)"""
     try:
-        relative_link = post.get('link')
-        if not relative_link:
-            return
-
-        # [文件输出路径] 强制转换为 directory/index.html 结构
-        if relative_link.lower() == '404.html':
-            # 如果 autobuild.py 错误地调用了此函数，在此处直接返回，防止生成错误页面
-            return
-        else:
-            clean_name = relative_link[:-5] if relative_link.lower().endswith('.html') else relative_link
-            clean_name = clean_name.strip('/')
-            output_dir = os.path.join(config.BUILD_DIR, clean_name)
-            os.makedirs(output_dir, exist_ok=True)
-            output_path = os.path.join(output_dir, 'index.html')
-            page_id_override = 'post'
-
-        template = env.get_template('base.html')
+        # 强制转换为 directory/index.html 结构
+        output_dir = os.path.join(config.BUILD_DIR, config.POSTS_DIR_NAME, post['slug'])
+        os.makedirs(output_dir, exist_ok=True)
+        output_path = os.path.join(output_dir, 'index.html')
         
-        # 准备数据：清洗当前文章的导航链接和标签链接
-        processed_list = process_posts_for_template([post])
-        current_post_processed = processed_list[0]
+        template = env.get_template('post.html')
         
-        # ⭐ NEW FIX: 生成 JSON-LD Schema
-        json_ld_schema = get_json_ld_schema(post)
-
+        # 文章链接转换为 Pretty URL，用于 canonical
+        canonical_path_with_html = post['link'] 
+        canonical_path = make_internal_url(canonical_path_with_html) 
+        
         context = {
-            'page_id': page_id_override,
+            'page_id': 'post',
             'page_title': post['title'],
             'blog_title': config.BLOG_TITLE,
-            'blog_description': post.get('excerpt', config.BLOG_DESCRIPTION),
+            'blog_description': post['summary'], # 文章描述使用文章摘要
             'blog_author': config.BLOG_AUTHOR,
+            'post': post,
             'content_html': post['content_html'],
-            'post': current_post_processed, # 使用清洗过链接的 post 对象
-            'post_date': post.get('date_formatted', ''),
-            'post_tags': current_post_processed.get('tags', []), # ！！！使用清洗过 link 的标签列表！！！
-            'toc_html': post.get('toc_html'),
-            'prev_post_nav': current_post_processed.get('prev_post_nav'),
-            'next_post_nav': current_post_processed.get('next_post_nav'),
+            'toc_html': post.get('toc_html', ''),
             'site_root': get_site_root_prefix(),
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
-            'canonical_url': f"{config.BASE_URL.rstrip('/')}{make_internal_url(relative_link)}",
-            'footer_time_info': post.get('footer_time_info', ''),
-            'json_ld_schema': json_ld_schema, # ⭐ NEW FIX: 注入 Schema
+            'canonical_url': f"{config.BASE_URL.rstrip('/')}{canonical_path}",
+            'footer_time_info': post['footer_time_info'], # 使用 Git/构建时间
+            'json_ld_schema': generate_post_schema(post),
+            # 导航链接已在 autobuild.py 中处理并存入 post 字典
+            'prev_post_nav': post.get('prev_post_nav'),
+            'next_post_nav': post.get('next_post_nav'),
         }
-
-        # 1. 渲染 HTML
-        html_content = template.render(context)
         
-        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
-        minified_html_content = minify_html_content(html_content)
-
-        # 2. 写入最小化后的内容
+        html_content = template.render(context)
+        final_html = minify_html_output(html_content)
+        
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(minified_html_content)
-        print(f"Generated: {output_path}")
+            f.write(final_html)
+            
+        print(f"   -> Generated post: {output_path}")
 
     except Exception as e:
-        print(f"Error generating post {post.get('title')}: {e}")
+        print(f"Error generating post page {post.get('slug', 'unknown')}: {e}")
 
 
-def generate_index_html(sorted_posts: List[Dict[str, Any]], build_time_info: str):
-    """生成首页 (index.html)"""
+def generate_index_html(all_posts: List[Dict[str, Any]], build_time_info: str):
+    """生成首页 (输出为 _site/index.html)"""
     try:
+        # 筛选出要显示在首页的文章 (非草稿，最多 MAX_POSTS_ON_INDEX 篇)
+        # 确保只包含 status='published' 或没有 status 字段的文章
+        published_posts = [p for p in all_posts if not is_post_hidden(p)]
+        
+        # ⭐ 修复：使用 config.MAX_POSTS_ON_INDEX
+        posts_on_index = published_posts[:config.MAX_POSTS_ON_INDEX]
+        
+        template = env.get_template('index.html')
         output_path = os.path.join(config.BUILD_DIR, 'index.html')
-        visible_posts = [p for p in sorted_posts if not is_post_hidden(p)][:config.MAX_POSTS_ON_INDEX]
-
-        template = env.get_template('base.html')
+        
+        canonical_path = make_internal_url('index.html') 
+        
         context = {
             'page_id': 'index',
             'page_title': config.BLOG_TITLE,
             'blog_title': config.BLOG_TITLE,
             'blog_description': config.BLOG_DESCRIPTION,
             'blog_author': config.BLOG_AUTHOR,
-            'posts': process_posts_for_template(visible_posts), # 关键：传入清洗后的文章列表 (包含清洗后的 tag.link)
-            'max_posts_on_index': config.MAX_POSTS_ON_INDEX,
+            'posts': posts_on_index,
             'site_root': get_site_root_prefix(),
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
-            'canonical_url': f"{config.BASE_URL.rstrip('/')}{get_site_root_prefix()}/",
+            'canonical_url': f"{config.BASE_URL.rstrip('/')}{canonical_path}",
             'footer_time_info': build_time_info,
+            'show_more_link': len(published_posts) > config.MAX_POSTS_ON_INDEX, # 检查是否需要显示 '更多文章' 链接
+            'json_ld_schema': None # 首页通常不需要 Article Schema
         }
         
-        # 1. 渲染 HTML
         html_content = template.render(context)
+        final_html = minify_html_output(html_content)
         
-        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
-        minified_html_content = minify_html_content(html_content)
-        
-        # 2. 写入最小化后的内容
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(minified_html_content)
-        print("Generated: index.html")
+            f.write(final_html)
+            
+        print(f"   -> Generated: {output_path}")
+
     except Exception as e:
         print(f"Error index.html: {e}")
 
 
-def generate_archive_html(sorted_posts: List[Dict[str, Any]], build_time_info: str):
-    """生成归档页 (archive/index.html)"""
+def generate_archive_html(all_posts: List[Dict[str, Any]], build_time_info: str):
+    """生成归档页面 (输出为 _site/archive/index.html)"""
     try:
-        # 输出路径：archive/index.html
+        # 仅归档已发布的文章
+        published_posts = [p for p in all_posts if not is_post_hidden(p)]
+        
+        # 按年份分组
+        archive_map = defaultdict(list)
+        for post in published_posts:
+            year = post['date'].year # post['date'] 是 datetime.date 对象
+            archive_map[year].append(post)
+            
+        # 按年份降序排序
+        sorted_archive = sorted(archive_map.items(), key=lambda x: x[0], reverse=True)
+            
+        template = env.get_template('archive.html')
         output_dir = os.path.join(config.BUILD_DIR, 'archive')
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, 'index.html')
         
-        visible_posts = [p for p in sorted_posts if not is_post_hidden(p)]
+        canonical_path = make_internal_url('archive.html') 
         
-        archive_by_year = defaultdict(list)
-        for post in visible_posts:
-            archive_by_year[post['date'].year].append(post)
-        
-        sorted_archive = sorted(archive_by_year.items(), key=lambda item: item[0], reverse=True)
-
-        template = env.get_template('base.html')
-        
-        archive_html = "<h1>文章归档</h1>\n"
-        for year, posts in sorted_archive:
-            archive_html += f"<h2>{year} ({len(posts)} 篇)</h2>\n<ul>\n"
-            for post in posts:
-                # 关键：这里直接调用 make_internal_url 生成纯净链接
-                link = make_internal_url(post['link']) 
-                archive_html += f"<li><a href=\"{link}\">{post['title']}</a> - {post['date_formatted']}</li>\n"
-            archive_html += "</ul>\n"
-            
         context = {
             'page_id': 'archive',
             'page_title': '文章归档',
             'blog_title': config.BLOG_TITLE,
-            'blog_description': '归档',
+            'blog_description': '所有文章的归档列表',
             'blog_author': config.BLOG_AUTHOR,
-            'content_html': archive_html, 
-            'posts': [],
+            'archive_list': sorted_archive,
+            'total_posts': len(published_posts),
             'site_root': get_site_root_prefix(),
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
-            'canonical_url': f"{config.BASE_URL.rstrip('/')}{make_internal_url('/archive')}",
+            'canonical_url': f"{config.BASE_URL.rstrip('/')}{canonical_path}",
             'footer_time_info': build_time_info,
+            'json_ld_schema': None
         }
         
-        # 1. 渲染 HTML
         html_content = template.render(context)
+        final_html = minify_html_output(html_content)
         
-        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
-        minified_html_content = minify_html_content(html_content)
-        
-        # 2. 写入最小化后的内容
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(minified_html_content)
-        print("Generated: archive/index.html")
+            f.write(final_html)
+            
+        print(f"   -> Generated: {output_path}")
+
     except Exception as e:
-        print(f"Error archive.html: {e}")
-
-
+        print(f"Error generating archive page: {e}")
+        
+        
 def generate_tags_list_html(tag_map: Dict[str, List[Dict[str, Any]]], build_time_info: str):
-    """生成标签列表页 (tags/index.html)"""
+    """生成所有标签的列表页面 (输出为 _site/tags/index.html)"""
     try:
-        output_dir = os.path.join(config.BUILD_DIR, 'tags')
+        # 将 tag_map 转换为 (tag_name, post_count) 列表并按文章数量降序排序
+        tag_list = sorted(
+            [(name, len(posts)) for name, posts in tag_map.items()], 
+            key=lambda x: x[1], 
+            reverse=True
+        )
+        
+        template = env.get_template('tags_list.html')
+        output_dir = os.path.join(config.BUILD_DIR, config.TAGS_DIR_NAME)
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, 'index.html')
         
-        sorted_tags = sorted(tag_map.items(), key=lambda item: len(item[1]), reverse=True)
-        tags_html = "<h1>标签列表</h1>\n<div class=\"tag-cloud\">\n"
-        
-        for tag, posts in sorted_tags:
-            tag_slug = tag_to_slug(tag)
-            # 生成链接: /tags/slug/
-            link = make_internal_url(f"{config.TAGS_DIR_NAME}/{tag_slug}")
-            count = len(posts)
-            font_size = max(1.0, min(2.5, 0.8 + count * 0.15))
-            tags_html += f"<a href=\"{link}\" style=\"font-size: {font_size}rem;\" class=\"tag-cloud-item\">{tag} ({count})</a>\n"
-        tags_html += "</div>\n"
+        canonical_path = make_internal_url(f'{config.TAGS_DIR_NAME}.html') 
 
-        template = env.get_template('base.html')
         context = {
-            'page_id': 'tags',
-            'page_title': '所有标签',
+            'page_id': 'tags-list',
+            'page_title': '标签列表',
             'blog_title': config.BLOG_TITLE,
-            'blog_description': '标签',
+            'blog_description': '所有文章标签的列表',
             'blog_author': config.BLOG_AUTHOR,
-            'content_html': tags_html,
+            'tag_list': tag_list,
             'site_root': get_site_root_prefix(),
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
-            'canonical_url': f"{config.BASE_URL.rstrip('/')}{make_internal_url('/tags')}",
+            'canonical_url': f"{config.BASE_URL.rstrip('/')}{canonical_path}",
             'footer_time_info': build_time_info,
+            'json_ld_schema': None
         }
         
-        # 1. 渲染 HTML
         html_content = template.render(context)
+        final_html = minify_html_output(html_content)
         
-        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
-        minified_html_content = minify_html_content(html_content)
-        
-        # 2. 写入最小化后的内容
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(minified_html_content)
-        print("Generated: tags/index.html")
+            f.write(final_html)
+            
+        print(f"   -> Generated: {output_path}")
+
     except Exception as e:
-        print(f"Error tags.html: {e}")
+        print(f"Error generating tags list page: {e}")
 
 
-def generate_tag_page(tag_name: str, sorted_tag_posts: List[Dict[str, Any]], build_time_info: str):
-    """生成单个标签页面 (tags/slug/index.html)"""
+def generate_tag_page(tag_name: str, posts: List[Dict[str, Any]], build_time_info: str):
+    """生成单个标签页面 (输出为 _site/tags/tag-slug/index.html)"""
     try:
         tag_slug = tag_to_slug(tag_name)
+        
+        template = env.get_template('tag.html')
+        # [文件输出路径]
         output_dir = os.path.join(config.BUILD_DIR, config.TAGS_DIR_NAME, tag_slug)
         os.makedirs(output_dir, exist_ok=True)
         output_path = os.path.join(output_dir, 'index.html')
-
-        template = env.get_template('base.html')
         
-        # 关键：清洗列表，确保 post 中的 tag 链接也被清洗
-        processed_posts = process_posts_for_template(sorted_tag_posts)
+        # [URL] 标签链接转换为 Pretty URL
+        canonical_path_with_html = f'{config.TAGS_DIR_NAME}/{tag_slug}.html'
+        canonical_path = make_internal_url(canonical_path_with_html) 
         
         context = {
             'page_id': 'tag',
-            'page_title': f"标签: {tag_name}",
+            'page_title': f'标签：{tag_name}',
             'blog_title': config.BLOG_TITLE,
-            'blog_description': config.BLOG_DESCRIPTION,
+            'blog_description': f'标签 "{tag_name}" 下的所有文章',
             'blog_author': config.BLOG_AUTHOR,
-            'posts': processed_posts, 
-            'tag': tag_name, 
+            'tag_name': tag_name,
+            'posts': posts,
             'site_root': get_site_root_prefix(),
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
-            'canonical_url': f"{config.BASE_URL.rstrip('/')}{make_internal_url(f'{config.TAGS_DIR_NAME}/{tag_slug}')}",
+            'canonical_url': f"{config.BASE_URL.rstrip('/')}{canonical_path}",
             'footer_time_info': build_time_info,
+            'json_ld_schema': None
         }
         
-        # 1. 渲染 HTML
         html_content = template.render(context)
+        final_html = minify_html_output(html_content)
         
-        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
-        minified_html_content = minify_html_content(html_content)
-        
-        # 2. 写入最小化后的内容
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(minified_html_content)
-        print(f"Generated tag page: {tag_name}")
-    except Exception as e:
-        print(f"Error tag page {tag_name}: {e}")
+            f.write(final_html)
+            
+        print(f"   -> Generated tag page: {output_path}")
 
-# --- 辅助生成：Robots, Sitemap, RSS (确保使用 make_internal_url 清洗路径) ---
+    except Exception as e:
+        print(f"Error generating tag page for {tag_name}: {e}")
+
 
 def generate_robots_txt():
     """生成 robots.txt"""
     try:
         output_path = os.path.join(config.BUILD_DIR, 'robots.txt')
-        content = f"User-agent: *\nAllow: /\nSitemap: {config.BASE_URL.rstrip('/')}{make_internal_url(config.SITEMAP_FILE)}\n"
+        content = (
+            f"User-agent: *\n"
+            f"Allow: /\n"
+            f"Sitemap: {config.BASE_URL.rstrip('/')}{config.SITE_ROOT}/{config.SITEMAP_FILE}\n"
+        )
         with open(output_path, 'w', encoding='utf-8') as f:
             f.write(content)
-        print("Generated: robots.txt")
+        print(f"   -> Generated: {output_path}")
     except Exception as e:
-        print(f"Error robots.txt: {e}")
+        print(f"Error generating robots.txt: {e}")
 
-def generate_sitemap(parsed_posts: List[Dict[str, Any]]) -> str:
-    """生成 sitemap.xml"""
-    urls = []
-    base_url = config.BASE_URL.rstrip('/')
+
+def generate_sitemap(all_posts: List[Dict[str, Any]]) -> str:
+    """生成 Sitemap XML (不进行 HTML Minify)"""
+    # 仅包含已发布的文章
+    published_posts = [p for p in all_posts if not is_post_hidden(p)]
+
+    urlset = f'<urlset xmlns="[http://www.sitemaps.org/schemas/sitemap/0.9](http://www.sitemaps.org/schemas/sitemap/0.9)">'
     
-    # 静态页面
-    for path, prio in [('/', '1.0'), ('/archive', '0.8'), ('/tags', '0.8'), ('/404', '0.1'), (config.RSS_FILE, '0.1')]:
-        urls.append(f"<url><loc>{base_url}{make_internal_url(path)}</loc><priority>{prio}</priority></url>")
+    # 1. 首页 URL
+    urlset += f"""
+<url>
+    <loc>{config.BASE_URL.rstrip('/')}{config.SITE_ROOT}/</loc>
+    <lastmod>{datetime.now(timezone.utc).date().isoformat()}</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>1.0</priority>
+</url>
+"""
 
-    if os.path.exists(os.path.join(config.BUILD_DIR, 'about', 'index.html')):
-         urls.append(f"<url><loc>{base_url}{make_internal_url('/about')}</loc><priority>0.8</priority></url>")
+    # 2. 归档页和标签列表页
+    for path in ['archive', 'tags']:
+        urlset += f"""
+<url>
+    <loc>{config.BASE_URL.rstrip('/')}{make_internal_url(f'{path}.html')}</loc>
+    <lastmod>{datetime.now(timezone.utc).date().isoformat()}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+</url>
+"""
+        
+    # 3. 文章 URL
+    for post in published_posts:
+        lastmod = post.get('date_obj', datetime.now(timezone.utc).date()).isoformat()
+        urlset += f"""
+<url>
+    <loc>{config.BASE_URL.rstrip('/')}{make_internal_url(post['link'])}</loc>
+    <lastmod>{lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+</url>
+"""
 
-    # 文章
-    all_tags = set()
-    for post in parsed_posts:
-        if is_post_hidden(post) or not post.get('link'): continue
-        
-        link = f"{base_url}{make_internal_url(post['link'])}"
-        lastmod = post['date'].strftime('%Y-%m-%d')
-        urls.append(f"<url><loc>{link}</loc><lastmod>{lastmod}</lastmod><priority>0.6</priority></url>")
-        
-        for tag in post.get('tags', []):
-            all_tags.add(tag['name'])
+    # 4. 通用页面 (需要 config.PAGES_DIR 存在)
+    if os.path.exists(config.PAGES_DIR):
+        page_files = glob.glob(os.path.join(config.PAGES_DIR, '*.md'))
+        for page_file in page_files:
+            base_name = os.path.splitext(os.path.basename(page_file))[0]
+            canonical_path = make_internal_url(f'{base_name}.html')
+            urlset += f"""
+<url>
+    <loc>{config.BASE_URL.rstrip('/')}{canonical_path}</loc>
+    <lastmod>{datetime.now(timezone.utc).date().isoformat()}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+</url>
+"""
+
+    urlset += "</urlset>"
+    return urlset
+
+def generate_rss(all_posts: List[Dict[str, Any]]) -> str:
+    """生成 RSS 订阅 XML (不进行 HTML Minify)"""
+    # 仅包含最新的 10 篇已发布的文章
+    published_posts = [p for p in all_posts if not is_post_hidden(p)][:10]
     
-    # 标签
-    for tag in all_tags:
-        slug = tag_to_slug(tag)
-        link = f"{base_url}{make_internal_url(f'{config.TAGS_DIR_NAME}/{slug}')}"
-        urls.append(f"<url><loc>{link}</loc><priority>0.5</priority></url>")
-
-    return f'<?xml version="1.0" encoding="UTF-8"?><urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">{"".join(urls)}</urlset>'
-
-def generate_rss(parsed_posts: List[Dict[str, Any]]) -> str:
-    """生成 RSS Feed"""
     items = []
-    base_url = config.BASE_URL.rstrip('/')
-    visible_posts = [p for p in parsed_posts if not is_post_hidden(p)]
+    for post in published_posts:
+        link = f"{config.BASE_URL.rstrip('/')}{make_internal_url(post['link'])}"
+        pub_date = post.get('date_obj', datetime.now(timezone.utc)).astimezone(timezone.utc)
+        
+        items.append(f"""
+    <item>
+        <title>{post['title']}</title>
+        <link>{link}</link>
+        <guid isPermaLink="true">{link}</guid>
+        <pubDate>{pub_date.strftime("%a, %d %b %Y %H:%M:%S +0000")}</pubDate>
+        <description><![CDATA[{post['content_html']}]]></description>
+    </item>
+""")
+
+    # 获取最新一篇文章的发布时间作为 lastBuildDate
+    last_build_date = published_posts[0].get('date_obj', datetime.now(timezone.utc)).astimezone(timezone.utc) if published_posts else datetime.now(timezone.utc)
     
-    for post in visible_posts[:10]:
-        if not post.get('link'): continue
-        link = f"{base_url}{make_internal_url(post['link'])}"
-        pub_date = datetime.combine(post['date'], datetime.min.time(), tzinfo=timezone.utc).strftime('%a, %d %b %Y %H:%M:%S +0000') 
-        items.append(f"<item><title>{post['title']}</title><link>{link}</link><pubDate>{pub_date}</pubDate><guid isPermaLink=\"true\">{link}</guid><description><![CDATA[{post['content_html']}]]></description></item>")
-    
-    rss_link = make_internal_url(config.RSS_FILE) 
-    return f'<?xml version="1.0" encoding="UTF-8"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>{config.BLOG_TITLE}</title><link>{base_url}{make_internal_url("/")}</link><description>{config.BLOG_DESCRIPTION}</description><language>zh-cn</language><atom:link href="{base_url}{rss_link}" rel="self" type="application/rss+xml" /><lastBuildDate>{datetime.now(timezone.utc).strftime("%a, %d %b %Y %H:%M:%S +0000")}</lastBuildDate>{"".join(items)}</channel></rss>'
+    return f'<?xml version="1.0" encoding="utf-8"?><rss version="2.0" xmlns:atom="[http://www.w3.org/2005/Atom](http://www.w3.org/2005/Atom)"><channel><title>{config.BLOG_TITLE}</title><link>{config.BASE_URL.rstrip("/")}{config.SITE_ROOT}/</link><atom:link href="{config.BASE_URL.rstrip("/")}{config.SITE_ROOT}/{config.RSS_FILE}" rel="self" type="application/rss+xml" /><description>{config.BLOG_DESCRIPTION}</description><language>zh-cn</language><lastBuildDate>{last_build_date.strftime("%a, %d %b %Y %H:%M:%S +0000")}</lastBuildDate>{"".join(items)}</channel></rss>'
+
 
 def generate_page_html(content_html: str, page_title: str, page_id: str, canonical_path_with_html: str, build_time_info: str):
     """生成通用页面 (输出为 page_id/index.html)"""
@@ -525,18 +481,28 @@ def generate_page_html(content_html: str, page_title: str, page_id: str, canonic
             'css_filename': config.CSS_FILENAME,
             'canonical_url': f"{config.BASE_URL.rstrip('/')}{canonical_path}",
             'footer_time_info': build_time_info,
-            'json_ld_schema': None, # 通用页面不需要 Schema
+            'json_ld_schema': None,
+            'toc_html': '', # 通用页面通常没有目录
+            # 导航链接
+            'prev_post_nav': None,
+            'next_post_nav': None,
         }
         
-        # 1. 渲染 HTML
         html_content = template.render(context)
-        
-        # ⭐⭐⭐ HTML Minify 核心逻辑 ⭐⭐⭐
-        minified_html_content = minify_html_content(html_content)
-        
-        # 2. 写入最小化后的内容
+        final_html = minify_html_output(html_content)
+
         with open(output_path, 'w', encoding='utf-8') as f:
-            f.write(minified_html_content)
-        print(f"Generated: {page_id}/index.html")
+            f.write(final_html)
+            
+        print(f"   -> Generated page: {output_path}")
+
     except Exception as e:
-        print(f"Error {page_id}: {e}")
+        print(f"Error generating generic page {page_id}: {e}")
+
+# 【重要：由于 generate_index_html 中使用了 is_post_hidden，它必须在 generator.py 中定义或导入】
+# 因为 is_post_hidden 逻辑在 autobuild.py 和 generator.py 中都被需要，
+# 我们暂时将它保留在 generator.py 中，以防万一。
+def is_post_hidden(post: Dict[str, Any]) -> bool:
+    """检查文章是否应被隐藏。"""
+    # 假设 post 是一个 Dict[str, Any]
+    return post.get('status', 'published').lower() == 'draft' or post.get('hidden') is True
