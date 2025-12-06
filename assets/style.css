@@ -7,107 +7,6 @@
     box-sizing: border-box;
 }
 
-html {
-    scroll-behavior: smooth;
-}
-
-body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    font-size: 16px;
-    line-height: 1.6;
-    margin: 0;
-    padding: 0;
-    color: var(--color-text);
-    background-color: var(--color-background);
-    transition: background-color 0.3s, color 0.3s;
-}
-
-/* 链接默认样式 */
-a {
-    color: var(--color-primary);
-    text-decoration: none;
-    transition: color 0.2s;
-    position: relative;
-    display: inline-block;
-}
-
-a:hover {
-    color: var(--color-primary);
-}
-
-/* 链接悬停效果：从左侧划出下划线 */
-a:not(.nav-link, .tag-badge, .post-tag-badge, .list-item-archive, .tag-entry, .skip-link, .site-title, .back-to-top, .license-icon a)::after {
-    content: '';
-    position: absolute;
-    width: 100%;
-    transform: scaleX(0);
-    height: 2px;
-    bottom: 0;
-    left: 0;
-    background-color: var(--color-primary);
-    transform-origin: bottom right;
-    transition: transform 0.25s ease-out;
-}
-
-a:not(.nav-link, .tag-badge, .post-tag-badge, .list-item-archive, .tag-entry, .skip-link, .site-title, .back-to-top, .license-icon a):hover::after {
-    transform: scaleX(1);
-    transform-origin: bottom left;
-}
-
-
-/* =========================================
-   B. 布局
-   ========================================= */
-header, main, footer {
-    width: 100%;
-}
-
-.header-inner, .main-layout, .footer-content {
-    max-width: 900px; 
-    margin: 0 auto;
-    padding: 0 20px;
-}
-
-/* 主内容布局：文章内容和 TOC */
-.main-layout {
-    display: flex;
-    justify-content: center;
-    gap: 30px;
-    padding-top: 30px;
-    padding-bottom: 50px;
-}
-
-.content-area {
-    flex-grow: 1;
-    max-width: 700px;
-}
-
-.toc-area {
-    position: sticky;
-    top: 20px; 
-    width: 250px;
-    max-height: calc(100vh - 40px);
-    overflow-y: auto;
-    padding-left: 15px;
-    border-left: 2px solid var(--color-border);
-}
-
-/* 响应式调整 */
-@media (max-width: 1000px) {
-    .main-layout {
-        flex-direction: column;
-        gap: 0;
-    }
-    .content-area {
-        max-width: 100%;
-        padding: 0 20px; 
-    }
-    .toc-area {
-        display: none; /* 在小屏幕上隐藏 TOC */
-    }
-}
-
-
 /* =========================================
    C. 主题变量
    ========================================= */
@@ -133,339 +32,723 @@ header, main, footer {
     --color-code-bg-dark: #2c2c2c;
     --color-admonition-note: #00796b;
     --color-admonition-warn: #fbc02d;
-    --color-admonition-error: #e57373;
+    --color-admonition-danger: #d32f2f;
 
-    --color-main-border: var(--color-border); 
     --color-main-text: var(--color-text);
     --color-main-subtext: var(--color-text-secondary);
+    --color-main-background: var(--color-background);
+    --color-main-card: var(--color-card);
+    --color-main-border: var(--color-border);
 }
 
-
-/* D. 暗色模式 */
 @media (prefers-color-scheme: dark) {
-    body {
-        color: var(--color-text-dark);
-        background-color: var(--color-background-dark);
-    }
-    
-    a {
-        color: var(--color-link-dark);
-    }
-    
-    a:hover {
-        color: var(--color-link-dark);
-    }
-
-    a:not(.nav-link, .tag-badge, .post-tag-badge, .list-item-archive, .tag-entry, .skip-link, .site-title, .back-to-top, .license-icon a)::after {
-        background-color: var(--color-link-dark);
-    }
-
     :root {
-        --color-main-border: var(--color-border-dark);
         --color-main-text: var(--color-text-dark);
         --color-main-subtext: var(--color-text-secondary-dark);
-    }
-    
-    .toc-area {
-        border-left-color: var(--color-border-light);
+        --color-main-background: var(--color-background-dark);
+        --color-main-card: var(--color-card-dark);
+        --color-main-border: var(--color-border-light);
     }
 }
 
 /* =========================================
-   E. 头部和导航
+   E. 基础样式
    ========================================= */
+html {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    line-height: 1.7; 
+    color: var(--color-main-text);
+    background-color: var(--color-main-background);
+    font-size: 16px;
+    scroll-behavior: smooth; 
+}
+
+body {
+    margin: 0;
+    padding: 0;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+    transition: color 0.2s;
+    position: relative; 
+    display: inline-block;
+    outline: none;
+}
+
+a::after {
+    content: '';
+    position: absolute;
+    width: 100%;
+    transform: scaleX(0);
+    height: 1px;
+    bottom: 0;
+    left: 0;
+    background-color: var(--color-primary);
+    transform-origin: bottom right;
+    transition: transform 0.3s ease-out;
+}
+
+a:hover { 
+    color: #004d40;
+}
+a:hover::after {
+    transform: scaleX(1);
+    transform-origin: bottom left;
+}
+a:focus {
+    outline: 2px solid var(--color-primary); 
+    outline-offset: 2px;
+    border-radius: 2px;
+}
+
+@media (prefers-color-scheme: dark) {
+    a { color: var(--color-link-dark); }
+    a:hover { color: #b2dfdb; }
+    a::after { background-color: var(--color-link-dark); }
+}
+
+/* 例外处理 */
+header nav a::after, .post-license a::after,
+.post-content h1 a::after, .post-content h2 a::after, .post-content h3 a::after,
+.tag-badge a::after, .button a::after, .button-secondary a::after {
+    content: none;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    line-height: 1.25; 
+    margin-top: 1.5em;
+    margin-bottom: 0.6em;
+    font-weight: 700;
+    color: var(--color-main-text);
+    scroll-margin-top: 90px;
+}
+h1 { font-size: 2rem; letter-spacing: -0.02em; line-height: 1.2; }
+h2 { font-size: 1.6rem; letter-spacing: -0.01em; }
+h3 { font-size: 1.3rem; letter-spacing: 0; }
+
+@media (prefers-color-scheme: dark) {
+    h1, h2, h3, h4, h5, h6 { color: #ededed; }
+}
+
+.post-content h2 + h3, .post-content h3 + h4 { margin-top: 0.8em; }
+
+ul, ol { padding-left: 20px; margin-bottom: 1.5em; }
+li { margin-bottom: 0.4em; }
+
+/* =========================================
+   F & G. 布局与头部
+   ========================================= */
+.container { max-width: 800px; margin: 0 auto; padding: 0 20px; } 
+
 header {
-    background-color: var(--color-background);
-    border-bottom: 1px solid var(--color-main-border);
-    padding: 15px 0;
+    background-color: rgba(255, 255, 255, 0.95);
+    padding: 20px 0;
     position: sticky;
     top: 0;
     z-index: 100;
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid var(--color-main-border);
+}
+@media (prefers-color-scheme: dark) {
+    header { background-color: rgba(18, 18, 18, 0.95); }
 }
 
 .header-inner {
     display: flex;
     justify-content: space-between;
     align-items: center;
+    max-width: 800px; 
+    margin: 0 auto;
+    padding: 0 20px;
 }
 
 .site-title {
-    font-size: 1.5rem;
+    font-size: 1.1rem;
     font-weight: 700;
     color: var(--color-main-text);
-    text-decoration: none;
+    letter-spacing: -0.01em;
 }
 
-nav a {
-    margin-left: 15px;
-    font-size: 1rem;
+header nav { display: flex; align-items: center; }
+header nav a {
+    margin-left: 20px;
+    font-size: 0.9rem;
     color: var(--color-main-subtext);
     padding: 5px 0;
 }
-
-nav a:hover {
-    color: var(--color-primary);
-}
-
-/* 导航链接激活状态 */
-nav .active-nav-link {
-    color: var(--color-primary);
-    font-weight: 600;
-}
-
+header nav a:hover, header nav a.active-nav-link { color: var(--color-main-text); }
 
 /* =========================================
-   F. 文章/页面内容通用样式 (post-content)
+   H. 主内容区域
    ========================================= */
+main { flex-grow: 1; padding: 40px 0 80px; }
 
-.page-header h1 {
-    font-size: 2rem;
-    margin-bottom: 0.2em;
-}
-
-.page-header .post-meta {
-    font-size: 0.9rem;
-    color: var(--color-main-subtext);
-    margin-bottom: 20px;
+.main-layout {
     display: flex;
-    align-items: center;
-    flex-wrap: wrap;
+    justify-content: space-between;
+    gap: 40px;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+.content-area { flex-grow: 1; max-width: 100%; }
+
+/* =========================================
+   I. 目录 (TOC)
+   ========================================= */
+.toc-area {
+    width: 200px;
+    flex-shrink: 0;
+    position: sticky;
+    top: 100px;
+    max-height: calc(100vh - 120px);
+    overflow-y: auto;
+    padding-left: 15px;
+    border-left: 1px solid var(--color-main-border);
+    font-size: 0.85rem;
+}
+.toc-area h3 { 
+    font-size: 0.8rem; 
+    text-transform: uppercase; 
+    color: var(--color-main-subtext); 
+    margin: 0 0 10px; 
+    letter-spacing: 0.05em; 
+}
+.toc-area ul { list-style: none; padding: 0; margin: 0; }
+.toc-area ul ul { padding-left: 15px; border-left: 1px dotted var(--color-main-border); margin: 5px 0; }
+.toc-area ul ul ul { padding-left: 15px; border-left: 1px dotted var(--color-main-border); }
+
+.toc-area li a { 
+    display: block; 
+    padding: 4px 5px; 
+    color: var(--color-main-subtext); 
+    text-decoration: none; 
+    transition: all 0.2s ease;
+    line-height: 1.4;
+    font-weight: 500;
+    outline: none;
+    border-radius: 3px;
+}
+.toc-area > ul > li > a { font-weight: 600; font-size: 0.9rem; color: var(--color-main-text); padding-top: 6px; padding-bottom: 6px; }
+.toc-area ul ul a { font-size: 0.85rem; color: var(--color-main-subtext); }
+
+.toc-area li a:hover, .toc-area li a:focus { color: var(--color-primary); background-color: var(--color-primary-light); }
+
+@media (prefers-color-scheme: dark) {
+    .toc-area li a:hover, .toc-area li a:focus { color: var(--color-link-dark); background-color: rgba(0, 121, 107, 0.1); }
 }
 
-.post-content {
-    font-size: 1.05rem;
-    line-height: 1.7;
-    word-break: break-word; 
-    hyphens: auto; 
+.page-post .toc-area { display: block; }
+.page-post .content-area { flex-basis: 75%; max-width: 75%; }
+.page-index .toc-area, .page-archive .toc-area, .page-tags .toc-area { display: none; }
+.page-index .content-area, .page-archive .content-area, .page-tags .content-area { flex-basis: 100%; max-width: 100%; }
+
+/* 移动端目录 */
+.mobile-toc {
+    display: none; 
+    margin-bottom: 30px;
+    border: 1px solid var(--color-main-border);
+    border-radius: 6px;
+    font-size: 0.9rem;
+    transition: border-color 0.2s;
+}
+.mobile-toc:hover { border-color: var(--color-primary); }
+.mobile-toc summary { padding: 10px 15px; cursor: pointer; color: var(--color-main-subtext); }
+.mobile-toc[open] > summary { border-bottom: 1px solid var(--color-main-border); padding-bottom: 10px; margin-bottom: 10px; }
+.mobile-toc-content { padding: 15px; border-top: 1px solid var(--color-main-border); }
+.mobile-toc-content ul { list-style: none; padding: 0; }
+.mobile-toc-content ul ul { padding-left: 15px; border-left: 1px dotted var(--color-main-border); }
+.mobile-toc-content a { display: block; padding: 4px 0; color: var(--color-main-text); text-decoration: none;}
+
+/* =========================================
+   J. 文章正文 (Content)
+   ========================================= */
+.post-content p { 
+    color: #212121; 
+    letter-spacing: 0.005em; 
+    line-height: 1.75; 
+    margin-bottom: 1.6em; 
+    text-align: justify; 
+    text-justify: inter-word;
+    hyphens: auto;
+    -webkit-hyphens: auto;
+    -ms-hyphens: auto;
+    text-rendering: optimizeLegibility; 
+}
+@media (prefers-color-scheme: dark) {
+    .post-content p { color: #ededed; }
 }
 
-.post-content h2, .post-content h3, .post-content h4 {
-    margin-top: 2em;
+.post-content h2 + p, .post-content h3 + p, .post-content h4 + p { margin-top: 0.8em; }
+
+.post-content ul ul, .post-content ol ol { padding-left: 15px; border-left: 1px dotted var(--color-main-border); margin-top: 5px; margin-bottom: 5px; }
+.post-content ul ul ul, .post-content ol ol ol { padding-left: 15px; border-left: 1px solid rgba(0, 0, 0, 0.1); }
+@media (prefers-color-scheme: dark) {
+    .post-content ul ul ul, .post-content ol ol ol { border-left: 1px solid rgba(255, 255, 255, 0.1); }
+}
+
+.post-content ul, .post-content ol { color: var(--color-primary); }
+.post-content ul li, .post-content ol li {
+    padding: 3px 5px; 
+    border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
     margin-bottom: 0.8em;
-    padding-bottom: 0.2em;
-    border-bottom: 1px solid var(--color-main-border);
+    color: var(--color-main-text); 
+    transition: background-color 0.2s;
+    margin-left: -5px; 
+    width: calc(100% + 5px); 
 }
+.post-content ul li:hover, .post-content ol li:hover { background-color: rgba(0, 0, 0, 0.015); }
+.post-content ul li:last-child, .post-content ol li:last-child { border-bottom: none; }
+.post-content ul li::marker, .post-content ol li::marker { color: var(--color-primary); }
 
-.post-content h2 { font-size: 1.6rem; }
-.post-content h3 { font-size: 1.4rem; }
-.post-content h4 { font-size: 1.2rem; }
-
-.post-content p {
-    margin-top: 1em;
-    margin-bottom: 1em;
+@media (prefers-color-scheme: dark) {
+    .post-content ul li, .post-content ol li { border-bottom: 1px dashed rgba(255, 255, 255, 0.08); }
+    .post-content ul li::marker, .post-content ol li::marker { color: var(--color-link-dark); }
+    .post-content ul li:hover, .post-content ol li:hover { background-color: rgba(255, 255, 255, 0.03); }
 }
 
 .post-content img {
-    max-width: 100%;
-    height: auto;
-    display: block;
-    margin: 20px auto;
-    border-radius: 6px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    max-width: 100%; height: auto; border-radius: 4px; display: block; margin: 30px auto; 
+    border: 1px solid var(--color-main-border);
+    transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+.post-content img:hover { transform: scale(1.01); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); }
+@media (prefers-color-scheme: dark) {
+    .post-content img:hover { box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08); }
+}
+.post-content img + em {
+    display: block; text-align: center; font-size: 0.85rem; color: var(--color-main-subtext); 
+    font-family: monospace; border-top: 1px solid var(--color-main-border); border-bottom: 1px solid var(--color-main-border);
+    padding: 5px 0; margin-top: -20px; margin-bottom: 30px; font-style: normal;
 }
 
-/* 列表样式 */
-.post-content ul, .post-content ol {
-    padding-left: 25px;
-}
-
-.post-content li {
-    margin-bottom: 0.5em;
-}
-
-/* 引用块样式 */
 .post-content blockquote {
-    margin: 20px 0;
-    padding: 10px 20px;
-    border-left: 4px solid var(--color-primary);
-    background-color: var(--color-primary-light);
-    color: var(--color-main-text);
-    font-style: italic;
+    border-left: 3px solid var(--color-primary); padding: 5px 20px; margin: 25px 0;
+    color: var(--color-main-subtext); font-style: italic;
+    background-color: rgba(0, 0, 0, 0.01); box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.03); border-radius: 3px;
 }
-
 @media (prefers-color-scheme: dark) {
-    .post-content blockquote {
-        background-color: rgba(128, 203, 196, 0.1); 
-        color: var(--color-text-dark);
-    }
+    .post-content blockquote { background-color: rgba(255, 255, 255, 0.01); box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.03); }
 }
 
-/* 任务列表 (Task Lists) */
-.task-list-item {
-    list-style-type: none; /* 移除默认的 list-style */
-    padding-left: 0;
+.post-content code:not(pre code) {
+    color: var(--color-text); font-weight: 500; padding: 2px 4px; border-radius: 3px; font-size: 0.9em;
+    border: 1px solid rgba(0, 0, 0, 0.05); background-color: var(--color-code-bg);
 }
-.task-list-item input[type="checkbox"] {
-    margin-right: 5px;
-}
-
-/* 表格包裹器 */
-.table-wrapper {
-    overflow-x: auto; /* 允许表格水平滚动 */
-    margin: 20px 0;
-    border: 1px solid var(--color-main-border);
-    border-radius: 6px;
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
-}
-
-.post-content table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 600px; /* 确保表格在小屏上有最小宽度 */
-    background-color: var(--color-background);
-}
-
-.post-content th, .post-content td {
-    padding: 10px 15px;
-    border: 1px solid var(--color-main-border);
-    text-align: left;
-}
-
-.post-content th {
-    background-color: var(--color-code-bg);
-    font-weight: 600;
-}
-
 @media (prefers-color-scheme: dark) {
-    .post-content table {
-        background-color: var(--color-card-dark);
-    }
-    .post-content th {
-        background-color: var(--color-code-bg-dark);
+    .post-content code:not(pre code) { 
+        background-color: var(--color-code-bg-dark); color: var(--color-link-dark); border: 1px solid rgba(255, 255, 255, 0.1);
     }
 }
 
-
-/* =========================================
-   G. 代码高亮/行内代码
-   ========================================= */
-
-/* 行内代码 */
-.post-content code:not([class]) {
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.95em;
-    padding: 2px 5px;
-    margin: 0 2px;
-    background-color: var(--color-code-bg);
-    border-radius: 3px;
-    color: var(--color-text);
-    white-space: nowrap;
+.post-content pre {
+    background-color: var(--color-code-bg); border-radius: 6px; margin: 25px 0; padding: 15px;
+    overflow-x: auto; font-size: 0.9rem; border: 1px solid var(--color-main-border);
+    transition: box-shadow 0.2s, background-color 0.2s;
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
-
+.post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.1); }
 @media (prefers-color-scheme: dark) {
-    .post-content code:not([class]) {
-        background-color: var(--color-code-bg-dark);
-        color: var(--color-text-dark);
-    }
+    .post-content pre { background-color: var(--color-code-bg-dark); box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.05); }
+    .post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(255, 255, 255, 0.1); }
 }
 
-/* 代码块包裹器 */
-div.highlight {
-    margin: 20px 0;
-    overflow-x: auto;
-    border-radius: 6px;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+.table-wrapper { 
+    width: 100%; overflow-x: auto; margin: 30px 0; border: 1px solid var(--color-main-border); 
+    border-radius: 6px; transition: border-color 0.2s, box-shadow 0.2s; outline: none; 
 }
-
-div.highlight pre {
-    margin: 0;
-    padding: 15px;
-    font-family: 'Consolas', 'Monaco', monospace;
-    font-size: 0.9rem;
-    line-height: 1.5;
-    background-color: var(--color-code-bg);
-    color: var(--color-text);
-}
-
+.table-wrapper:hover { border-color: var(--color-primary); }
+.table-wrapper:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-light), 0 0 0 4px var(--color-primary); }
 @media (prefers-color-scheme: dark) {
-    div.highlight pre {
-        background-color: var(--color-code-bg-dark);
-        color: var(--color-text-dark);
+    .table-wrapper:hover, .table-wrapper:focus-within {
+        border-color: var(--color-link-dark); box-shadow: 0 0 0 2px rgba(0, 121, 107, 0.3), 0 0 0 4px var(--color-link-dark);
     }
+}
+
+.post-content table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.post-content th, .post-content td { padding: 12px 15px; border-bottom: 1px solid var(--color-main-border); text-align: left; }
+.post-content th { background-color: rgba(0,0,0,0.02); font-weight: 600; }
+
+.admonition { margin: 25px 0; padding: 15px; border: 1px solid var(--color-main-border); border-left-width: 4px; border-radius: 4px; }
+.admonition-title { color: var(--color-primary); margin-bottom: 8px; font-weight: 700; font-size: 0.95rem; }
+.admonition.note .admonition-title { color: var(--color-admonition-note); }
+.admonition.warning .admonition-title { color: var(--color-admonition-warn); }
+.admonition.danger .admonition-title { color: var(--color-admonition-danger); }
+@media (prefers-color-scheme: dark) {
+    .admonition.note .admonition-title { color: var(--color-link-dark); }
+}
+.admonition.note { border-left-color: var(--color-primary); }
+.admonition.warning { border-left-color: var(--color-admonition-warn); }
+.admonition.danger { border-left-color: var(--color-admonition-danger); }
+
+.post-content :target {
+    background-color: var(--color-primary-light); padding-left: 5px; margin-left: -5px; 
+    border-left: 5px solid var(--color-primary); transition: background-color 0.5s ease-out;
+}
+@media (prefers-color-scheme: dark) {
+    .post-content :target { background-color: rgba(0, 121, 107, 0.1); }
 }
 
 /* =========================================
-   H. 特殊元素：许可、 Admonition, TOC
+   K. 文章页头部元数据 (Post Meta)
    ========================================= */
+.page-header h1 {
+    margin-top: 0; margin-bottom: 15px; font-size: 2rem; line-height: 1.25;
+}
+.post-meta {
+    font-size: 0.9rem; color: var(--color-main-subtext); margin-bottom: 25px; 
+    padding-bottom: 0; border-top: 2px dashed var(--color-main-border); padding-top: 15px;
+}
+.post-content h2:first-of-type { margin-top: 0.8em; }
 
-/* Admonitions (提示块) */
-.admonition {
-    margin: 20px 0;
-    padding: 15px;
-    border-left: 5px solid;
-    border-radius: 0 4px 4px 0;
-    background-color: var(--color-card);
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+.meta-container {
+    display: flex; justify-content: flex-start; flex-wrap: wrap; align-items: center; gap: 15px; 
+}
+.meta-date {
+    font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 3px 6px; border-radius: 4px; 
+    background-color: var(--color-code-bg); border: 1px solid var(--color-main-border); opacity: 1; 
+    display: flex; align-items: center; line-height: 1.2; height: 1.8em; 
+}
+@media (prefers-color-scheme: dark) {
+    .meta-date { background-color: var(--color-code-bg-dark); border-color: var(--color-border-light); }
 }
 
-.admonition > p {
-    margin: 0;
+.meta-tags { display: flex; align-items: center; line-height: 1.2; }
+.meta-tags .tags-list { display: inline-flex; flex-wrap: wrap; gap: 10px; padding: 0; margin: 0; list-style: none; }
+.meta-tags .tags-list li { padding: 0; margin: 0; border-bottom: none; display: flex; align-items: center; line-height: 1.2; }
+
+.meta-tags .tag-badge {
+    color: var(--color-main-subtext); text-decoration: none; transition: all 0.2s ease; 
+    font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 3px 6px; border-radius: 4px; 
+    background-color: var(--color-code-bg); border: 1px solid var(--color-main-border); font-weight: 500;
+    display: flex; align-items: center; line-height: 1.2; height: 1.8em; vertical-align: middle; 
+}
+.meta-tags .tag-badge:hover {
+    color: var(--color-primary); background-color: var(--color-primary-light); border-color: var(--color-primary);
+}
+@media (prefers-color-scheme: dark) {
+    .meta-tags .tag-badge { background-color: var(--color-code-bg-dark); border-color: var(--color-border-light); }
+    .meta-tags .tag-badge:hover {
+        color: var(--color-link-dark); background-color: rgba(0, 121, 107, 0.15); border-color: var(--color-link-dark);
+    }
 }
 
-.admonition-title {
+/* =========================================
+   N. 极简文章列表 (Archive Style - 左侧竖线交互)
+   ========================================= */
+.post-list { 
+    list-style: none; 
+    padding: 0; 
+    margin: 0; 
+    display: flex;
+    flex-direction: column;
+}
+
+.post-list-item {
+    display: block; 
+    /* 关键: 内边距和负边距调整，使其左侧距离与归档页列表项一致 (15px) */
+    padding: 20px 20px 20px 15px; /* 左侧内边距改为 15px (与归档页一致) */
+    
+    /* 1. 下面是一条虚线 */
+    border-bottom: 1px dashed var(--color-main-border); 
+    
+    /* 2. 默认左侧是透明的边框 (占位) */
+    border-left: 4px solid transparent; 
+    
+    /* 3. 利用负边距向左拉伸盒子 (与内边距匹配，保证内容对齐) */
+    margin-left: -15px; 
+    width: calc(100% + 15px);
+    
+    background-color: transparent; 
+    text-decoration: none;
+    color: inherit;
+    transition: all 0.2s ease;
+    
+    /* 移除所有卡片相关的阴影和圆角 */
+    border-radius: 0;
+    box-shadow: none;
+}
+
+/* Hover/Focus 效果：模仿 Archive 页 */
+.post-list-item:hover,
+.post-list-item:focus { 
+    /* 悬停时背景微灰 */
+    background-color: rgba(0, 0, 0, 0.02); 
+    
+    /* 4. 高亮后左边是一条竖线 (主题色) */
+    border-left-color: var(--color-primary);
+    
+    outline: none;
+    /* 不上浮，保持稳重 */
+    transform: none; 
+}
+
+/* 最后一个元素移除底边框 */
+.post-list-item:last-child { border-bottom: none; }
+
+/* --- 列表项内部排版 --- */
+
+/* 1. 标题 */
+.post-list-item .post-title {
+    margin: 0 0 10px 0;
+    font-size: 1.6rem; 
     font-weight: 700;
-    margin-top: 0;
-    margin-bottom: 5px;
-    padding-bottom: 2px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+    color: var(--color-main-text);
+    line-height: 1.3;
+    transition: color 0.2s;
+}
+.post-list-item:hover .post-title { 
+    color: var(--color-primary); 
+}
+
+/* 2. 元数据行 */
+.post-list-meta-line {
     display: flex;
     align-items: center;
-}
-
-/* 类型样式 */
-.admonition.note { border-left-color: var(--color-admonition-note); }
-.admonition.warning { border-left-color: var(--color-admonition-warn); }
-.admonition.error { border-left-color: var(--color-admonition-error); }
-
-@media (prefers-color-scheme: dark) {
-    .admonition { 
-        background-color: var(--color-card-dark);
-    }
-    .admonition-title {
-        border-bottom-color: rgba(255, 255, 255, 0.1);
-    }
-}
-
-/* 目录 (TOC) */
-.toc-area h3 {
-    font-size: 1.1rem;
-    margin-top: 0;
-    margin-bottom: 10px;
-}
-
-.toc-area ul {
-    list-style: none;
-    padding-left: 0;
-}
-
-.toc-area li {
-    margin-bottom: 5px;
-    font-size: 0.95rem;
-}
-
-.toc-area a {
+    gap: 15px; 
+    margin-bottom: 15px;
+    font-size: 0.85rem;
     color: var(--color-main-subtext);
-    display: block;
 }
 
-.toc-area a:hover {
+.post-list-item .meta-date {
+    font-family: monospace;
+    opacity: 0.8;
+    margin: 0; padding: 0; border: none; background: none; display: inline; height: auto;
+}
+
+/* === 优化点 1: 悬停时日期颜色也变为主题色 === */
+.post-list-item:hover .meta-date {
+    color: var(--color-primary); 
+    opacity: 1; 
+}
+/* ========================================= */
+
+.post-list-item .tags-list {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none;
+}
+.post-list-item .tags-list li { padding: 0; margin: 0; border: none; }
+
+.post-list-item .tag-badge {
+    font-size: 0.8rem;
+    color: var(--color-main-subtext);
+    background-color: rgba(0,0,0,0.03); 
+    border: none; 
+    padding: 2px 6px;
+    border-radius: 4px;
+    line-height: 1.2;
+    height: auto;
+    display: inline-block;
+    vertical-align: middle;
+}
+.post-list-item:hover .tag-badge { 
     color: var(--color-primary);
+    background-color: var(--color-primary-light);
 }
 
-.toc-area ul ul {
-    padding-left: 15px;
-}
-
-/* 文章许可信息 (License) */
-.post-license {
-    margin-top: 40px;
-    padding: 15px;
-    border-left: 4px solid var(--color-primary); 
-    border-radius: 0; 
-    background-color: var(--color-primary-light); 
-    font-size: 0.9rem; 
+/* 3. 摘要 */
+.post-list-item .post-excerpt {
     color: var(--color-main-subtext); 
-    line-height: 1.6;
+    font-size: 1rem;
+    line-height: 1.65;
+    margin: 0;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    font-family: 'Inter', sans-serif;
+    opacity: 0.9;
+}
+
+/* 暗色模式下列表调整 */
+@media (prefers-color-scheme: dark) {
+    .post-list-item:hover,
+    .post-list-item:focus {
+        background-color: rgba(255, 255, 255, 0.03);
+        border-left-color: var(--color-link-dark); /* 暗色模式竖线颜色 */
+    }
+    
+    /* === 优化点 1: 暗色模式悬停时日期颜色也变为主题色 === */
+    .post-list-item:hover .meta-date {
+        color: var(--color-link-dark); 
+    }
+    /* ========================================= */
+    
+    .post-list-item .tag-badge {
+        background-color: rgba(255, 255, 255, 0.05);
+        color: var(--color-text-secondary-dark);
+    }
+    .post-list-item:hover .tag-badge {
+         color: var(--color-link-dark);
+         background-color: rgba(0, 121, 107, 0.2);
+    }
+}
+
+
+/* =========================================
+   P. 特殊页面样式 (Archive & Tags)
+   ========================================= */
+.tag-cloud { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 30px; }
+
+.tag-cloud-item {
+    display: inline-block;
+    padding: 6px 12px;
+    background-color: transparent; 
+    border: 1px solid var(--color-main-border);
+    border-radius: 4px; 
+    color: var(--color-main-text);
+    text-decoration: none;
+    font-size: 0.9rem !important;
+    transition: all 0.2s ease;
+}
+.tag-cloud-item:hover {
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    background-color: rgba(0,0,0,0.02); 
+    transform: translateY(-1px);
+}
+@media (prefers-color-scheme: dark) {
+    .tag-cloud-item:hover { background-color: rgba(255,255,255,0.05); }
+}
+
+/* Archive 页面 (保持原样，因其风格已与新首页统一) */
+.page-archive .post-content h2 { font-size: 1.4rem; margin-top: 2.5em; margin-bottom: 0.6em; color: var(--color-main-text); }
+.page-archive .post-content ul { list-style: none; padding-left: 0; font-family: monospace; font-size: 0.9rem; }
+.page-archive .post-content li {
+    padding: 8px 0; border-bottom: 1px dashed var(--color-main-border); 
+    display: flex; align-items: baseline; font-size: 1rem; transition: background-color 0.2s, border-left 0.2s;
+    /* Archive页面的左侧交互逻辑 */
+    padding-left: 15px; margin-left: -15px; width: calc(100% + 15px); border-left: 4px solid transparent;
+}
+.page-archive .post-content li:last-child { border-bottom: none; }
+.page-archive .post-content li:hover { background-color: rgba(0, 0, 0, 0.015); border-left-color: var(--color-primary); }
+.page-archive .post-content li a { color: var(--color-main-text); margin-right: auto; font-family: 'Inter', sans-serif; font-size: 1rem; }
+.page-archive .post-content li a:hover { color: var(--color-primary); }
+@media (prefers-color-scheme: dark) {
+    .page-archive .post-content li:hover { background-color: rgba(255, 255, 255, 0.03); border-left-color: var(--color-link-dark); }
+}
+
+/* =========================================
+   L. 底部 (Footer)
+   ========================================= */
+footer {
+    padding: 40px 0; margin-top: auto; text-align: center; color: var(--color-main-subtext); 
+    font-size: 0.8rem; border-top: 1px solid var(--color-main-border);
+}
+.footer-content p { margin: 5px 0; }
+.footer-links a { 
+    color: var(--color-main-subtext); margin: 0 8px; display: inline-block; padding: 2px 6px; 
+    border-radius: 4px; background-color: rgba(0, 0, 0, 0.02); transition: all 0.2s ease;
+}
+.footer-links a:hover { 
+    color: var(--color-primary); background-color: rgba(0, 121, 107, 0.08); transform: translateY(-1px);
+}
+@media (prefers-color-scheme: dark) {
+    .footer-links a { background-color: rgba(255, 255, 255, 0.05); }
+    .footer-links a:hover { color: var(--color-link-dark); background-color: rgba(255, 255, 255, 0.1); }
+}
+
+/* =========================================
+   M. 按钮
+   ========================================= */
+.button {
+    display: inline-block; padding: 8px 16px; border-radius: 4px; font-size: 0.9rem; 
+    text-decoration: none !important; cursor: pointer; transition: all 0.2s ease;
+}
+.button-secondary { border: 1px solid var(--color-main-border); color: var(--color-main-subtext); }
+.button-secondary:hover {
+    border-color: var(--color-primary); color: var(--color-primary); transform: translateY(-1px); 
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+}
+.button:active, .button-secondary:focus { transform: translateY(1px); box-shadow: none; }
+.button-small { padding: 5px 10px; font-size: 0.85rem; }
+
+/* =========================================
+   A11Y & Focus
+   ========================================= */
+.skip-link {
+    position: absolute; left: -9999px; z-index: 9999; padding: 10px 15px; 
+    background-color: var(--color-primary); color: white; text-decoration: none; top: 10px; 
+    border-radius: 4px; font-weight: bold;
+}
+.skip-link:focus { left: 50%; transform: translateX(-50%); border: 2px solid white; }
+
+a:focus, button:focus, .tag-cloud-item:focus {
+    outline: none; outline: 2px solid var(--color-primary); outline-offset: 2px; border-radius: 2px; box-shadow: none;
+}
+.post-content pre a:focus, .post-content code a:focus { box-shadow: none; outline: 2px dotted currentColor; border-radius: 0; }
+
+/* =========================================
+   Z. 响应式布局
+   ========================================= */
+@media (max-width: 900px) {
+    .header-inner { flex-direction: column; align-items: flex-start; gap: 15px; padding: 0 20px; }
+    header nav { display: flex; flex-wrap: wrap; margin-left: 0; width: 100%; }
+    header nav a { margin-left: 0; margin-right: 20px; padding: 5px 0; }
+    .main-layout { flex-direction: column; gap: 30px; }
+    .toc-area { display: none !important; }
+    .mobile-toc { display: block; }
+    .page-post .content-area { flex-basis: 100%; max-width: 100%; }
+    h1 { font-size: 1.7rem; }
+    .post-list-item .post-title { font-size: 1.4rem; } 
+    h1, h2, h3, h4, h5, h6 { scroll-margin-top: 130px; }
+    
+    .post-list-item { padding: 20px 15px; } 
+}
+
+/* =========================================
+   Task List
+   ========================================= */
+.task-list-item { list-style-type: none !important; position: relative; padding-left: 0; }
+.task-list-item input[type="checkbox"] { margin: 0 0.5em 0.2em -1.3em; vertical-align: middle; }
+.task-list-item label { font-weight: inherit; }
+.task-list-item input[type="checkbox"]:disabled { cursor: default; opacity: 0.7; }
+
+/* =========================================
+   Q. 文章上/下导航
+   ========================================= */
+.post-navigation {
+    display: flex; justify-content: space-between; gap: 30px; margin-top: 60px; 
+    padding-top: 30px; border-top: 1px solid var(--color-main-border);
+}
+.nav-link {
+    display: block; flex: 1; padding: 15px; border: 1px solid var(--color-main-border); 
+    border-radius: 6px; text-decoration: none !important; transition: border-color 0.2s, background-color 0.2s;
+    overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.nav-link:hover { border-color: var(--color-primary); background-color: rgba(0, 0, 0, 0.02); }
+@media (prefers-color-scheme: dark) {
+    .nav-link:hover { background-color: rgba(255, 255, 255, 0.05); }
+}
+.nav-link small { display: block; color: var(--color-main-subtext); font-size: 0.8rem; margin-bottom: 5px; font-weight: 500; }
+.nav-link h3 {
+    font-size: 1.1rem; font-weight: 600; margin: 0; line-height: 1.4; color: var(--color-main-text);
+    transition: color 0.2s, transform 0.2s ease-out; scroll-margin-top: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+}
+.nav-link:hover h3 { color: var(--color-primary); transform: translateY(-1px); }
+.nav-link.nav-prev { text-align: left; }
+.nav-link.nav-next { text-align: right; }
+.nav-link-placeholder { flex: 1; min-width: 10px; } 
+
+@media (max-width: 600px) {
+    .post-navigation { flex-direction: column; gap: 15px; margin-top: 40px; padding-top: 20px; }
+    .nav-link.nav-next { text-align: left; }
+    .nav-link h3 { white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; height: auto; }
+    .nav-link small { margin-bottom: 3px; }
+}
+
+/* =========================================
+   R. 版权声明
+   ========================================= */
+.post-license {
+    margin: 40px 0 0; padding: 15px 25px 15px 20px; border: none; border-left: 4px solid var(--color-primary); 
+    border-radius: 0; background-color: var(--color-primary-light); font-size: 0.9rem; color: var(--color-main-subtext); line-height: 1.6;
 }
 @media (prefers-color-scheme: dark) {
     .post-license { background-color: rgba(0, 121, 107, 0.15); border-left-color: var(--color-link-dark); }
@@ -482,384 +765,13 @@ div.highlight pre {
     .post-license a:hover .license-icon i { background-color: var(--color-link-dark); color: var(--color-background-dark); }
 }
 .post-license a:hover .license-icon i { background-color: var(--color-primary); color: var(--color-background); }
-
-
-/* 文章导航 (Post Navigation) */
-.post-navigation {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 40px;
-    padding-top: 20px;
-    border-top: 1px dashed var(--color-main-border);
-}
-
-.nav-link {
-    display: block;
-    width: 48%;
-    padding: 10px 15px;
-    border: 1px solid var(--color-main-border);
-    border-radius: 4px;
-    color: var(--color-main-text);
-    transition: background-color 0.2s, border-color 0.2s;
-}
-
-.nav-link h3 {
-    margin: 5px 0 0 0;
-    font-size: 1.05rem;
-    font-weight: 600;
-    line-height: 1.3;
-}
-
-.nav-link small {
-    color: var(--color-main-subtext);
-    font-size: 0.85rem;
-}
-
-.nav-link-placeholder {
-    width: 48%;
-}
-
-.nav-link:hover {
-    background-color: var(--color-primary-light);
-    border-color: var(--color-primary);
-    color: var(--color-primary);
-}
-
-@media (prefers-color-scheme: dark) {
-    .nav-link { 
-        background-color: var(--color-card-dark);
-        border-color: var(--color-border-dark);
-    }
-    .nav-link:hover {
-        background-color: rgba(128, 203, 196, 0.1); 
-        border-color: var(--color-link-dark);
-        color: var(--color-link-dark);
-    }
-    .nav-link small {
-        color: var(--color-text-secondary-dark);
-    }
-}
-
-
-/* =========================================
-   I. 底部
-   ========================================= */
-
-footer {
-    border-top: 1px solid var(--color-main-border);
-    padding: 20px 0;
-    font-size: 0.9rem;
-    color: var(--color-main-subtext);
-}
-
-.footer-content {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    flex-wrap: wrap;
-}
-
-.footer-links a {
-    margin-left: 15px;
-}
-
-.back-to-top {
-    font-weight: 600;
-}
-
-/* =========================================
-   J. 首页/列表页 (Index/List) - 非卡片化设计 [上次修改]
-   ========================================= */
-
-/* 1. 基础列表样式：参考归档页的 ul/li 结构 */
-.new-post-list {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-}
-
-.new-post-list-item {
-    /* 继承归档页的虚线分隔线 */
-    padding: 20px 0; /* 增加上下内边距 */
-    border-bottom: 1px dashed var(--color-main-border);
-    transition: background-color 0.2s, border-left 0.2s, padding-left 0.2s; 
-
-    /* 实现归档页的侧边留白和负边距，用于 hover 效果 */
-    padding-left: 15px; 
-    margin-left: -15px; 
-    width: calc(100% + 30px); /* 列表项占据整个内容区域并扩展到两侧 */
-}
-
-/* 移除最后一个列表项的底边框 */
-.new-post-list-item:last-child {
-    border-bottom: none;
-}
-
-/* 2. 交互效果：与归档页一致的 Hover/Focus 效果 */
-.new-post-list-item:hover, 
-.new-post-list-item:focus-within {
-    /* 悬停时背景微灰 */
-    background-color: rgba(0, 0, 0, 0.02); 
-    /* 核心交互：左侧高亮竖线 */
-    border-left: 3px solid var(--color-primary); 
-    /* 调整左边距以保持总宽度不变 */
-    padding-left: 12px; /* 15px - 3px */
-    outline: none; 
-}
-
-@media (prefers-color-scheme: dark) {
-    .new-post-list-item:hover, 
-    .new-post-list-item:focus-within {
-        background-color: rgba(255, 255, 255, 0.03); /* 暗色模式的微灰 */
-        border-left-color: var(--color-link-dark); /* 暗色模式的主题色 */
-    }
-}
-
-
-/* 3. 内部排版：标题、日期、标签、摘要的排版优化 */
-
-/* 链接包裹整个列表项内容，使其可点击 */
-.new-post-list-item .post-link {
-    display: block; 
-    color: inherit;
-    text-decoration: none;
-    padding: 0; 
-    margin: 0; 
-}
-
-/* 移除全局 a::after 下划线动画 */
-.new-post-list-item .post-link::after {
-    content: none; 
-}
-/* 悬停时不改变文字颜色，保持背景/边框变化为主 */
-.new-post-list-item .post-link:hover {
-    color: inherit; 
-}
-
-/* 标题：突出显示 */
-.new-post-list-item .post-title {
-    font-size: 1.3rem; 
-    margin: 0 0 0.4em 0; 
-    line-height: 1.3;
-    font-weight: 600;
-    color: var(--color-main-text);
-    transition: color 0.2s;
-}
-
-/* 悬停时标题变色 */
-.new-post-list-item:hover .post-title {
-    color: var(--color-primary);
+.license-format-code {
+    margin-top: 10px; padding: 8px 12px; border-radius: 4px; overflow-x: auto; font-size: 0.9em; 
+    color: var(--color-main-text); background-color: var(--color-code-bg);
 }
 @media (prefers-color-scheme: dark) {
-    .new-post-list-item:hover .post-title {
-        color: var(--color-link-dark);
-    }
+    .license-format-code { background-color: var(--color-code-bg-dark); }
 }
-
-
-/* 元数据：日期和标签的容器 */
-.new-post-list-item .post-meta {
-    display: flex;
-    align-items: center;
-    flex-wrap: wrap;
-    margin-bottom: 0.8em; 
-    font-size: 0.9rem;
-    color: var(--color-main-subtext);
-    gap: 0 15px; /* 日期和第一个标签之间的间隔 */
-}
-
-/* 日期：采用次要文字颜色 */
-.new-post-list-item .post-date {
-    font-weight: 500;
-    white-space: nowrap;
-}
-
-/* 标签：徽章样式 */
-.new-post-list-item .tag-badge {
-    display: inline-block;
-    font-size: 0.8rem;
-    padding: 2px 8px;
-    border-radius: 4px;
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
-    line-height: 1.4;
-    font-weight: 600;
-    white-space: nowrap;
-    /* 移除 a::after 的影响 */
-    text-decoration: none; 
-    transition: opacity 0.2s;
-}
-/* 暗色模式标签 */
-@media (prefers-color-scheme: dark) {
-    .new-post-list-item .tag-badge {
-        background-color: rgba(128, 203, 196, 0.1); 
-        color: var(--color-link-dark);
-    }
-}
-.new-post-list-item .tag-badge:hover {
-    opacity: 0.8;
-}
-
-/* 摘要：限制行数，保持简洁 */
-.new-post-list-item .post-summary {
-    margin: 0;
-    padding: 0;
-    font-size: 0.95rem;
-    color: var(--color-main-subtext);
-    /* 纯 CSS 限制行数 */
-    display: -webkit-box;
-    -webkit-box-orient: vertical;
-    -webkit-line-clamp: 2; /* 限制为 2 行 */
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-
-/* =========================================
-   K. 归档页和标签单页列表样式 (与首页列表风格统一) [本次新增]
-   ========================================= */
-
-/* 归档页/标签单页的文章列表容器 */
-.post-content-list .archive-list {
-    list-style: none;
-    padding-left: 0;
-    margin: 0;
-}
-
-/* 归档年份标题 */
-.post-content-list h2 {
-    margin-top: 2em;
-    margin-bottom: 0.5em;
-    font-size: 1.4rem;
-    color: var(--color-primary);
-    border-bottom: none;
-}
-@media (prefers-color-scheme: dark) {
-    .post-content-list h2 {
-        color: var(--color-link-dark);
-    }
-}
-
-/* 归档列表项的容器 (li) */
-.post-content-list .archive-list li {
-    /* 继承首页列表项的样式：虚线、内/外边距、过渡 */
-    padding: 15px 0; 
-    border-bottom: 1px dashed var(--color-main-border);
-    transition: background-color 0.2s, border-left 0.2s, padding-left 0.2s; 
-
-    padding-left: 15px; 
-    margin-left: -15px; 
-    width: calc(100% + 30px);
-    list-style: none;
-}
-
-/* 归档列表项的链接 (a) */
-.post-content-list .list-item-archive {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    font-size: 1rem;
-    color: var(--color-main-text);
-}
-
-/* 归档列表项的日期 */
-.post-content-list .archive-date {
-    flex-shrink: 0; /* 不压缩日期 */
-    width: 120px;
-    font-family: monospace;
-    font-size: 0.9rem;
-    color: var(--color-main-subtext);
-    margin-right: 20px;
-    white-space: nowrap;
-}
-
-/* 归档列表项的标题 */
-.post-content-list .archive-title {
-    flex-grow: 1;
-    font-weight: 500;
-}
-
-
-/* 归档页/标签单页的 Hover 效果 (与首页一致) */
-.post-content-list .archive-list li:hover, 
-.post-content-list .archive-list li:focus-within {
-    background-color: rgba(0, 0, 0, 0.02); 
-    border-left: 3px solid var(--color-primary); 
-    padding-left: 12px;
-}
-.post-content-list .archive-list li:hover .archive-title {
-    color: var(--color-primary);
-}
-
-@media (prefers-color-scheme: dark) {
-    .post-content-list .archive-list li:hover, 
-    .post-content-list .archive-list li:focus-within {
-        background-color: rgba(255, 255, 255, 0.03); 
-        border-left-color: var(--color-link-dark);
-    }
-    .post-content-list .archive-list li:hover .archive-title {
-        color: var(--color-link-dark);
-    }
-}
-
-/* 归档页移除最后一个底边框 */
-.post-content-list .archive-list li:last-child {
-    border-bottom: none;
-}
-
-
-/* =========================================
-   L. 标签列表页样式 (Tag List Page) [本次新增]
-   ========================================= */
-
-.tags-list-container {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px; /* 标签之间的间隔 */
-    padding: 10px 0;
-}
-
-.tag-entry {
-    /* 采用放大版的徽章样式 */
-    display: flex;
-    align-items: center;
-    padding: 8px 15px;
-    border-radius: 6px;
-    background-color: var(--color-primary-light);
-    color: var(--color-primary);
-    font-size: 1.1rem;
-    font-weight: 600;
-    text-decoration: none;
-    transition: background-color 0.2s, box-shadow 0.2s, transform 0.1s;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1); /* 柔和的阴影，避免卡片化 */
-}
-
-.tag-entry:hover {
-    background-color: var(--color-primary);
-    color: var(--color-background);
-    transform: translateY(-1px); /* 轻微上浮效果 */
-    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.2);
-}
-
-.tag-entry .tag-name {
-    margin-right: 5px;
-}
-
-.tag-entry .tag-count {
-    font-size: 0.9em;
-    font-weight: 400;
-    opacity: 0.8;
-}
-
-/* 暗色模式标签列表 */
-@media (prefers-color-scheme: dark) {
-    .tag-entry {
-        background-color: rgba(128, 203, 196, 0.1); 
-        color: var(--color-link-dark);
-        box-shadow: none;
-    }
-    .tag-entry:hover {
-        background-color: var(--color-link-dark);
-        color: var(--color-background-dark);
-    }
+@media (max-width: 600px) {
+    .post-license { padding: 15px; margin: 30px 0 0; }
 }
