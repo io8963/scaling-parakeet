@@ -194,6 +194,19 @@ def build_site():
         shutil.copy2(css_source, os.path.join(assets_dir, new_css))
     else:
         config.CSS_FILENAME = 'style.css'
+        
+    # =========================================================================
+    # ⭐ 新增: 复制 CNAME 文件到 _site 部署目录 (解决自定义域名问题)
+    # =========================================================================
+    cname_path_source = os.path.join(os.path.dirname(__file__), 'CNAME')
+    cname_path_dest = os.path.join(config.BUILD_DIR, 'CNAME')
+
+    if os.path.exists(cname_path_source):
+        print("   -> Copying CNAME file...")
+        shutil.copyfile(cname_path_source, cname_path_dest)
+    else:
+        print("   -> WARNING: CNAME file not found. Custom domain might fail (404).")
+    # =========================================================================
 
     # -------------------------------------------------------------------------
     # [3/5] 解析 Markdown (增量构建核心)
