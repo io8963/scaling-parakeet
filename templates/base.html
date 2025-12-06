@@ -25,7 +25,7 @@
             <nav>
                 <a href="{{site_root}}/" {% if page_id == 'index' %}class="active-nav-link"{% endif %}>首页</a>
                 <a href="{{site_root}}/archive/" {% if page_id == 'archive' %}class="active-nav-link"{% endif %}>归档</a>
-                <a href="{{site_root}}/tags/" {% if page_id == 'tags-list' %}class="active-nav-link"{% endif %}>标签</a>
+                <a href="{{site_root}}/tags/" {% if page_id == 'tags' %}class="active-nav-link"{% endif %}>标签</a>
                 <a href="{{site_root}}/about/" {% if page_id == 'about' %}class="active-nav-link"{% endif %}>关于</a>
             </nav>
         </div>
@@ -34,85 +34,103 @@
     <main id="main-content">
         <div class="main-layout">
             <div class="content-area">
-
-                {%- if page_id == 'index' -%}
-                
-                <ul class="new-post-list">
-                {% for post in posts %}
-                    <li class="new-post-list-item">
-                        <a href="{{ post.link }}" class="post-link">
-                            <h2 class="post-title">{{ post.title }}</h2>
-                            <div class="post-meta">
-                                <span class="post-date">{{ post.date_formatted }}</span>
-                                {% for tag in post.tags %}
-                                    <a href="{{ tag.link }}" class="tag-badge">{{ tag.name }}</a>
-                                {% endfor %}
+                <div class="page-header">
+                    {%- if page_id == 'post' -%}
+                        <h1>{{post.title}}</h1>
+                        <div class="post-meta">
+                            <div class="meta-container">
+                                <span class="meta-date">
+                                    {{post_date}}
+                                </span>
+                                
+                                {% if post_tags %}
+                                    <div class="meta-tags">
+                                        <ul class="tags-list">
+                                        {% for tag in post_tags %}
+                                            <li><a href="{{tag.link}}" class="tag-badge">{{tag.name}}</a></li>
+                                        {% endfor %}
+                                        </ul>
+                                    </div>
+                                {% endif %}
                             </div>
-                            <p class="post-summary">{{ post.summary }}</p>
+                        </div>
+
+                        {# 移动端目录 #}
+                        {% if toc_html %}
+                        <details class="mobile-toc">
+                            <summary>📑 目录</summary>
+                            <div class="mobile-toc-content">
+                                {{ toc_html | safe }}
+                            </div>
+                        </details>
+                        {% endif %}
+
+                    {%- endif -%}
+                </div>
+                
+                {# --- 列表页面 (首页, 标签详情, 归档) --- #}
+                {%- if page_id == 'index' or page_id == 'tag' or page_id == 'archive' -%} 
+                    
+                    {%- if page_id == 'tag' -%}
+                        <div class="tag-meta-info">
+                            <h1 class="page-list-title"># {{tag}}</h1>
+                            <p style="color: var(--color-main-subtext); margin-bottom: 20px; font-size: 0.9rem;">共 {{posts | length}} 篇文章</p>
+                            <a href="{{site_root}}/tags/" class="button button-secondary button-small">← 所有标签</a>
+                        </div>
+                        <hr style="border: none; border-top: 1px solid var(--color-main-border); margin: 30px 0;">
+                    {%- endif -%}
+                    
+                    {%- if page_id != 'archive' -%}
+                    <div class="post-list">
+                    {% for post in posts %}
+                        <a href="{{post.link}}" class="post-list-item">
+                            
+                            <h2 class="post-title">{{post.title}}</h2>
+                            
+                            <div class="post-list-meta-line">
+                                <span class="meta-date">{{post.date_formatted}}</span>
+
+                                {% if post.tags %}
+                                    <span style="opacity: 0.5;">·</span> 
+                                    <ul class="tags-list">
+                                    {% for tag in post.tags %}
+                                        <li><a href="{{tag.link}}" class="tag-badge">{{tag.name}}</a></li>
+                                    {% endfor %}
+                                    </ul>
+                                {% endif %}
+                            </div>
+
+                            {% if post.excerpt %}
+                                <p class="post-excerpt">{{post.excerpt}}</p>
+                            {% endif %}
+                            
                         </a>
-                    </li>
-                {% endfor %}
-                </ul>
-
-                {%- elif page_id == 'archive' -%}
-                
-                <div class="page-header">
-                    <h1>{{page_title}}</h1>
-                    <p class="archive-intro">共收录了 {{posts | length}} 篇文章。</p>
-                </div>
-                <div class="post-content post-content-list">
-                    {{content_html | safe}}
-                </div>
-                
-                {%- elif page_id == 'tags-list' -%}
-                
-                <div class="page-header">
-                    <h1>{{page_title}}</h1>
-                </div>
-                <div class="post-content post-content-list">
-                    {{content_html | safe}}
-                </div>
-
-                {%- elif page_id == 'tag' -%}
-                
-                <div class="page-header">
-                    <h1>标签：{{tag}}</h1>
-                    <p class="archive-intro">共收录了 {{posts | length}} 篇文章。</p>
-                </div>
-                <div class="post-content post-content-list">
-                    {{content_html | safe}}
-                </div>
-
-                {%- elif page_id == 'about' -%}
-
-                <div class="post-content">
-                    {{content_html | safe}}
-                </div>
-                
-                {%- elif page_id == 'post' -%}
-
-                <div class="page-header">
-                    <h1 class="post-title">{{post.title}}</h1>
-                    <div class="post-meta">
-                        <span class="post-date">{{post.date_formatted}}</span>
-                        <span class="post-author">By {{blog_author}}</span>
-                        {% for tag in post.tags %}
-                            <a href="{{tag.link}}" class="post-tag-badge">{{tag.name}}</a>
-                        {% endfor %}
+                    {% endfor %}
                     </div>
-                </div>
-                <div class="post-content">
-                    {{content_html | safe}}
-                </div>
-                
+                    {%- endif -%}
+
+                    {%- if page_id == 'index' and posts|length == max_posts_on_index -%}
+                    <div class="read-more-link-area">
+                        <a href="{{site_root}}/archive/" class="button button-secondary">查看全部归档 →</a>
+                    </div>
+                    {%- endif -%}
+
                 {%- endif -%}
 
+                {# --- 正文/归档/标签云内容渲染区 --- #}
+                {%- if content_html -%}
+                    <div class="post-content">
+                        {{content_html | safe}}
+                    </div>
+                {%- endif -%}
+                
+                {# 版权声明 #}
                 {%- if page_id == 'post' -%}
                 <div class="post-license">
                     <p>
                         <span class="license-icon">
-                            <i title="Creative Commons">CC</i>
-                            <i title="Attribution">BY</i>
+                            <i title="Creative Commons">CC</i> 
+                            <i title="Attribution">BY</i> 
                             <i title="Non-Commercial">NC</i>
                         </span>
                         本文依据 <a href="https://creativecommons.org/licenses/by-nc/4.0/" target="_blank" rel="license noopener noreferrer">CC BY-NC 4.0 许可协议</a> 发布。
@@ -120,14 +138,16 @@
                     <p>转载请遵循协议，务必保留作者署名及原文链接。推荐使用以下标准格式：</p>
                     <div class="license-format-code">
                         <code>
-                            本文标题：{{post.title}} <br>
-                            作者：{{blog_author}} <br>
+                            本文标题：{{post.title}}
+                            <br>
+                            作者：{{blog_author}}
+                            <br>
                             原文链接：<a href="{{canonical_url}}">{{canonical_url}}</a>
                         </code>
                     </div>
                 </div>
                 {%- endif -%}
-
+                
                 {# 文章上/下导航 #}
                 {%- if page_id == 'post' and (prev_post_nav or next_post_nav) -%}
                 <nav class="post-navigation">
