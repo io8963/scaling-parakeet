@@ -1,11 +1,11 @@
-# generator.py (完整内容，修复为 Directory-Style Pretty URL 模式)
+# generator.py (完整内容，包含所有路径和链接的 Pretty URL 修复)
 
 import os
 import shutil 
 import glob   
 from datetime import datetime, timezone
 from collections import defaultdict
-from typing import List, Dict, Any, Tuple 
+from typing import List, Dict, Any, Tuple, Optional 
 from jinja2 import Environment, FileSystemLoader
 import json 
 import config
@@ -79,6 +79,33 @@ def is_post_hidden(post: Dict[str, Any]) -> bool:
     """
     return post.get('status', 'published').lower() == 'draft' or post.get('hidden') is True
 
+# --- [新增] 辅助函数：修复文章列表和导航的链接 ---
+
+def fix_post_links_for_template(post_list: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    """
+    更新文章列表中的 post['link'] 属性，使用 make_internal_url 转换为带斜杠的 Pretty URL。
+    """
+    fixed_posts = []
+    for post in post_list:
+        fixed_post = post.copy()
+        original_link = fixed_post.get('link')
+        if original_link:
+            fixed_post['link'] = make_internal_url(original_link)
+        fixed_posts.append(fixed_post)
+    return fixed_posts
+
+def fix_nav_post_link(nav_post: Optional[Dict[str, Any]]) -> Optional[Dict[str, Any]]:
+    """
+    更新上一篇/下一篇文章导航对象中的 post['link'] 属性。
+    """
+    if nav_post:
+        fixed_nav_post = nav_post.copy()
+        original_link = fixed_nav_post.get('link')
+        if original_link:
+            fixed_nav_post['link'] = make_internal_url(original_link)
+        return fixed_nav_post
+    return None
+
 # --- 核心生成函数 ---
 
 def generate_post_page(post: Dict[str, Any]):
@@ -119,8 +146,9 @@ def generate_post_page(post: Dict[str, Any]):
             'post_date': post.get('date_formatted', ''),
             'post_tags': post.get('tags', []),
             'toc_html': post.get('toc_html'),
-            'prev_post_nav': post.get('prev_post_nav'),
-            'next_post_nav': post.get('next_post_nav'),
+            # [FIX] 修复文章导航链接
+            'prev_post_nav': fix_nav_post_link(post.get('prev_post_nav')),
+            'next_post_nav': fix_nav_post_link(post.get('next_post_nav')),
             'site_root': get_site_root_prefix(),
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
@@ -155,7 +183,8 @@ def generate_index_html(sorted_posts: List[Dict[str, Any]], build_time_info: str
             'blog_title': config.BLOG_TITLE,
             'blog_description': config.BLOG_DESCRIPTION,
             'blog_author': config.BLOG_AUTHOR,
-            'posts': visible_posts,
+            # [FIX] 修复文章列表中的链接
+            'posts': fix_post_links_for_template(visible_posts),
             'max_posts_on_index': config.MAX_POSTS_ON_INDEX,
             'site_root': get_site_root_prefix(),
             'current_year': datetime.now().year,
@@ -201,7 +230,7 @@ def generate_archive_html(sorted_posts: List[Dict[str, Any]], build_time_info: s
         for year, posts in sorted_archive:
             archive_html += f"<h2>{year} ({len(posts)} 篇)</h2>\n<ul>\n"
             for post in posts:
-                # [MODIFIED] post['link'] 在这里仍然是带 .html 的，make_internal_url 负责处理
+                # 这里的 link 必须使用 make_internal_url 修复
                 link = make_internal_url(post['link']) 
                 archive_html += f"<li><a href=\"{link}\">{post['title']}</a> - {post['date_formatted']}</li>\n"
             archive_html += "</ul>\n"
@@ -216,7 +245,8 @@ def generate_archive_html(sorted_posts: List[Dict[str, Any]], build_time_info: s
             'blog_description': '所有文章的完整列表',
             'blog_author': config.BLOG_AUTHOR,
             'content_html': archive_html, 
-            'posts': visible_posts,
+            # [FIX] 修复文章列表中的链接 (即使 archive 页面没有直接循环 post 列表，也保持数据一致性)
+            'posts': fix_post_links_for_template(visible_posts),
             'site_root': get_site_root_prefix(),
             'current_year': datetime.now().year,
             'css_filename': config.CSS_FILENAME,
@@ -314,7 +344,8 @@ def generate_tag_page(tag_name: str, sorted_tag_posts: List[Dict[str, Any]], bui
             'blog_title': config.BLOG_TITLE,
             'blog_description': config.BLOG_DESCRIPTION,
             'blog_author': config.BLOG_AUTHOR,
-            'posts': sorted_tag_posts, 
+            # [FIX] 修复文章列表中的链接
+            'posts': fix_post_links_for_template(sorted_tag_posts), 
             'tag': tag_name, 
             'site_root': get_site_root_prefix(),
             'current_year': datetime.now().year,
@@ -333,7 +364,7 @@ def generate_tag_page(tag_name: str, sorted_tag_posts: List[Dict[str, Any]], bui
     except Exception as e:
         print(f"Error generating tag page for {tag_name}: {type(e).__name__}: {e}")
 
-# --- 辅助生成：Robots, Sitemap, RSS ---
+# --- 辅助生成：Robots, Sitemap, RSS (不变，因为它们内部调用 make_internal_url) ---
 
 def generate_robots_txt():
     """生成 robots.txt"""
