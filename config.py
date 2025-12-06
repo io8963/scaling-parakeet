@@ -3,8 +3,9 @@
 import os
 
 # --- 站点配置 ---
+# 请根据您的实际情况修改
 BASE_URL = "https://scaling-parakeet-138.pages.dev/"
-# ！！！关键修改：请将 "/your-repo-name" 替换为您实际的子目录路径或 GitHub 仓库名
+# ！！！关键修改：如果您的网站部署在子目录，请在这里填写，否则保持为空""
 REPO_SUBPATH = "" 
 
 # 内部链接的根路径
@@ -20,6 +21,18 @@ CSS_FILENAME = 'style.css'
 # 定义代码高亮使用的 CSS 类名
 CODE_HIGHLIGHT_CLASS = 'highlight'
 
+# --- 目录和文件配置 ---
+# ！！！关键：构建输出目录名！！！
+BUILD_DIR = '_site' # 默认使用 'build'，如果 Cloudflare 设置的是 '_site' 请修改
+
+POSTS_DIR = 'markdown_posts'
+STATIC_DIR = 'assets'
+
+TAGS_DIR_NAME = 'tags' # 标签页面的目录名
+SITEMAP_FILE = 'sitemap.xml'
+RSS_FILE = 'rss.xml'
+MANIFEST_FILE = '.build_manifest.json'
+
 # --- Markdown 配置 ---
 # 1. 扩展列表 (使用短名称)
 MARKDOWN_EXTENSIONS = [
@@ -32,7 +45,7 @@ MARKDOWN_EXTENSIONS = [
     'pymdownx.tilde',     # [新增] 删除线支持 (~~text~~)
 ]
 
-# 2. 扩展具体配置 (！！！关键修复：使用短名称作为键！！！)
+# 2. 扩展具体配置
 MARKDOWN_EXTENSION_CONFIGS = {
     'toc': {
         'baselevel': 2,
@@ -40,39 +53,18 @@ MARKDOWN_EXTENSION_CONFIGS = {
     },
     'codehilite': {
         'linenums': False,             
-        'css_class': CODE_HIGHLIGHT_CLASS, # 强制指定类名为 'highlight'
-        'use_pygments': True,          # 强制使用 Pygments
+        'css_class': CODE_HIGHLIGHT_CLASS, 
+        'use_pygments': True,          
         'noclasses': False,            # ⭐ 关键修复：改为 False，使用 CSS 类而不是内联样式
-        'guess_lang': True,            # 自动猜测语言
+        'guess_lang': True,            
     },
     'pymdownx.tasklist': {
-        'custom_checkbox': True,      # 允许使用 CSS 自定义样式
-        'clickable_checkbox': False,  # 静态页面通常设为不可点击
+        'custom_checkbox': True,      
+        'clickable_checkbox': False,  
     }
 }
 # --- Markdown 配置结束 ---
 
 
 # --- 列表配置 ---
-MAX_POSTS_ON_INDEX = 5 
-
-# --- 目录和文件配置 ---
-MARKDOWN_DIR = 'markdown'
-BUILD_DIR = '_site'
-POSTS_DIR_NAME = 'posts' 
-TAGS_DIR_NAME = 'tags' 
-STATIC_DIR = 'static'
-MEDIA_DIR = 'media'
-
-ABOUT_PAGE = 'about.md'
-
-# 组合后的输出目录
-POSTS_OUTPUT_DIR = os.path.join(BUILD_DIR, POSTS_DIR_NAME)
-TAGS_OUTPUT_DIR = os.path.join(BUILD_DIR, TAGS_DIR_NAME)
-STATIC_OUTPUT_DIR = os.path.join(BUILD_DIR, STATIC_DIR)
-
-# 特殊文件名称
-SITEMAP_FILE = 'sitemap.xml'
-RSS_FILE = 'rss.xml'
-ARCHIVE_FILE = 'archive.html' 
-TAGS_LIST_FILE = 'tags.html'
+MAX_POSTS_ON_INDEX = 5
