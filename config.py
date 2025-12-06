@@ -20,9 +20,12 @@ CSS_FILENAME = 'style.css'
 # 定义代码高亮使用的 CSS 类名
 CODE_HIGHLIGHT_CLASS = 'highlight'
 
+# 【新增】首页展示的文章数量
+MAX_POSTS_ON_INDEX = 5 
+
 # --- 文件系统配置 ---
 POSTS_DIR_NAME = "posts"
-PAGES_DIR = "pages"        # <--- 【新增】通用页面目录定义
+PAGES_DIR = "pages"        # <-- 已添加
 TAGS_DIR_NAME = "tags"
 BUILD_DIR = "_site"
 STATIC_DIR = "assets"
