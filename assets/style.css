@@ -531,7 +531,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     /* 修复 1 (更新): 统一使用 display: flex 和 align-items 确保文本垂直居中，消除潜在的 inline 导致的基线问题 */
     display: flex; /* <<< 关键修改：从 inline-flex 更改为 flex */
     align-items: center; 
-    line-height: 1.2; 
+    /* line-height: 1.2; */ /* <<< 关键修复 2：移除此属性，消除次像素偏移 */
     height: auto;
     font-size: 0.8rem; /* 减小字体 */
     font-weight: 500;
@@ -570,7 +570,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border: 1px solid var(--color-main-border); /* 新增边框 */
     padding: 2px 6px;
     border-radius: 4px;
-    line-height: 1.2;
+    /* line-height: 1.2; */ /* <<< 关键修复 3：移除此属性，消除次像素偏移 */
     height: auto;
     /* >>> 关键修复 3：统一使用 Flex 布局进行精确的垂直居中 <<< */
     display: flex; 
