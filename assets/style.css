@@ -255,18 +255,30 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     display: none; 
     margin-bottom: 30px;
     border: 1px solid var(--color-main-border);
-    border-radius: 4px; /* 【修改】从 6px 改为 4px */
+    border-radius: 4px; 
     font-size: 0.9rem;
     transition: border-color 0.2s;
 }
 .mobile-toc:hover { border-color: var(--color-primary); }
-.mobile-toc summary { padding: 10px 15px; cursor: pointer; color: var(--color-main-subtext); }
-.mobile-toc[open] > summary { border-bottom: 1px solid var(--color-main-border); padding-bottom: 10px; margin-bottom: 10px; }
-.mobile-toc-content { padding: 15px; border-top: 1px solid var(--color-main-border); }
+.mobile-toc summary { 
+    padding: 10px 15px; 
+    cursor: pointer; 
+    color: var(--color-main-subtext); 
+    outline: none; /* 确保 focus 状态不会引起双线 */
+}
+/* 当目录展开时，给 summary 添加底部边框，作为唯一的分割线 */
+.mobile-toc[open] > summary { 
+    border-bottom: 1px solid var(--color-main-border); 
+    padding-bottom: 10px; 
+    margin-bottom: 10px; /* 保持与内容区的间隔 */
+}
+.mobile-toc-content { 
+    padding: 15px; 
+    border-top: none; /* 【修复】移除冗余的顶部边框 */
+}
 .mobile-toc-content ul { list-style: none; padding: 0; }
 .mobile-toc-content ul ul { padding-left: 15px; border-left: 1px dotted var(--color-main-border); }
 .mobile-toc-content a { display: block; padding: 4px 0; color: var(--color-main-text); text-decoration: none;}
-
 /* =========================================
    J. 文章正文 (Content)
    ========================================= */
