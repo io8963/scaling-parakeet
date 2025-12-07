@@ -411,7 +411,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 .post-content table { 
-    width: 100%; 
+    min-width: 100%; /* 【修改】新增：确保表格在内容少时仍占满容器宽度 */
+    width: auto;     /* 【修改】从 width: 100% 更改为 width: auto，允许表格宽度超过容器，触发外部 .table-wrapper 的滚动 */
     border-collapse: collapse; 
     font-size: 0.95rem;
     color: var(--color-main-text); /* 确保文本颜色正确继承 */
