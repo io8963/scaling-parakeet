@@ -161,26 +161,24 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
                 img['loading'] = 'lazy'
 
         # 2. 表格包裹器 (Table Wrapper)
+        # 【关键修改】优化表格包裹逻辑，确保所有 table 被正确包裹，且不重复
         for table in soup.find_all('table'):
-            # 找到 table 标签的父元素
-            parent = table.parent
-            if not parent:
-                continue
-
             # 检查父元素是否已经是 table-wrapper，防止重复包裹
-            if 'class' in parent.attrs and 'table-wrapper' in parent['class']:
+            parent = table.parent
+            if parent and 'class' in parent.attrs and 'table-wrapper' in parent['class']:
                 continue
 
             # 创建新的 div 容器
             wrapper_div = soup.new_tag('div', class_='table-wrapper')
             
-            # 将 table 替换为 wrapper_div
+            # 将 table 替换为其包裹器
             table.replace_with(wrapper_div)
             
             # 将 table 放入 wrapper_div
             wrapper_div.append(table)
             
         content_html = str(soup)
+
     
     # 3. 获取目录
     toc_html = md.toc if hasattr(md, 'toc') else ""
