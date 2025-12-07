@@ -845,34 +845,6 @@ a:focus, button:focus, .tag-cloud-item:focus {
    ========================================= */
 
 /* 1. 基本容器样式: 保持背景和圆角 */
-.highlight {
-    background: var(--color-code-bg);
-    border-radius: 4px;
-    padding: 15px;
-    margin: 1.5em 0;
-    overflow-x: auto; /* 保证代码块可横向滚动 */
-    line-height: 1.5;
-    font-size: 0.9em;
-}
-
-@media (prefers-color-scheme: dark) {
-    .highlight {
-        background: var(--color-code-bg-dark);
-    }
-}
-
-/* 2. 重置样式，以适应博客布局 */
-.highlight pre {
-    margin: 0;
-    padding: 0;
-    border: none;
-    background: none;
-}
-.highlight pre code {
-    padding: 0;
-    background: none;
-    font-size: 1em;
-}
 
 /* 3. Pygments 默认主题的颜色样式 (可根据需要替换为其他主题) */
 .highlight .hll { background-color: #ffffcc } /* 高亮行 */
