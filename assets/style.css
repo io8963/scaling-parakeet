@@ -376,7 +376,13 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     }
 }
 
-.post-content table { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+.post-content table { 
+    width: 100%; 
+    min-width: 100%; /* 【关键新增】确保表格内容溢出时能正确触发横向滚动 */
+    border-collapse: collapse; 
+    font-size: 0.95rem; 
+}
+
 .post-content th, .post-content td { padding: 12px 15px; border-bottom: 1px solid var(--color-main-border); text-align: left; }
 .post-content th { background-color: rgba(0,0,0,0.02); font-weight: 600; }
 
