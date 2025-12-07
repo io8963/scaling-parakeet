@@ -116,7 +116,7 @@ a:focus {
 header nav a::after, .post-license a::after,
 .post-content h1 a::after, .post-content h2 a::after, .post-content h3 a::after,
 .tag-badge a::after, .button a::after, .button-secondary a::after,
-.archive-link::after { /* 移除归档列表链接的下划线动画 */
+.archive-link::after, .post-list-item a::after { /* 移除列表链接的下划线动画 */
     content: none;
 }
 
@@ -442,7 +442,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 /* =========================================
-   N. 极简文章列表 (首页/标签页 - 左侧竖线交互)
+   N. 极简文章列表 (首页/标签页 - 重构版)
    ========================================= */
 .post-list { 
     list-style: none; 
@@ -450,116 +450,125 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0; 
     display: flex;
     flex-direction: column;
+    gap: 15px; /* 增加项之间的间距 */
 }
 
 .post-list-item {
     display: block; 
-    padding: 20px 20px 20px 15px; 
+    padding: 25px 25px 25px 20px; 
     border-bottom: 1px dashed var(--color-main-border); 
     border-left: 4px solid transparent; 
-    margin-left: -15px; 
-    width: calc(100% + 15px);
     background-color: transparent; 
     text-decoration: none;
     color: inherit;
-    transition: all 0.2s ease;
-    border-radius: 0;
-    box-shadow: none;
+    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    border-radius: 0 6px 6px 0; /* 右侧圆角 */
+    margin-left: -20px; /* 负 margin 以抵消容器 padding */
+    width: calc(100% + 20px);
 }
 
 .post-list-item:hover,
 .post-list-item:focus { 
-    background-color: rgba(0, 0, 0, 0.02); 
+    background-color: rgba(0, 0, 0, 0.015); 
     border-left-color: var(--color-primary);
+    transform: translateX(3px); /* 悬停时轻微位移 */
     outline: none;
-    transform: none; 
 }
 
 .post-list-item:last-child { border-bottom: none; }
 
+/* 1. 标题样式 */
 .post-list-item .post-title {
-    margin: 0 0 10px 0;
-    font-size: 1.6rem; 
+    margin: 0 0 12px 0;
+    font-size: 1.5rem; 
     font-weight: 700;
     color: var(--color-main-text);
     line-height: 1.3;
     transition: color 0.2s;
+    letter-spacing: -0.01em;
 }
 .post-list-item:hover .post-title { 
     color: var(--color-primary); 
 }
 
+/* 2. 元信息行 (日期 + 标签) */
 .post-list-meta-line {
     display: flex;
     align-items: center;
-    gap: 15px; 
-    margin-bottom: 15px;
+    flex-wrap: wrap;
+    gap: 12px; 
+    margin-bottom: 12px;
     font-size: 0.85rem;
     color: var(--color-main-subtext);
 }
 
-.post-list-item .meta-date {
-    font-family: monospace;
+/* 日期样式 - 仿照归档页的 Monospace 风格 */
+.post-list-item .meta-date-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace; /* 等宽字体 */
+    opacity: 0.9;
+    color: var(--color-main-subtext);
+}
+.post-list-item .date-icon {
+    font-style: normal;
+    font-size: 1rem;
+    line-height: 1;
     opacity: 0.8;
-    margin: 0; padding: 0; border: none; background: none; display: inline; height: auto;
 }
 
-.post-list-item:hover .meta-date {
-    color: var(--color-primary); 
-    opacity: 1; 
+/* 标签容器 */
+.post-list-item .tags-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 8px;
 }
-
-.post-list-item .tags-list {
-    display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none;
-}
-.post-list-item .tags-list li { padding: 0; margin: 0; border: none; }
-
-.post-list-item .tag-badge {
+.post-list-item .tag-item {
     font-size: 0.8rem;
     color: var(--color-main-subtext);
-    background-color: rgba(0,0,0,0.03); 
-    border: none; 
-    padding: 2px 6px;
+    background-color: rgba(0,0,0,0.04); 
+    padding: 2px 8px;
     border-radius: 4px;
-    line-height: 1.2;
-    height: auto;
-    display: inline-block;
-    vertical-align: middle;
+    transition: all 0.2s ease;
+    font-weight: 500;
 }
-.post-list-item:hover .tag-badge { 
+.post-list-item:hover .tag-item {
     color: var(--color-primary);
     background-color: var(--color-primary-light);
 }
 
+/* 3. 摘要样式 */
 .post-list-item .post-excerpt {
     color: var(--color-main-subtext); 
-    font-size: 1rem;
-    line-height: 1.65;
+    font-size: 0.95rem;
+    line-height: 1.6;
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     font-family: 'Inter', sans-serif;
-    opacity: 0.9;
+    opacity: 0.85; /* 略微降低对比度，突出标题 */
 }
 
+/* Dark Mode 适配 */
 @media (prefers-color-scheme: dark) {
     .post-list-item:hover,
     .post-list-item:focus {
         background-color: rgba(255, 255, 255, 0.03);
         border-left-color: var(--color-link-dark); 
     }
-    .post-list-item:hover .meta-date {
-        color: var(--color-link-dark); 
+    .post-list-item:hover .post-title {
+        color: var(--color-link-dark);
     }
-    .post-list-item .tag-badge {
-        background-color: rgba(255, 255, 255, 0.05);
+    .post-list-item .tag-item {
+        background-color: rgba(255, 255, 255, 0.08);
         color: var(--color-text-secondary-dark);
     }
-    .post-list-item:hover .tag-badge {
+    .post-list-item:hover .tag-item {
          color: var(--color-link-dark);
-         background-color: rgba(0, 121, 107, 0.2);
+         background-color: rgba(0, 121, 107, 0.25);
     }
 }
 
@@ -834,4 +843,3 @@ a:focus, button:focus, .tag-cloud-item:focus {
 @media (max-width: 600px) {
     .post-license { padding: 15px; margin: 30px 0 0; }
 }
-
