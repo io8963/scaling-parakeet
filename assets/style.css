@@ -528,7 +528,9 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border-radius: 4px; 
     border: 1px solid var(--color-main-border); /* 新增边框 */
     background-color: var(--color-code-bg); /* 新增背景色 */
-    display: inline-block; 
+    /* 修复 1: 使用 inline-flex 和 align-items 确保文本垂直居中，修复错位问题 */
+    display: inline-flex; /* 从 inline-block 更改为 inline-flex */
+    align-items: center; /* 垂直居中文本 */
     line-height: 1.2; 
     height: auto;
     font-size: 0.8rem; /* 减小字体 */
@@ -546,7 +548,14 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 /* ========================================= */
 
 .post-list-item .tags-list {
-    display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none;
+    /* 修复 2: 确保标签列表中的元素 (标签徽章) 垂直居中对齐 */
+    display: flex; 
+    align-items: center; /* 确保 li 内部的元素垂直居中 */
+    flex-wrap: wrap; 
+    gap: 8px; 
+    padding: 0; 
+    margin: 0; 
+    list-style: none;
     /* 优化 4: 添加竖线作为日期和标签的分隔符 */
     padding-left: 12px;
     border-left: 1px solid var(--color-main-border);
