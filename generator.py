@@ -299,9 +299,9 @@ def generate_archive_html(sorted_posts: List[Dict[str, Any]], build_time_info: s
         for year, posts in sorted_archive:
             archive_html += f"<h2>{year} ({len(posts)} 篇)</h2>\n<ul>\n"
             for post in posts:
-                # 关键：这里直接调用 make_internal_url 生成纯净链接
+                # 关键修改：将日期包裹在 <span class="archive-date-cell"> 中，用于优化 UI 和防止换行
                 link = make_internal_url(post['link']) 
-                archive_html += f"<li><a href=\"{link}\">{post['title']}</a> - {post['date_formatted']}</li>\n"
+                archive_html += f"<li><span class=\"archive-date-cell\">{post['date_formatted']}</span><a href=\"{link}\">{post['title']}</a></li>\n"
             archive_html += "</ul>\n"
             
         context = {
