@@ -198,8 +198,12 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0 auto;
     padding: 0 20px;
 }
-.content-area { flex-grow: 1; max-width: 100%; }
-
+.content-area { 
+    flex-grow: 1; 
+    max-width: 100%; 
+    /* 【新增/修复】Flexbox 溢出修复：防止内部的超宽内容（如未被包裹的或宽度极大的 table）强制 flex 容器扩展 */
+    min-width: 0; 
+}
 /* =========================================
    I. 目录 (TOC)
    ========================================= */
