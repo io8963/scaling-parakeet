@@ -116,7 +116,7 @@ a:focus {
 header nav a::after, .post-license a::after,
 .post-content h1 a::after, .post-content h2 a::after, .post-content h3 a::after,
 .tag-badge a::after, .button a::after, .button-secondary a::after,
-.archive-link::after, .post-list-item a::after { /* 移除列表链接的下划线动画 */
+.archive-link::after { /* 移除归档列表链接的下划线动画 */
     content: none;
 }
 
@@ -255,7 +255,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     display: none; 
     margin-bottom: 30px;
     border: 1px solid var(--color-main-border);
-    border-radius: 6px;
+    border-radius: 4px; /* 【修改】从 6px 改为 4px */
     font-size: 0.9rem;
     transition: border-color 0.2s;
 }
@@ -340,7 +340,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 .post-content code:not(pre code) {
-    color: var(--color-text); font-weight: 500; padding: 2px 4px; border-radius: 3px; font-size: 0.9em;
+    color: var(--color-text); font-weight: 500; padding: 2px 4px; border-radius: 4px; /* 【修改】从 3px 改为 4px */
+    font-size: 0.9em;
     border: 1px solid rgba(0, 0, 0, 0.05); background-color: var(--color-code-bg);
 }
 @media (prefers-color-scheme: dark) {
@@ -350,7 +351,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 .post-content pre {
-    background-color: var(--color-code-bg); border-radius: 6px; margin: 25px 0; padding: 15px;
+    background-color: var(--color-code-bg); border-radius: 4px; /* 【修改】从 6px 改为 4px */
+    margin: 25px 0; padding: 15px;
     overflow-x: auto; font-size: 0.9rem; border: 1px solid var(--color-main-border);
     transition: box-shadow 0.2s, background-color 0.2s;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
@@ -363,7 +365,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 .table-wrapper { 
     width: 100%; overflow-x: auto; margin: 30px 0; border: 1px solid var(--color-main-border); 
-    border-radius: 6px; transition: border-color 0.2s, box-shadow 0.2s; outline: none; 
+    border-radius: 4px; /* 【修改】从 6px 改为 4px */
+    transition: border-color 0.2s, box-shadow 0.2s; outline: none; 
 }
 .table-wrapper:hover { border-color: var(--color-primary); }
 .table-wrapper:focus-within { border-color: var(--color-primary); box-shadow: 0 0 0 2px var(--color-primary-light), 0 0 0 4px var(--color-primary); }
@@ -442,7 +445,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 /* =========================================
-   N. 极简文章列表 (首页/标签页 - 重构版)
+   N. 极简文章列表 (首页/标签页 - 左侧竖线交互)
    ========================================= */
 .post-list { 
     list-style: none; 
@@ -450,125 +453,117 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0; 
     display: flex;
     flex-direction: column;
-    gap: 15px; /* 增加项之间的间距 */
 }
 
 .post-list-item {
     display: block; 
-    padding: 25px 25px 25px 20px; 
+    padding: 20px 20px 20px 15px; 
     border-bottom: 1px dashed var(--color-main-border); 
     border-left: 4px solid transparent; 
+    margin-left: -15px; 
+    width: calc(100% + 15px);
     background-color: transparent; 
     text-decoration: none;
     color: inherit;
-    transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    border-radius: 0; /* 【修改】改为直角，增强严谨感 */
-    margin-left: -20px; /* 负 margin 以抵消容器 padding */
-    width: calc(100% + 20px);
+    transition: all 0.2s ease;
+    border-radius: 0; /* 保持直角 */
+    box-shadow: none;
 }
 
 .post-list-item:hover,
 .post-list-item:focus { 
-    background-color: rgba(0, 0, 0, 0.015); 
+    background-color: rgba(0, 0, 0, 0.02); 
     border-left-color: var(--color-primary);
-    transform: translateX(3px); /* 悬停时轻微位移 */
     outline: none;
+    transform: none; 
 }
 
 .post-list-item:last-child { border-bottom: none; }
 
-/* 1. 标题样式 */
 .post-list-item .post-title {
-    margin: 0 0 12px 0;
-    font-size: 1.5rem; 
+    margin: 0 0 10px 0;
+    font-size: 1.6rem; 
     font-weight: 700;
     color: var(--color-main-text);
     line-height: 1.3;
     transition: color 0.2s;
-    letter-spacing: -0.01em;
 }
 .post-list-item:hover .post-title { 
     color: var(--color-primary); 
 }
 
-/* 2. 元信息行 (日期 + 标签) */
 .post-list-meta-line {
     display: flex;
     align-items: center;
-    flex-wrap: wrap;
-    gap: 12px; 
-    margin-bottom: 12px;
+    gap: 15px; 
+    margin-bottom: 15px;
     font-size: 0.85rem;
     color: var(--color-main-subtext);
 }
 
-/* 日期样式 - 仿照归档页的 Monospace 风格 */
-.post-list-item .meta-date-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace; /* 等宽字体 */
-    opacity: 0.9;
-    color: var(--color-main-subtext);
-}
-.post-list-item .date-icon {
-    font-style: normal;
-    font-size: 1rem;
-    line-height: 1;
+.post-list-item .meta-date {
+    font-family: monospace;
     opacity: 0.8;
+    margin: 0; padding: 0; border: none; background: none; display: inline; height: auto;
 }
 
-/* 标签容器 */
-.post-list-item .tags-wrapper {
-    display: flex;
-    align-items: center;
-    gap: 8px;
+.post-list-item:hover .meta-date {
+    color: var(--color-primary); 
+    opacity: 1; 
 }
-.post-list-item .tag-item {
+
+.post-list-item .tags-list {
+    display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none;
+}
+.post-list-item .tags-list li { padding: 0; margin: 0; border: none; }
+
+.post-list-item .tag-badge {
     font-size: 0.8rem;
     color: var(--color-main-subtext);
-    background-color: rgba(0,0,0,0.04); 
-    padding: 2px 8px;
-    border-radius: 4px; /* 内部标签保持微圆角，与外部直角形成对比 */
-    transition: all 0.2s ease;
-    font-weight: 500;
+    background-color: rgba(0,0,0,0.03); 
+    border: none; 
+    padding: 2px 6px;
+    border-radius: 4px; /* 保持 4px */
+    line-height: 1.2;
+    height: auto;
+    display: inline-block;
+    vertical-align: middle;
 }
-.post-list-item:hover .tag-item {
+.post-list-item:hover .tag-badge { 
     color: var(--color-primary);
     background-color: var(--color-primary-light);
 }
 
-/* 3. 摘要样式 */
 .post-list-item .post-excerpt {
     color: var(--color-main-subtext); 
-    font-size: 0.95rem;
-    line-height: 1.6;
+    font-size: 1rem;
+    line-height: 1.65;
     margin: 0;
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     font-family: 'Inter', sans-serif;
-    opacity: 0.85; /* 略微降低对比度，突出标题 */
+    opacity: 0.9;
 }
 
-/* Dark Mode 适配 */
 @media (prefers-color-scheme: dark) {
     .post-list-item:hover,
     .post-list-item:focus {
         background-color: rgba(255, 255, 255, 0.03);
         border-left-color: var(--color-link-dark); 
     }
-    .post-list-item:hover .post-title {
-        color: var(--color-link-dark);
+    .post-list-item:hover .post-title { color: var(--color-link-dark); }
+    .post-list-item:hover .meta-date {
+        color: var(--color-link-dark); 
     }
-    .post-list-item .tag-item {
-        background-color: rgba(255, 255, 255, 0.08);
+    .post-list-item .tag-badge {
+        background-color: rgba(255, 255, 255, 0.05);
         color: var(--color-text-secondary-dark);
     }
-    .post-list-item:hover .tag-item {
+    .post-list-item:hover .tag-badge {
          color: var(--color-link-dark);
-         background-color: rgba(0, 121, 107, 0.25);
+         background-color: rgba(0, 121, 107, 0.2);
     }
 }
 
@@ -583,7 +578,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     padding: 6px 12px;
     background-color: transparent; 
     border: 1px solid var(--color-main-border);
-    border-radius: 0; /* 【修改】改为直角，保持一致性 */
+    border-radius: 4px; /* 保持 4px */
     color: var(--color-main-text);
     text-decoration: none;
     font-size: 0.9rem !important;
@@ -641,7 +636,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     padding: 10px 15px;
     border-bottom: 1px dashed var(--color-main-border);
     transition: background-color 0.2s ease, transform 0.2s ease;
-    border-radius: 0; /* 【修改】改为直角，增强清单感 */
+    border-radius: 0; /* 【修改】从 6px 改为 0，与首页列表保持直角一致 */
     margin-bottom: 5px;
 }
 
@@ -787,7 +782,8 @@ a:focus, button:focus, .tag-cloud-item:focus {
 }
 .nav-link {
     display: block; flex: 1; padding: 15px; border: 1px solid var(--color-main-border); 
-    border-radius: 6px; text-decoration: none !important; transition: border-color 0.2s, background-color 0.2s;
+    border-radius: 4px; /* 【修改】从 6px 改为 4px */
+    text-decoration: none !important; transition: border-color 0.2s, background-color 0.2s;
     overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
 .nav-link:hover { border-color: var(--color-primary); background-color: rgba(0, 0, 0, 0.02); }
