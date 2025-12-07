@@ -115,7 +115,8 @@ a:focus {
 /* 例外处理 */
 header nav a::after, .post-license a::after,
 .post-content h1 a::after, .post-content h2 a::after, .post-content h3 a::after,
-.tag-badge a::after, .button a::after, .button-secondary a::after {
+.tag-badge a::after, .button a::after, .button-secondary a::after,
+.archive-link::after { /* 移除归档列表链接的下划线动画 */
     content: none;
 }
 
@@ -287,14 +288,15 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 .post-content h2 + p, .post-content h3 + p, .post-content h4 + p { margin-top: 0.8em; }
 
-.post-content ul ul, .post-content ol ol { padding-left: 15px; border-left: 1px dotted var(--color-main-border); margin-top: 5px; margin-bottom: 5px; }
-.post-content ul ul ul, .post-content ol ol ol { padding-left: 15px; border-left: 1px solid rgba(0, 0, 0, 0.1); }
-@media (prefers-color-scheme: dark) {
-    .post-content ul ul ul, .post-content ol ol ol { border-left: 1px solid rgba(255, 255, 255, 0.1); }
+/* 排除 Archive 页面，因为它有自定义结构 */
+.page-post .post-content ul ul, .page-post .post-content ol ol,
+.page-index .post-content ul ul, .page-index .post-content ol ol { 
+    padding-left: 15px; border-left: 1px dotted var(--color-main-border); margin-top: 5px; margin-bottom: 5px; 
 }
 
-.post-content ul, .post-content ol { color: var(--color-primary); }
-.post-content ul li, .post-content ol li {
+/* 仅针对正文内容的默认列表样式 */
+.page-post .post-content ul, .page-post .post-content ol { color: var(--color-primary); }
+.page-post .post-content ul li, .page-post .post-content ol li {
     padding: 3px 5px; 
     border-bottom: 1px dashed rgba(0, 0, 0, 0.05);
     margin-bottom: 0.8em;
@@ -303,14 +305,14 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin-left: -5px; 
     width: calc(100% + 5px); 
 }
-.post-content ul li:hover, .post-content ol li:hover { background-color: rgba(0, 0, 0, 0.015); }
-.post-content ul li:last-child, .post-content ol li:last-child { border-bottom: none; }
-.post-content ul li::marker, .post-content ol li::marker { color: var(--color-primary); }
+.page-post .post-content ul li:hover, .page-post .post-content ol li:hover { background-color: rgba(0, 0, 0, 0.015); }
+.page-post .post-content ul li:last-child, .page-post .post-content ol li:last-child { border-bottom: none; }
+.page-post .post-content ul li::marker, .page-post .post-content ol li::marker { color: var(--color-primary); }
 
 @media (prefers-color-scheme: dark) {
-    .post-content ul li, .post-content ol li { border-bottom: 1px dashed rgba(255, 255, 255, 0.08); }
-    .post-content ul li::marker, .post-content ol li::marker { color: var(--color-link-dark); }
-    .post-content ul li:hover, .post-content ol li:hover { background-color: rgba(255, 255, 255, 0.03); }
+    .page-post .post-content ul li, .page-post .post-content ol li { border-bottom: 1px dashed rgba(255, 255, 255, 0.08); }
+    .page-post .post-content ul li::marker, .page-post .post-content ol li::marker { color: var(--color-link-dark); }
+    .page-post .post-content ul li:hover, .page-post .post-content ol li:hover { background-color: rgba(255, 255, 255, 0.03); }
 }
 
 .post-content img {
@@ -440,7 +442,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 /* =========================================
-   N. 极简文章列表 (Archive Style - 左侧竖线交互)
+   N. 极简文章列表 (首页/标签页 - 左侧竖线交互)
    ========================================= */
 .post-list { 
     list-style: none; 
@@ -452,49 +454,29 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 .post-list-item {
     display: block; 
-    /* 关键: 内边距和负边距调整，使其左侧距离与归档页列表项一致 (15px) */
-    padding: 20px 20px 20px 15px; /* 左侧内边距改为 15px (与归档页一致) */
-    
-    /* 1. 下面是一条虚线 */
+    padding: 20px 20px 20px 15px; 
     border-bottom: 1px dashed var(--color-main-border); 
-    
-    /* 2. 默认左侧是透明的边框 (占位) */
     border-left: 4px solid transparent; 
-    
-    /* 3. 利用负边距向左拉伸盒子 (与内边距匹配，保证内容对齐) */
     margin-left: -15px; 
     width: calc(100% + 15px);
-    
     background-color: transparent; 
     text-decoration: none;
     color: inherit;
     transition: all 0.2s ease;
-    
-    /* 移除所有卡片相关的阴影和圆角 */
     border-radius: 0;
     box-shadow: none;
 }
 
-/* Hover/Focus 效果：模仿 Archive 页 */
 .post-list-item:hover,
 .post-list-item:focus { 
-    /* 悬停时背景微灰 */
     background-color: rgba(0, 0, 0, 0.02); 
-    
-    /* 4. 高亮后左边是一条竖线 (主题色) */
     border-left-color: var(--color-primary);
-    
     outline: none;
-    /* 不上浮，保持稳重 */
     transform: none; 
 }
 
-/* 最后一个元素移除底边框 */
 .post-list-item:last-child { border-bottom: none; }
 
-/* --- 列表项内部排版 --- */
-
-/* 1. 标题 */
 .post-list-item .post-title {
     margin: 0 0 10px 0;
     font-size: 1.6rem; 
@@ -507,7 +489,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     color: var(--color-primary); 
 }
 
-/* 2. 元数据行 */
 .post-list-meta-line {
     display: flex;
     align-items: center;
@@ -523,12 +504,10 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0; padding: 0; border: none; background: none; display: inline; height: auto;
 }
 
-/* === 优化点 1: 悬停时日期颜色也变为主题色 === */
 .post-list-item:hover .meta-date {
     color: var(--color-primary); 
     opacity: 1; 
 }
-/* ========================================= */
 
 .post-list-item .tags-list {
     display: flex; flex-wrap: wrap; gap: 8px; padding: 0; margin: 0; list-style: none;
@@ -552,7 +531,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     background-color: var(--color-primary-light);
 }
 
-/* 3. 摘要 */
 .post-list-item .post-excerpt {
     color: var(--color-main-subtext); 
     font-size: 1rem;
@@ -566,20 +544,15 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     opacity: 0.9;
 }
 
-/* 暗色模式下列表调整 */
 @media (prefers-color-scheme: dark) {
     .post-list-item:hover,
     .post-list-item:focus {
         background-color: rgba(255, 255, 255, 0.03);
-        border-left-color: var(--color-link-dark); /* 暗色模式竖线颜色 */
+        border-left-color: var(--color-link-dark); 
     }
-    
-    /* === 优化点 1: 暗色模式悬停时日期颜色也变为主题色 === */
     .post-list-item:hover .meta-date {
         color: var(--color-link-dark); 
     }
-    /* ========================================= */
-    
     .post-list-item .tag-badge {
         background-color: rgba(255, 255, 255, 0.05);
         color: var(--color-text-secondary-dark);
@@ -617,45 +590,108 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     .tag-cloud-item:hover { background-color: rgba(255,255,255,0.05); }
 }
 
-/* Archive 页面 (保持原样，因其风格已与新首页统一) */
-.page-archive .post-content h2 { font-size: 1.4rem; margin-top: 2.5em; margin-bottom: 0.6em; color: var(--color-main-text); }
-.page-archive .post-content ul { list-style: none; padding-left: 0; font-family: monospace; font-size: 0.9rem; }
-.page-archive .post-content li {
-    padding: 8px 0; border-bottom: 1px dashed var(--color-main-border); 
-    display: flex; align-items: baseline; font-size: 1rem; transition: background-color 0.2s, border-left 0.2s;
-    /* Archive页面的左侧交互逻辑 */
-    padding-left: 15px; margin-left: -15px; width: calc(100% + 15px); border-left: 4px solid transparent;
-}
-.page-archive .post-content li:last-child { border-bottom: none; }
-.page-archive .post-content li:hover { background-color: rgba(0, 0, 0, 0.015); border-left-color: var(--color-primary); }
+/* --- Archive 归档页美化 (Timeline 风格) --- */
 
-/* --- NEW: 归档页日期单元格样式 --- */
-.archive-date-cell {
-    width: 120px; /* 预留固定宽度给日期，保证对齐 */
-    flex-shrink: 0; /* 防止日期被压缩 */
-    color: var(--color-main-subtext); 
-    font-family: monospace; /* 等宽字体保证对齐 */
-    text-align: right; 
-    margin-right: 15px; /* 与文章标题的间隔 */
-    font-size: 0.95rem; 
-    line-height: 1.4;
-    transition: color 0.2s;
+/* 1. 归档页外层容器 */
+.archive-page {
+    max-width: 100%;
 }
-.page-archive .post-content li:hover .archive-date-cell {
-    color: var(--color-primary); 
+
+/* 2. 年份大标题 */
+.archive-year {
+    font-size: 1.8rem;
+    margin-top: 2rem;
+    margin-bottom: 1rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--color-primary-light);
+    color: var(--color-main-text);
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+}
+.archive-year small {
+    font-size: 1rem;
+    color: var(--color-main-subtext);
+    font-weight: normal;
 }
 @media (prefers-color-scheme: dark) {
-    .page-archive .post-content li:hover .archive-date-cell {
-        color: var(--color-link-dark);
+    .archive-year { border-bottom-color: rgba(255, 255, 255, 0.1); }
+}
+
+/* 3. 列表容器 (去除默认圆点) */
+.archive-list {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 2rem 0;
+}
+
+/* 4. 单个文章项 (Flex布局) */
+.archive-item {
+    display: flex;
+    align-items: baseline;
+    padding: 10px 15px;
+    border-bottom: 1px dashed var(--color-main-border);
+    transition: background-color 0.2s ease, transform 0.2s ease;
+    border-radius: 6px;
+    margin-bottom: 5px;
+}
+
+.archive-item:hover {
+    background-color: rgba(0,0,0,0.02);
+    transform: translateX(5px); /* 悬停轻微右移 */
+}
+@media (prefers-color-scheme: dark) {
+    .archive-item:hover {
+        background-color: rgba(255,255,255,0.03);
     }
 }
-/* --- END NEW --- */
 
-.page-archive .post-content li a { color: var(--color-main-text); margin-right: auto; font-family: 'Inter', sans-serif; font-size: 1rem; }
-.page-archive .post-content li a:hover { color: var(--color-primary); }
-@media (prefers-color-scheme: dark) {
-    .page-archive .post-content li:hover { background-color: rgba(255, 255, 255, 0.03); border-left-color: var(--color-link-dark); }
+/* 5. 日期 (固定宽度, 居右对齐) */
+.archive-date {
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace; /* 等宽字体对齐 */
+    font-size: 0.95rem;
+    color: var(--color-main-subtext);
+    margin-right: 20px;
+    width: 60px; /* 固定宽度 */
+    flex-shrink: 0;
+    text-align: right;
 }
+
+/* 6. 文章链接 */
+.archive-link {
+    font-size: 1.05rem;
+    font-weight: 500;
+    color: var(--color-main-text);
+    text-decoration: none;
+    flex-grow: 1;
+}
+
+.archive-link:hover {
+    color: var(--color-primary);
+}
+@media (prefers-color-scheme: dark) {
+    .archive-link:hover { color: var(--color-link-dark); }
+}
+
+/* 7. 移动端响应式调整 */
+@media (max-width: 600px) {
+    .archive-item {
+        flex-direction: column; /* 小屏幕堆叠排列 */
+        align-items: flex-start;
+        padding: 12px 10px;
+        gap: 2px;
+    }
+    .archive-date {
+        text-align: left;
+        font-size: 0.85rem;
+        width: auto;
+        opacity: 0.8;
+    }
+    .archive-link {
+        font-size: 1rem;
+    }
+}
+/* --- Archive End --- */
 
 /* =========================================
    L. 底部 (Footer)
@@ -798,3 +834,4 @@ a:focus, button:focus, .tag-cloud-item:focus {
 @media (max-width: 600px) {
     .post-license { padding: 15px; margin: 30px 0 0; }
 }
+
