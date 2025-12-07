@@ -1087,16 +1087,32 @@ a:focus, button:focus, .tag-cloud-item:focus {
     .highlight .gd { color: #f92672 } /* Generic.Deleted */
     .highlight .gi { color: #a6e22e } /* Generic.Inserted */
 }
-/* --- 最终强制修复：确保页面不溢出 --- */
-/* 强制主容器不被撑大 */
+
+/* =========================================
+   Z3. 手机端溢出最终修复 (强制覆盖)
+   ========================================= */
+
+/* 1. 强制主内容区不能被撑大 (Flexbox 修复) */
 .content-area,
 .page-post .content-area { 
+    /* 将 min-width 设为 0，防止 Flex item 被内容撑开 */
     min-width: 0 !important; 
-    max-width: 100% !important; /* 确保它不超过其父容器 */
+    /* 确保它不会超过其父容器 */
+    max-width: 100% !important; 
 }
 
-/* 强制表格包裹器启用滚动 */
+/* 2. 强制表格包裹器启用滚动 */
 .table-wrapper {
+    /* 确保滚动规则生效 */
     overflow-x: auto !important;
+    /* 确保容器宽度是 100% */
     width: 100% !important;
+    /* 强制内容区显示滚动条 */
+    padding-bottom: 5px; /* 留出空间给滚动条 */
+}
+
+/* 3. 确保表格能够自由伸展 */
+.post-content table { 
+    width: auto !important; 
+    min-width: 100% !important; 
 }
