@@ -462,7 +462,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     text-decoration: none;
     color: inherit;
     transition: all 0.25s cubic-bezier(0.25, 0.46, 0.45, 0.94);
-    border-radius: 0 6px 6px 0; /* 右侧圆角 */
+    border-radius: 0; /* 【修改】改为直角，增强严谨感 */
     margin-left: -20px; /* 负 margin 以抵消容器 padding */
     width: calc(100% + 20px);
 }
@@ -529,7 +529,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     color: var(--color-main-subtext);
     background-color: rgba(0,0,0,0.04); 
     padding: 2px 8px;
-    border-radius: 4px;
+    border-radius: 4px; /* 内部标签保持微圆角，与外部直角形成对比 */
     transition: all 0.2s ease;
     font-weight: 500;
 }
@@ -583,7 +583,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     padding: 6px 12px;
     background-color: transparent; 
     border: 1px solid var(--color-main-border);
-    border-radius: 4px; 
+    border-radius: 0; /* 【修改】改为直角，保持一致性 */
     color: var(--color-main-text);
     text-decoration: none;
     font-size: 0.9rem !important;
@@ -641,7 +641,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     padding: 10px 15px;
     border-bottom: 1px dashed var(--color-main-border);
     transition: background-color 0.2s ease, transform 0.2s ease;
-    border-radius: 6px;
+    border-radius: 0; /* 【修改】改为直角，增强清单感 */
     margin-bottom: 5px;
 }
 
