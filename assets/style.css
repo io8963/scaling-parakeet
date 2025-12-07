@@ -1089,30 +1089,32 @@ a:focus, button:focus, .tag-cloud-item:focus {
 }
 
 /* =========================================
-   Z3. 手机端溢出最终修复 (强制覆盖)
+   Z4. 终极溢出修复：针对所有父容器
    ========================================= */
 
-/* 1. 强制主内容区不能被撑大 (Flexbox 修复) */
-.content-area,
-.page-post .content-area { 
-    /* 将 min-width 设为 0，防止 Flex item 被内容撑开 */
+/* 强制：将 min-width: 0 规则应用到 main 容器本身 */
+main {
+    min-width: 0 !important;
+}
+
+/* 强制：确保最外层 Flex 容器 (main-layout) 不被子内容撑大 */
+.main-layout {
     min-width: 0 !important; 
-    /* 确保它不会超过其父容器 */
     max-width: 100% !important; 
 }
 
-/* 2. 强制表格包裹器启用滚动 */
-.table-wrapper {
-    /* 确保滚动规则生效 */
-    overflow-x: auto !important;
-    /* 确保容器宽度是 100% */
-    width: 100% !important;
-    /* 强制内容区显示滚动条 */
-    padding-bottom: 5px; /* 留出空间给滚动条 */
+/* 强制：确保文章内容区域 (content-area) 不被表格撑大 */
+.content-area,
+.page-post .content-area { 
+    min-width: 0 !important; 
+    max-width: 100% !important; 
+    /* 确保任何内容溢出都会被隐藏，这是最后一道防线 */
+    overflow: hidden !important; 
 }
 
-/* 3. 确保表格能够自由伸展 */
-.post-content table { 
-    width: auto !important; 
-    min-width: 100% !important; 
+/* 强制：表格包裹器启用滚动，这是表格自身的解决方案 */
+.table-wrapper {
+    overflow-x: auto !important;
+    width: 100% !important;
+    padding-bottom: 5px !important; /* 确保滚动条有空间显示 */
 }
