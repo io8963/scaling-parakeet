@@ -198,12 +198,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0 auto;
     padding: 0 20px;
 }
-.content-area { 
-    flex-grow: 1; 
-    max-width: 100%; 
-    /* 【新增/修复】Flexbox 溢出修复：防止内部的超宽内容（如未被包裹的或宽度极大的 table）强制 flex 容器扩展 */
-    min-width: 0; 
-}
+.content-area { flex-grow: 1; max-width: 100%; }
+
 /* =========================================
    I. 目录 (TOC)
    ========================================= */
@@ -415,8 +411,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 .post-content table { 
-    min-width: 100%; /* 【修改】新增：确保表格在内容少时仍占满容器宽度 */
-    width: auto;     /* 【修改】从 width: 100% 更改为 width: auto，允许表格宽度超过容器，触发外部 .table-wrapper 的滚动 */
+    width: 100%; 
     border-collapse: collapse; 
     font-size: 0.95rem;
     color: var(--color-main-text); /* 确保文本颜色正确继承 */
@@ -1086,35 +1081,4 @@ a:focus, button:focus, .tag-cloud-item:focus {
     .highlight .gu { color: #75715e } /* Generic.Subheading */
     .highlight .gd { color: #f92672 } /* Generic.Deleted */
     .highlight .gi { color: #a6e22e } /* Generic.Inserted */
-}
-
-/* =========================================
-   Z4. 终极溢出修复：针对所有父容器
-   ========================================= */
-
-/* 强制：将 min-width: 0 规则应用到 main 容器本身 */
-main {
-    min-width: 0 !important;
-}
-
-/* 强制：确保最外层 Flex 容器 (main-layout) 不被子内容撑大 */
-.main-layout {
-    min-width: 0 !important; 
-    max-width: 100% !important; 
-}
-
-/* 强制：确保文章内容区域 (content-area) 不被表格撑大 */
-.content-area,
-.page-post .content-area { 
-    min-width: 0 !important; 
-    max-width: 100% !important; 
-    /* 确保任何内容溢出都会被隐藏，这是最后一道防线 */
-    overflow: hidden !important; 
-}
-
-/* 强制：表格包裹器启用滚动，这是表格自身的解决方案 */
-.table-wrapper {
-    overflow-x: auto !important;
-    width: 100% !important;
-    padding-bottom: 5px !important; /* 确保滚动条有空间显示 */
 }
