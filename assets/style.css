@@ -1087,15 +1087,17 @@ a:focus, button:focus, .tag-cloud-item:focus {
 
 /* 修复表格在移动设备上的横向溢出问题 */
 .table-wrapper {
-    /* ⭐ 关键修复：当内容超出宽度时，在X轴上显示滚动条 */
-    overflow-x: auto; 
-    
-    /* 可选：增强 iOS 上的滚动体验 */
-    -webkit-overflow-scrolling: touch; 
+    display: block; 
+    overflow-x: auto; /* ⭐ 关键修复 1: 启用水平滚动 */
+    -webkit-overflow-scrolling: touch; /* 增强 iOS 上的滚动体验 */
+    width: 100%;
+    margin-top: 1.5em; 
+    margin-bottom: 1.5em;
 }
 
-/* 确保表格本身不会被强制限制宽度，让包裹器控制滚动 */
+/* 强制表格本身适应包裹器的滚动 */
 .table-wrapper table {
-    width: 100%; /* 可选：确保表格宽度至少为包裹器宽度 */
-    min-width: 600px; /* 可选：如果您的表格需要一个最小宽度 */
+    width: auto;
+    max-width: none;
+    /* 确保表格不会被强制压缩，而是让包裹器控制溢出 */
 }
