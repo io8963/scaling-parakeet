@@ -512,7 +512,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     }
 }
 
-/* --- [核心优化] 代码块 IDE 风格 & 语言显示 --- */
+/* --- [核心优化] 代码块 IDE 风格 & 语言显示 (双保险策略) --- */
 .post-content pre {
     position: relative;
     padding: 45px 15px 15px 15px; /* 顶部加高，给标题栏留位 */
@@ -551,9 +551,13 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f; 
 }
 
-/* 右上角显示语言 (默认 CODE) */
+/* 
+    [核心修复] 使用 attr(data-lang) 动态读取语言名称
+    parser.py 会将标准化后的语言名称(如 PYTHON)写入 pre 的 data-lang 属性中。
+    这彻底解决了 CSS 选择器匹配不到的问题。
+*/
 .post-content pre::after {
-    content: "CODE";
+    content: "CODE"; /* 默认值 */
     position: absolute;
     top: 6px;
     right: 15px;
@@ -566,27 +570,20 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     letter-spacing: 0.05em;
 }
 
-/* 
-   [核心修复] 使用父级类名来显示具体语言
-   pymdownx.highlight 会将 .language-xxx 添加到外层容器
-*/
-.post-content .language-python pre::after,
-.post-content .language-py pre::after { content: "PYTHON"; color: #3572A5; }
+/* 如果 pre 标签有 data-lang 属性，直接显示该属性的值 */
+.post-content pre[data-lang]::after {
+    content: attr(data-lang);
+}
 
-.post-content .language-js pre::after,
-.post-content .language-javascript pre::after { content: "JS"; color: #f1e05a; }
-
-.post-content .language-css pre::after { content: "CSS"; color: #563d7c; }
-
-.post-content .language-html pre::after { content: "HTML"; color: #e34c26; }
-
-.post-content .language-bash pre::after,
-.post-content .language-sh pre::after,
-.post-content .language-shell pre::after { content: "SHELL"; color: #89e051; }
-
-.post-content .language-json pre::after { content: "JSON"; }
-
-.post-content .language-sql pre::after { content: "SQL"; }
+/* 根据 data-lang 设置特定颜色 (可选) */
+.post-content pre[data-lang="PYTHON"]::after { color: #3572A5; }
+.post-content pre[data-lang="JS"]::after, 
+.post-content pre[data-lang="JAVASCRIPT"]::after { color: #f1e05a; }
+.post-content pre[data-lang="CSS"]::after { color: #563d7c; }
+.post-content pre[data-lang="HTML"]::after { color: #e34c26; }
+.post-content pre[data-lang="SHELL"]::after { color: #89e051; }
+.post-content pre[data-lang="JSON"]::after { color: #888; }
+.post-content pre[data-lang="SQL"]::after { color: #e38c00; }
 
 .post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.1); }
 @media (prefers-color-scheme: dark) {
