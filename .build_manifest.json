@@ -60,7 +60,7 @@
     "templates": {
         "templates/base.html": "7f16c89950d81a06f557fb0919c65433edebcd2ffef96963c00454db062785a7",
         "autobuild.py": "34815e6ebcea79ec3bff32ee04be996877abb82f254fa7a543ce2140200eedde",
-        "parser.py": "01830afcf71aba911e8aee4f248a891cf584564799653ec82332176550475f67",
+        "parser.py": "f7fff3795ce6ac9c3fa109bb81ecb2763d94401da3f7ddac1df497100594a53f",
         "generator.py": "d39be2a2e30949df3d77108aa3723b82585fe5e86b7af779c9d8657aec409827",
         "config.py": "48e8d9b3c69e62e117d07d117208b711c6d4b195d2c3b67a3b88a075edeae54b"
     }
