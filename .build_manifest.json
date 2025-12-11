@@ -55,7 +55,7 @@
         }
     },
     "static_files": {
-        "assets/style.css": "c4c295ed14f3589e7654c9cda415b45ab575ee044a019650f59c28540c87eef2"
+        "assets/style.css": "198c13f2007d15aa47619bb6592d9fe2798d334539b0a1934e919414883f225c"
     },
     "templates": {
         "templates/base.html": "7f16c89950d81a06f557fb0919c65433edebcd2ffef96963c00454db062785a7",
