@@ -21,29 +21,36 @@ CSS_FILENAME = 'style.css'
 CODE_HIGHLIGHT_CLASS = 'highlight'
 
 # --- Markdown 配置 ---
-# 1. 扩展列表 (使用短名称)
+# 1. 扩展列表
+# 注意：我们替换了 codehilite 为 pymdownx.highlight 和 pymdownx.superfences
+# 这能更好地处理代码块嵌套和语言标签识别
 MARKDOWN_EXTENSIONS = [
     'extra',              # 包含 fenced_code (```), tables, footnotes
-    'codehilite',         # 代码高亮 (必须安装 Pygments)
     'toc',                # 目录
     'admonition',         # 提示块
     'sane_lists',         # 更好的列表
     'pymdownx.tasklist',  # 任务列表支持 (- [ ])
-    'pymdownx.tilde',     # [新增] 删除线支持 (~~text~~)
+    'pymdownx.tilde',     # 删除线支持 (~~text~~)
+    'pymdownx.highlight', # [新增] 更强的代码高亮引擎
+    'pymdownx.superfences', # [新增] 更好的代码块嵌套支持
 ]
 
-# 2. 扩展具体配置 (！！！关键修复：使用短名称作为键！！！)
+# 2. 扩展具体配置
 MARKDOWN_EXTENSION_CONFIGS = {
     'toc': {
         'baselevel': 2,
         'anchorlink': True,
     },
-    'codehilite': {
-        'linenums': False,             
-        'css_class': CODE_HIGHLIGHT_CLASS, # 强制指定类名为 'highlight'
-        'use_pygments': True,          # 强制使用 Pygments
-        'noclasses': False,            # ⭐ 关键修复：改为 False，使用 CSS 类而不是内联样式
+    'pymdownx.highlight': {
+        'use_pygments': True,          # 使用 Pygments 生成高亮类
+        'css_class': 'highlight',      # 容器类名
         'guess_lang': True,            # 自动猜测语言
+        'anchor_linenums': True,       # 这里的行号配置更灵活
+        'pygments_style': 'default',   # 默认样式，实际会被 CSS 覆盖
+        'noclasses': False,            # 必须为 False，以便使用 CSS 类
+    },
+    'pymdownx.superfences': {
+        'css_class': 'highlight',      # 确保 fenced code 也有这个类
     },
     'pymdownx.tasklist': {
         'custom_checkbox': True,      # 允许使用 CSS 自定义样式
