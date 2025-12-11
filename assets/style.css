@@ -1,13 +1,13 @@
 /* --- START OF FILE scaling-parakeet-main/assets/style.css --- */
 
 /* =========================================
-   A. 全局重置 & 滚动条美化 (UI/UX 优化)
+   A. 全局重置 & 滚动条美化
    ========================================= */
 *, *::before, *::after {
     box-sizing: border-box;
 }
 
-/* [新增] 全局选中文本样式 (品牌一致性) */
+/* 全局选中文本样式 (品牌一致性) */
 ::selection {
     background-color: var(--color-primary);
     color: #ffffff;
@@ -357,13 +357,54 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     hyphens: auto;
     -webkit-hyphens: auto;
     -ms-hyphens: auto;
-    text-rendering: optimizeLegibility; 
+    text-rendering: optimizeLegibility;
 }
+
+/* [优化] 限制最佳阅读宽度 (约68字符)，减少眼球扫视疲劳 */
+.post-content p, 
+.post-content ul, 
+.post-content ol {
+    max-width: 68ch; 
+    margin-left: auto; 
+    margin-right: auto;
+}
+/* 列表内边距调整适配宽度限制 */
+.post-content ul, .post-content ol {
+    padding-left: 2rem;
+    box-sizing: border-box;
+}
+
 @media (prefers-color-scheme: dark) {
     .post-content p { color: #ededed; }
 }
 
 .post-content h2 + p, .post-content h3 + p, .post-content h4 + p { margin-top: 0.8em; }
+
+/* [优化] 标题锚点提示 (Hover 显示 #) */
+.post-content h2, 
+.post-content h3 {
+    position: relative;
+}
+.post-content h2::before,
+.post-content h3::before {
+    content: "#";
+    position: absolute;
+    left: -1.2em;
+    top: 0;
+    color: var(--color-primary);
+    opacity: 0;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+    transform: translateX(10px);
+    font-weight: 400;
+}
+.post-content h2:hover::before,
+.post-content h3:hover::before {
+    opacity: 0.6;
+    transform: translateX(0);
+}
+@media (max-width: 900px) {
+    .post-content h2::before, .post-content h3::before { display: none; }
+}
 
 /* 列表样式 */
 .page-post .post-content ul ul, .page-post .post-content ol ol,
@@ -398,7 +439,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 .post-content img:hover { transform: scale(1.01); box-shadow: 0 8px 20px rgba(0, 0, 0, 0.1); }
 @media (prefers-color-scheme: dark) {
-    /* [新增] 暗色模式图片降权，保护眼睛 */
+    /* 暗色模式图片降权 */
     .post-content img { opacity: 0.85; }
     .post-content img:hover { 
         opacity: 1; 
@@ -433,11 +474,11 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .post-content blockquote {
     position: relative; 
     border-left: 3px solid var(--color-primary); 
-    padding: 15px 20px 15px 40px; /* 左侧增加内边距给引号留位 */
+    padding: 15px 20px 15px 40px; 
     margin: 25px 0;
     color: var(--color-main-subtext); 
     font-style: italic;
-    background: linear-gradient(to right, rgba(0,121,107,0.05), transparent); /* 渐变背景 */
+    background: linear-gradient(to right, rgba(0,121,107,0.05), transparent); 
     box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.03); 
     border-radius: 3px;
 }
@@ -453,7 +494,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     line-height: 1;
     pointer-events: none;
 }
-
 @media (prefers-color-scheme: dark) {
     .post-content blockquote { 
         background: linear-gradient(to right, rgba(255,255,255,0.02), transparent);
@@ -472,39 +512,90 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     }
 }
 
-/* --- 代码块 MacOS 风格装饰 --- */
+/* --- [核心优化] 代码块 IDE 风格 & 语言显示 --- */
 .post-content pre {
     position: relative;
-    padding: 38px 15px 15px 15px; /* 顶部留出空间 */
-    background-color: var(--color-code-bg); 
-    border-radius: 6px; 
+    padding: 45px 15px 15px 15px; /* 顶部加高，给标题栏留位 */
+    border-radius: 8px; 
     margin: 25px 0; 
     overflow-x: auto; 
     font-size: 0.9rem; 
     border: 1px solid var(--color-main-border);
     transition: box-shadow 0.2s, background-color 0.2s;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+    background-color: var(--color-code-bg);
+    
+    /* 模拟窗口标题栏背景 */
+    background-image: linear-gradient(to bottom, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.05) 30px, transparent 30px);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
 }
-/* MacOS 风格红黄绿点 */
+@media (prefers-color-scheme: dark) {
+    .post-content pre { 
+        background-color: var(--color-code-bg-dark); 
+        box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.05); 
+        background-image: linear-gradient(to bottom, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.05) 30px, transparent 30px);
+    }
+}
+
+/* MacOS 风格红黄绿点 (定位微调) */
 .post-content pre::before {
     content: "";
     position: absolute;
-    top: 14px;
+    top: 10px; /* 居中于标题栏 */
     left: 16px;
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #ff5f56; /* Red */
-    box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f; /* Yellow & Green */
+    background: #ff5f56; 
+    box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f; 
 }
+
+/* 右上角显示语言 (默认 CODE) */
+.post-content pre::after {
+    content: "CODE";
+    position: absolute;
+    top: 6px;
+    right: 15px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    font-family: var(--font-sans);
+    color: var(--color-main-subtext);
+    opacity: 0.7;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* 使用 :has() 根据 code class 显示具体语言 */
+.post-content pre:has(code[class*="python"])::after,
+.post-content pre:has(code[class*="language-python"])::after { content: "PYTHON"; color: #3572A5; }
+
+.post-content pre:has(code[class*="js"])::after,
+.post-content pre:has(code[class*="javascript"])::after,
+.post-content pre:has(code[class*="language-javascript"])::after { content: "JS"; color: #f1e05a; }
+
+.post-content pre:has(code[class*="css"])::after,
+.post-content pre:has(code[class*="language-css"])::after { content: "CSS"; color: #563d7c; }
+
+.post-content pre:has(code[class*="html"])::after,
+.post-content pre:has(code[class*="language-html"])::after { content: "HTML"; color: #e34c26; }
+
+.post-content pre:has(code[class*="bash"])::after,
+.post-content pre:has(code[class*="shell"])::after,
+.post-content pre:has(code[class*="language-bash"])::after { content: "SHELL"; color: #89e051; }
+
+.post-content pre:has(code[class*="json"])::after,
+.post-content pre:has(code[class*="language-json"])::after { content: "JSON"; }
+
+.post-content pre:has(code[class*="sql"])::after,
+.post-content pre:has(code[class*="language-sql"])::after { content: "SQL"; }
 
 .post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.1); }
 @media (prefers-color-scheme: dark) {
-    .post-content pre { background-color: var(--color-code-bg-dark); box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.05); }
     .post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(255, 255, 255, 0.1); }
 }
 
-/* --- 表格 UI/UX (新增表头冻结) --- */
+/* --- 表格 UI/UX (表头冻结) --- */
 .table-wrapper { 
     width: 100%; 
     overflow-x: auto; 
@@ -562,7 +653,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     font-size: 0.9rem;
     border-bottom: 2px solid var(--color-primary);
     
-    /* [新增] 表头吸顶 (Sticky Header) */
+    /* 表头吸顶 (Sticky Header) */
     position: sticky;
     top: 0;
     z-index: 10; 
@@ -583,7 +674,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 @media (prefers-color-scheme: dark) {
     .post-content th { 
-        background-color: #1e1e1e; /* [优化] 使用不透明背景防止内容重叠 */
+        background-color: #1e1e1e; /* 不透明背景 */
         color: var(--color-link-dark); 
         border-bottom: 2px solid var(--color-link-dark); 
         box-shadow: 0 2px 2px -1px rgba(0,0,0,0.3);
@@ -695,7 +786,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     outline: none;
 }
 
-/* [新增] 文章列表卡片按压效果 */
+/* 文章列表卡片按压效果 */
 .post-list-item:active {
     transform: translateX(5px) scale(0.99); 
     background-color: rgba(0,0,0,0.05);
@@ -814,7 +905,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     background-color: rgba(0,0,0,0.02); 
     transform: translateY(-1px);
 }
-/* [新增] 标签云按压效果 */
+/* 标签云按压效果 */
 .tag-cloud-item:active {
     transform: translateY(1px);
     box-shadow: inset 0 2px 4px rgba(0,0,0,0.1);
@@ -867,7 +958,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     background-color: rgba(0,0,0,0.02);
     transform: translateX(5px); 
 }
-/* [新增] 归档项按压效果 */
+/* 归档项按压效果 */
 .archive-item:active {
     transform: translateX(5px) scale(0.99);
     transition: transform 0.05s;
@@ -999,28 +1090,51 @@ a:focus, button:focus, .tag-cloud-item:focus {
 .task-list-item input[type="checkbox"]:disabled { cursor: default; opacity: 0.7; }
 
 /* =========================================
-   Q. 文章上/下导航
+   Q. 文章上/下导航 (交互优化)
    ========================================= */
 .post-navigation {
     display: flex; justify-content: space-between; gap: 30px; margin-top: 60px; 
     padding-top: 30px; border-top: 1px solid var(--color-main-border);
 }
+
+/* [优化] 底部导航卡片效果 */
 .nav-link {
     display: block; flex: 1; padding: 15px; border: 1px solid var(--color-main-border); 
     border-radius: 4px; 
-    text-decoration: none !important; transition: border-color 0.2s, background-color 0.2s;
+    text-decoration: none !important; 
     overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
+    /* 增加卡片阴影和动画 */
+    box-shadow: 0 2px 5px rgba(0,0,0,0.03);
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), box-shadow 0.2s, border-color 0.2s, background-color 0.2s;
 }
-.nav-link:hover { border-color: var(--color-primary); background-color: rgba(0, 0, 0, 0.02); }
+
+.nav-link:hover { 
+    transform: translateY(-3px); /* 整体上浮 */
+    box-shadow: 0 5px 15px rgba(0,0,0,0.08);
+    background-color: var(--color-main-card); 
+    border-color: var(--color-primary); 
+}
+
 @media (prefers-color-scheme: dark) {
-    .nav-link:hover { background-color: rgba(255, 255, 255, 0.05); }
+    .nav-link:hover { 
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        background-color: var(--color-code-bg-dark); 
+    }
 }
+
 .nav-link small { display: block; color: var(--color-main-subtext); font-size: 0.8rem; margin-bottom: 5px; font-weight: 500; }
 .nav-link h3 {
     font-size: 1.1rem; font-weight: 600; margin: 0; line-height: 1.4; color: var(--color-main-text);
     transition: color 0.2s, transform 0.2s ease-out; scroll-margin-top: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
-.nav-link:hover h3 { color: var(--color-primary); transform: translateY(-1px); }
+.nav-link:hover h3 { color: var(--color-primary); }
+
+/* 箭头位移动画 */
+.nav-link.nav-prev small { transition: transform 0.2s; }
+.nav-link.nav-next small { transition: transform 0.2s; }
+.nav-link.nav-prev:hover small { transform: translateX(-5px); }
+.nav-link.nav-next:hover small { transform: translateX(5px); }
+
 .nav-link.nav-prev { text-align: left; }
 .nav-link.nav-next { text-align: right; }
 .nav-link-placeholder { flex: 1; min-width: 10px; } 
@@ -1066,7 +1180,7 @@ a:focus, button:focus, .tag-cloud-item:focus {
 }
 
 /* =========================================
-   Z1. Pygments 代码高亮样式
+   Z1. Pygments 代码高亮颜色 (Tango & Monokai)
    ========================================= */
 .highlight .hll { background-color: #ffffcc }
 .highlight .c { color: #8f5902; font-style: italic }
@@ -1238,6 +1352,9 @@ a:focus, button:focus, .tag-cloud-item:focus {
     }
     .post-content pre::before {
         display: none; /* 打印时不显示红绿灯 */
+    }
+    .post-content pre::after {
+        display: none; /* 打印时不显示语言标签 */
     }
 
     /* 链接显示 URL */
