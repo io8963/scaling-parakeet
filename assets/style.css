@@ -776,19 +776,25 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s, border-left-color 0.2s;
     border-radius: 0; 
     box-shadow: none;
+
+    /* 修复：开启硬件加速以消除 transform 动画导致的文字毛边 */
+    -webkit-backface-visibility: hidden;
+    backface-visibility: hidden;
+    transform: translateZ(0); 
+    will-change: transform;
 }
 
 .post-list-item:hover,
 .post-list-item:focus { 
     background-color: rgba(0, 0, 0, 0.02); 
     border-left-color: var(--color-primary);
-    transform: translateX(5px); /* 悬停右移反馈 */
+    transform: translateX(5px) translateZ(0); /* 保持 Z 轴加速 */
     outline: none;
 }
 
 /* 文章列表卡片按压效果 */
 .post-list-item:active {
-    transform: translateX(5px) scale(0.99); 
+    transform: translateX(5px) scale(0.99) translateZ(0); /* 保持 Z 轴加速 */
     background-color: rgba(0,0,0,0.05);
     transition: transform 0.05s;
 }
