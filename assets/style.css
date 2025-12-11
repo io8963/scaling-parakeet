@@ -765,25 +765,47 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .post-list-item {
     display: block; 
     position: relative; /* 确保层级 */
-    padding: 20px 20px 20px 15px; 
+    /* [修复] 左侧内边距增加 4px (15+4=19) 以补偿移除的 border-left 空间 */
+    padding: 20px 20px 20px 19px; 
     border-bottom: 1px dashed var(--color-main-border); 
-    border-left: 4px solid transparent; 
+    /* [修复] 移除 border-left，改用伪元素实现，解决左下角缺角问题 */
+    border-left: none;
     margin-left: -15px; 
     width: calc(100% + 15px);
     background-color: transparent; 
     text-decoration: none;
     color: inherit;
-    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s, border-left-color 0.2s;
+    /* [修复] 移除 border-left-color 过渡 */
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s;
     border-radius: 0; 
     box-shadow: none;
+}
+
+/* [新增] 使用伪元素模拟左侧高亮条，避免 border 交叉处的缺角 */
+.post-list-item::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: -1px; /* 延伸到底部边框之下，填补缺角 */
+    width: 4px;
+    background-color: transparent;
+    transition: background-color 0.2s;
+    z-index: 1;
 }
 
 .post-list-item:hover,
 .post-list-item:focus { 
     background-color: rgba(0, 0, 0, 0.02); 
-    border-left-color: var(--color-primary);
+    /* border-left-color: var(--color-primary); [已移除] */
     transform: translateX(5px); /* 悬停右移反馈 */
     outline: none;
+}
+
+/* [新增] 悬停时改变伪元素颜色 */
+.post-list-item:hover::before,
+.post-list-item:focus::before {
+    background-color: var(--color-primary);
 }
 
 /* 文章列表卡片按压效果 */
@@ -866,8 +888,15 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     .post-list-item:hover,
     .post-list-item:focus {
         background-color: rgba(255, 255, 255, 0.03);
-        border-left-color: var(--color-link-dark); 
+        /* border-left-color: var(--color-link-dark); [已移除] */
     }
+    
+    /* [新增] 暗色模式下的伪元素颜色 */
+    .post-list-item:hover::before,
+    .post-list-item:focus::before {
+        background-color: var(--color-link-dark);
+    }
+    
     .post-list-item:hover .post-title { color: var(--color-link-dark); }
     .post-list-item:hover .meta-date {
         color: var(--color-link-dark); 
