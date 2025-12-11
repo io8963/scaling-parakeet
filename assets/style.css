@@ -1,10 +1,31 @@
 /* --- START OF FILE scaling-parakeet-main/assets/style.css --- */
 
 /* =========================================
-   A. 全局重置
+   A. 全局重置 & 滚动条美化 (UI/UX 优化)
    ========================================= */
 *, *::before, *::after {
     box-sizing: border-box;
+}
+
+/* --- 自定义滚动条 --- */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+::-webkit-scrollbar-track {
+    background: transparent;
+}
+::-webkit-scrollbar-thumb {
+    background-color: rgba(0, 0, 0, 0.15);
+    border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-primary);
+}
+@media (prefers-color-scheme: dark) {
+    ::-webkit-scrollbar-thumb {
+        background-color: rgba(255, 255, 255, 0.2);
+    }
 }
 
 /* =========================================
@@ -39,6 +60,8 @@
     --color-main-background: var(--color-background);
     --color-main-card: var(--color-card);
     --color-main-border: var(--color-border);
+    
+    --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -55,7 +78,7 @@
    E. 基础样式
    ========================================= */
 html {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    font-family: var(--font-sans);
     line-height: 1.7; 
     color: var(--color-main-text);
     background-color: var(--color-main-background);
@@ -80,13 +103,14 @@ a {
     outline: none;
 }
 
+/* --- 链接下划线动画优化 --- */
 a::after {
     content: '';
     position: absolute;
     width: 100%;
     transform: scaleX(0);
     height: 1px;
-    bottom: 0;
+    bottom: -2px; /* [优化] 下划线稍微远离文字，提升可读性 */
     left: 0;
     background-color: var(--color-primary);
     transform-origin: bottom right;
@@ -116,7 +140,7 @@ a:focus {
 header nav a::after, .post-license a::after,
 .post-content h1 a::after, .post-content h2 a::after, .post-content h3 a::after,
 .tag-badge a::after, .button a::after, .button-secondary a::after,
-.archive-link::after { /* 移除归档列表链接的下划线动画 */
+.archive-link::after { 
     content: none;
 }
 
@@ -127,6 +151,7 @@ h1, h2, h3, h4, h5, h6 {
     font-weight: 700;
     color: var(--color-main-text);
     scroll-margin-top: 90px;
+    text-wrap: balance; /* [优化] 标题文字平衡，避免孤儿词 */
 }
 h1 { font-size: 2rem; letter-spacing: -0.02em; line-height: 1.2; }
 h2 { font-size: 1.6rem; letter-spacing: -0.01em; }
@@ -250,7 +275,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .page-index .toc-area, .page-archive .toc-area, .page-tags .toc-area { display: none; }
 .page-index .content-area, .page-archive .content-area, .page-tags .content-area { flex-basis: 100%; max-width: 100%; }
 
-/* 移动端目录 */
+/* --- 移动端目录动画与交互优化 --- */
 .mobile-toc {
     display: none; 
     margin-bottom: 30px;
@@ -258,27 +283,56 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border-radius: 4px; 
     font-size: 0.9rem;
     transition: border-color 0.2s;
+    background-color: var(--color-main-card);
 }
 .mobile-toc:hover { border-color: var(--color-primary); }
+
 .mobile-toc summary { 
+    list-style: none; /* [优化] 隐藏默认三角 */
+    position: relative;
     padding: 10px 15px; 
+    padding-right: 40px; /* 留出右侧图标位置 */
     cursor: pointer; 
     color: var(--color-main-subtext); 
-    outline: none; /* 确保 focus 状态不会引起双线 */
+    outline: none;
+    transition: color 0.2s;
+    font-weight: 500;
 }
-/* 当目录展开时，给 summary 添加底部边框，作为唯一的分割线 */
+/* 隐藏 Webkit 默认三角 */
+.mobile-toc summary::-webkit-details-marker { display: none; }
+
+/* [优化] 自定义右侧动画图标 */
+.mobile-toc summary::after {
+    content: "+";
+    position: absolute;
+    right: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-weight: bold;
+    font-size: 1.2em;
+    transition: transform 0.2s ease;
+    color: var(--color-primary);
+    line-height: 1;
+}
+
 .mobile-toc[open] > summary { 
     border-bottom: 1px solid var(--color-main-border); 
     padding-bottom: 10px; 
-    margin-bottom: 10px; /* 保持与内容区的间隔 */
+    margin-bottom: 10px;
+    color: var(--color-main-text);
 }
+.mobile-toc[open] > summary::after {
+    transform: translateY(-50%) rotate(45deg); /* [优化] 旋转动画 */
+}
+
 .mobile-toc-content { 
     padding: 15px; 
-    border-top: none; /* 【修复】移除冗余的顶部边框 */
+    border-top: none;
 }
 .mobile-toc-content ul { list-style: none; padding: 0; }
 .mobile-toc-content ul ul { padding-left: 15px; border-left: 1px dotted var(--color-main-border); }
 .mobile-toc-content a { display: block; padding: 4px 0; color: var(--color-main-text); text-decoration: none;}
+
 /* =========================================
    J. 文章正文 (Content)
    ========================================= */
@@ -300,13 +354,12 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 .post-content h2 + p, .post-content h3 + p, .post-content h4 + p { margin-top: 0.8em; }
 
-/* 排除 Archive 页面，因为它有自定义结构 */
+/* 列表样式 */
 .page-post .post-content ul ul, .page-post .post-content ol ol,
 .page-index .post-content ul ul, .page-index .post-content ol ol { 
     padding-left: 15px; border-left: 1px dotted var(--color-main-border); margin-top: 5px; margin-bottom: 5px; 
 }
 
-/* 仅针对正文内容的默认列表样式 */
 .page-post .post-content ul, .page-post .post-content ol { color: var(--color-primary); }
 .page-post .post-content ul li, .page-post .post-content ol li {
     padding: 3px 5px; 
@@ -336,23 +389,64 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 @media (prefers-color-scheme: dark) {
     .post-content img:hover { box-shadow: 0 8px 20px rgba(255, 255, 255, 0.08); }
 }
+
+/* --- 图片说明 (Caption) 优化 --- */
 .post-content img + em {
-    display: block; text-align: center; font-size: 0.85rem; color: var(--color-main-subtext); 
-    font-family: monospace; border-top: 1px solid var(--color-main-border); border-bottom: 1px solid var(--color-main-border);
-    padding: 5px 0; margin-top: -20px; margin-bottom: 30px; font-style: normal;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    text-align: center; 
+    font-size: 0.85rem; 
+    color: var(--color-main-subtext); 
+    font-family: var(--font-sans); /* [优化] 使用正文字体 */
+    font-style: normal;
+    border-top: 1px solid var(--color-main-border); 
+    border-bottom: 1px solid var(--color-main-border);
+    padding: 8px 0; 
+    margin-top: -20px; 
+    margin-bottom: 30px; 
+}
+.post-content img + em::before {
+    content: "▲"; 
+    font-size: 0.6em;
+    opacity: 0.6;
 }
 
+/* --- 引用块 (Blockquote) 视觉增强 --- */
 .post-content blockquote {
-    border-left: 3px solid var(--color-primary); padding: 5px 20px; margin: 25px 0;
-    color: var(--color-main-subtext); font-style: italic;
-    background-color: rgba(0, 0, 0, 0.01); box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.03); border-radius: 3px;
+    position: relative; /* [优化] */
+    border-left: 3px solid var(--color-primary); 
+    padding: 15px 20px 15px 40px; /* 左侧增加内边距给引号留位 */
+    margin: 25px 0;
+    color: var(--color-main-subtext); 
+    font-style: italic;
+    background: linear-gradient(to right, rgba(0,121,107,0.05), transparent); /* [优化] 渐变背景 */
+    box-shadow: inset 0 0 5px rgba(0, 0, 0, 0.03); 
+    border-radius: 3px;
 }
+.post-content blockquote::before {
+    content: "“";
+    position: absolute;
+    top: -5px;
+    left: 10px;
+    font-size: 3rem;
+    color: var(--color-primary);
+    opacity: 0.2;
+    font-family: serif;
+    line-height: 1;
+    pointer-events: none;
+}
+
 @media (prefers-color-scheme: dark) {
-    .post-content blockquote { background-color: rgba(255, 255, 255, 0.01); box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.03); }
+    .post-content blockquote { 
+        background: linear-gradient(to right, rgba(255,255,255,0.02), transparent);
+        box-shadow: inset 0 0 5px rgba(255, 255, 255, 0.03); 
+    }
 }
 
 .post-content code:not(pre code) {
-    color: var(--color-text); font-weight: 500; padding: 2px 4px; border-radius: 4px; /* 【修改】从 3px 改为 4px */
+    color: var(--color-text); font-weight: 500; padding: 2px 4px; border-radius: 4px; 
     font-size: 0.9em;
     border: 1px solid rgba(0, 0, 0, 0.05); background-color: var(--color-code-bg);
 }
@@ -362,39 +456,57 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     }
 }
 
+/* --- 代码块 MacOS 风格装饰 --- */
 .post-content pre {
-    background-color: var(--color-code-bg); border-radius: 4px; /* 【修改】从 6px 改为 4px */
-    margin: 25px 0; padding: 15px;
-    overflow-x: auto; font-size: 0.9rem; border: 1px solid var(--color-main-border);
+    position: relative;
+    padding: 38px 15px 15px 15px; /* [优化] 顶部留出空间 */
+    background-color: var(--color-code-bg); 
+    border-radius: 6px; 
+    margin: 25px 0; 
+    overflow-x: auto; 
+    font-size: 0.9rem; 
+    border: 1px solid var(--color-main-border);
     transition: box-shadow 0.2s, background-color 0.2s;
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
 }
+/* MacOS 风格红黄绿点 */
+.post-content pre::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    left: 16px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ff5f56; /* Red */
+    box-shadow: 20px 0 0 #ffbd2e, 40px 0 0 #27c93f; /* Yellow & Green */
+}
+
 .post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.1); }
 @media (prefers-color-scheme: dark) {
     .post-content pre { background-color: var(--color-code-bg-dark); box-shadow: 0 4px 6px -1px rgba(255, 255, 255, 0.05); }
     .post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(255, 255, 255, 0.1); }
 }
 
-/* --- 表格 UI/UX 重新设计 START --- */
-
+/* --- 表格 UI/UX --- */
 .table-wrapper { 
     width: 100%; 
     overflow-x: auto; 
     margin: 30px 0; 
-    border: 1px solid var(--color-main-border); /* 保留边框用于视觉分隔和暗色模式 */
+    border: 1px solid var(--color-main-border); 
     border-radius: 4px; 
     transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s; 
     outline: none; 
-    background-color: var(--color-main-card); /* 使表格容器具有卡片背景 */
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05); /* 轻微阴影，提升层次感 */
+    background-color: var(--color-main-card); 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
 }
 .table-wrapper:hover { 
-    border-color: var(--color-primary); /* 悬停边框使用主题色 */
-    box-shadow: 0 4px 10px rgba(0,0,0,0.08); /* 悬停阴影略微加深 */
+    border-color: var(--color-primary); 
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08); 
 }
 .table-wrapper:focus-within { 
     border-color: var(--color-primary); 
-    box-shadow: 0 0 0 2px var(--color-primary-light), 0 0 0 4px var(--color-primary); /* 焦点环 */
+    box-shadow: 0 0 0 2px var(--color-primary-light), 0 0 0 4px var(--color-primary); 
 }
 @media (prefers-color-scheme: dark) {
     .table-wrapper { 
@@ -414,12 +526,11 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     width: 100%; 
     border-collapse: collapse; 
     font-size: 0.95rem;
-    color: var(--color-main-text); /* 确保文本颜色正确继承 */
-    border-radius: 4px; /* 表格本身也继承圆角 */
-    overflow: hidden; /* 防止内容溢出圆角 */
+    color: var(--color-main-text); 
+    border-radius: 4px; 
+    overflow: hidden; 
 }
 
-/* 单元格基本样式 */
 .post-content th, .post-content td { 
     padding: 12px 15px; 
     border-bottom: 1px solid var(--color-main-border); 
@@ -427,48 +538,40 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     line-height: 1.5;
 }
 
-/* 表头样式 (th) */
 .post-content th { 
-    background-color: var(--color-primary-light); /* 使用浅色主题色作为背景 */
-    color: var(--color-primary); /* 表头文本使用主题色 */
+    background-color: var(--color-primary-light); 
+    color: var(--color-primary); 
     font-weight: 700; 
-    text-transform: uppercase; /* 略微突出 */
+    text-transform: uppercase; 
     font-size: 0.9rem;
-    border-bottom: 2px solid var(--color-primary); /* 底部加粗主题色线条 */
+    border-bottom: 2px solid var(--color-primary); 
 }
 
-/* 斑马条纹 (tr) */
 .post-content tr:nth-child(even) {
-    background-color: rgba(0, 0, 0, 0.02); /* 浅色模式下的浅灰条纹 */
+    background-color: rgba(0, 0, 0, 0.02); 
 }
 
-/* 移除 tbody 最后一行的底部边框，避免重复 */
 .post-content tr:last-child td {
     border-bottom: none;
 }
 
-/* 悬停行高亮 */
-.post-content tr:hover:not(:first-child) { /* 悬停时跳过表头行 */
+.post-content tr:hover:not(:first-child) { 
     background-color: rgba(0, 121, 107, 0.08);
 }
 
-
-/* 暗色模式调整 */
 @media (prefers-color-scheme: dark) {
     .post-content th { 
-        background-color: rgba(0, 121, 107, 0.2); /* 暗色模式下的深色主题色背景 */
+        background-color: rgba(0, 121, 107, 0.2); 
         color: var(--color-link-dark); 
         border-bottom: 2px solid var(--color-link-dark); 
     }
     .post-content tr:nth-child(even) {
-        background-color: rgba(255, 255, 255, 0.03); /* 暗色模式下的深色条纹 */
+        background-color: rgba(255, 255, 255, 0.03); 
     }
     .post-content tr:hover:not(:first-child) {
         background-color: rgba(0, 121, 107, 0.25);
     }
 }
-
-/* --- 表格 UI/UX 重新设计 END --- */
 
 .admonition { margin: 25px 0; padding: 15px; border: 1px solid var(--color-main-border); border-left-width: 4px; border-radius: 4px; }
 .admonition-title { color: var(--color-primary); margin-bottom: 8px; font-weight: 700; font-size: 0.95rem; }
@@ -506,7 +609,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     display: flex; justify-content: flex-start; flex-wrap: wrap; align-items: center; gap: 15px; 
 }
 .meta-date {
-    font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 3px 6px; border-radius: 4px; 
+    font-family: var(--font-sans); font-size: 0.9rem; padding: 3px 6px; border-radius: 4px; 
     background-color: var(--color-code-bg); border: 1px solid var(--color-main-border); opacity: 1; 
     display: flex; align-items: center; line-height: 1.2; height: 1.8em; 
 }
@@ -520,7 +623,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 .meta-tags .tag-badge {
     color: var(--color-main-subtext); text-decoration: none; transition: all 0.2s ease; 
-    font-family: 'Inter', sans-serif; font-size: 0.9rem; padding: 3px 6px; border-radius: 4px; 
+    font-family: var(--font-sans); font-size: 0.9rem; padding: 3px 6px; border-radius: 4px; 
     background-color: var(--color-code-bg); border: 1px solid var(--color-main-border); font-weight: 500;
     display: flex; align-items: center; line-height: 1.2; height: 1.8em; vertical-align: middle; 
 }
@@ -535,7 +638,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 /* =========================================
-   N. 极简文章列表 (首页/标签页 - 左侧竖线交互)
+   N. 极简文章列表 (首页/标签页 - 交互增强)
    ========================================= */
 .post-list { 
     list-style: none; 
@@ -547,6 +650,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 .post-list-item {
     display: block; 
+    position: relative; /* 确保层级 */
     padding: 20px 20px 20px 15px; 
     border-bottom: 1px dashed var(--color-main-border); 
     border-left: 4px solid transparent; 
@@ -555,8 +659,9 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     background-color: transparent; 
     text-decoration: none;
     color: inherit;
-    transition: all 0.2s ease;
-    border-radius: 0; /* 保持直角 */
+    /* [优化] 增加 transform 动画 */
+    transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s, border-left-color 0.2s;
+    border-radius: 0; 
     box-shadow: none;
 }
 
@@ -564,8 +669,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 .post-list-item:focus { 
     background-color: rgba(0, 0, 0, 0.02); 
     border-left-color: var(--color-primary);
+    transform: translateX(5px); /* [优化] 悬停右移反馈 */
     outline: none;
-    transform: none; 
 }
 
 .post-list-item:last-child { border-bottom: none; }
@@ -613,7 +718,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     background-color: rgba(0,0,0,0.03); 
     border: none; 
     padding: 2px 6px;
-    border-radius: 4px; /* 保持 4px */
+    border-radius: 4px; 
     line-height: 1.2;
     height: auto;
     display: inline-block;
@@ -633,7 +738,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
-    font-family: 'Inter', sans-serif;
+    font-family: var(--font-sans);
     opacity: 0.9;
 }
 
@@ -668,7 +773,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     padding: 6px 12px;
     background-color: transparent; 
     border: 1px solid var(--color-main-border);
-    border-radius: 4px; /* 保持 4px */
+    border-radius: 4px; 
     color: var(--color-main-text);
     text-decoration: none;
     font-size: 0.9rem !important;
@@ -685,13 +790,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 }
 
 /* --- Archive 归档页美化 (Timeline 风格) --- */
+.archive-page { max-width: 100%; }
 
-/* 1. 归档页外层容器 */
-.archive-page {
-    max-width: 100%;
-}
-
-/* 2. 年份大标题 */
 .archive-year {
     font-size: 1.8rem;
     margin-top: 2rem;
@@ -712,27 +812,25 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     .archive-year { border-bottom-color: rgba(255, 255, 255, 0.1); }
 }
 
-/* 3. 列表容器 (去除默认圆点) */
 .archive-list {
     list-style: none;
     padding: 0;
     margin: 0 0 2rem 0;
 }
 
-/* 4. 单个文章项 (Flex布局) */
 .archive-item {
     display: flex;
     align-items: baseline;
     padding: 10px 15px;
     border-bottom: 1px dashed var(--color-main-border);
     transition: background-color 0.2s ease, transform 0.2s ease;
-    border-radius: 0; /* 【修改】从 6px 改为 0，与首页列表保持直角一致 */
+    border-radius: 0; 
     margin-bottom: 5px;
 }
 
 .archive-item:hover {
     background-color: rgba(0,0,0,0.02);
-    transform: translateX(5px); /* 悬停轻微右移 */
+    transform: translateX(5px); 
 }
 @media (prefers-color-scheme: dark) {
     .archive-item:hover {
@@ -740,18 +838,16 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     }
 }
 
-/* 5. 日期 (固定宽度, 居右对齐) */
 .archive-date {
-    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace; /* 等宽字体对齐 */
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, monospace; 
     font-size: 0.95rem;
     color: var(--color-main-subtext);
     margin-right: 20px;
-    width: 60px; /* 固定宽度 */
+    width: 60px; 
     flex-shrink: 0;
     text-align: right;
 }
 
-/* 6. 文章链接 */
 .archive-link {
     font-size: 1.05rem;
     font-weight: 500;
@@ -767,10 +863,9 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     .archive-link:hover { color: var(--color-link-dark); }
 }
 
-/* 7. 移动端响应式调整 */
 @media (max-width: 600px) {
     .archive-item {
-        flex-direction: column; /* 小屏幕堆叠排列 */
+        flex-direction: column; 
         align-items: flex-start;
         padding: 12px 10px;
         gap: 2px;
@@ -785,7 +880,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
         font-size: 1rem;
     }
 }
-/* --- Archive End --- */
 
 /* =========================================
    L. 底部 (Footer)
@@ -872,7 +966,7 @@ a:focus, button:focus, .tag-cloud-item:focus {
 }
 .nav-link {
     display: block; flex: 1; padding: 15px; border: 1px solid var(--color-main-border); 
-    border-radius: 4px; /* 【修改】从 6px 改为 4px */
+    border-radius: 4px; 
     text-decoration: none !important; transition: border-color 0.2s, background-color 0.2s;
     overflow: hidden; white-space: nowrap; text-overflow: ellipsis;
 }
@@ -931,154 +1025,187 @@ a:focus, button:focus, .tag-cloud-item:focus {
 }
 
 /* =========================================
-   Z1. Pygments 代码高亮样式 (Tango & Monokai)
+   Z1. Pygments 代码高亮样式
    ========================================= */
-
-
-/* Tango Style Content (Light Mode) */
 .highlight .hll { background-color: #ffffcc }
-.highlight .c { color: #8f5902; font-style: italic } /* Comment */
-.highlight .err { color: #a40000; border: 1px solid #ef2929 } /* Error */
-.highlight .g { color: #000000 } /* Generic */
-.highlight .k { color: #204a87; font-weight: bold } /* Keyword */
-.highlight .l { color: #000000 } /* Literal */
-.highlight .n { color: #000000 } /* Name */
-.highlight .o { color: #980088 } /* Operator */
-.highlight .x { color: #000000 } /* Other */
-.highlight .p { color: #000000; font-weight: bold } /* Punctuation */
-.highlight .cm { color: #8f5902; font-style: italic } /* Comment.Multiline */
-.highlight .cp { color: #008f8f } /* Comment.Preproc */
-.highlight .c1 { color: #8f5902; font-style: italic } /* Comment.Single */
-.highlight .cs { color: #8f5902; font-style: italic } /* Comment.Special */
-.highlight .gd { color: #a40000 } /* Generic.Deleted */
-.highlight .ge { color: #000000; font-style: italic } /* Generic.Emph */
-.highlight .gr { color: #a40000 } /* Generic.Error */
-.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
-.highlight .gi { color: #008f00 } /* Generic.Inserted */
-.highlight .go { color: #000000; font-style: italic } /* Generic.Output */
-.highlight .gp { color: #8f5902; font-weight: bold } /* Generic.Prompt */
-.highlight .gs { color: #000000; font-weight: bold } /* Generic.Strong */
-.highlight .gu { color: #000080; font-weight: bold } /* Generic.Subheading */
-.highlight .gt { color: #a40000 } /* Generic.Traceback */
-.highlight .kc { color: #204a87; font-weight: bold } /* Keyword.Constant */
-.highlight .kd { color: #204a87; font-weight: bold } /* Keyword.Declaration */
-.highlight .kn { color: #204a87; font-weight: bold } /* Keyword.Namespace */
-.highlight .kp { color: #204a87; font-weight: bold } /* Keyword.Pseudo */
-.highlight .kr { color: #204a87; font-weight: bold } /* Keyword.Reserved */
-.highlight .kt { color: #4040a0; font-weight: bold } /* Keyword.Type */
-.highlight .ld { color: #000000 } /* Literal.Date */
-.highlight .m { color: #0000cf; font-weight: bold } /* Literal.Number */
-.highlight .s { color: #4e9a06 } /* Literal.String */
-.highlight .na { color: #c4a000 } /* Name.Attribute */
-.highlight .nb { color: #000000 } /* Name.Builtin */
-.highlight .nc { color: #000000; font-weight: bold } /* Name.Class */
-.highlight .no { color: #8f5902 } /* Name.Constant */
-.highlight .nd { color: #8f5902 } /* Name.Decorator */
-.highlight .ni { color: #204a87 } /* Name.Entity */
-.highlight .ne { color: #cc0000; font-weight: bold } /* Name.Exception */
-.highlight .nf { color: #000000 } /* Name.Function */
-.highlight .nl { color: #000000 } /* Name.Label */
-.highlight .nn { color: #000000; font-weight: bold } /* Name.Namespace */
-.highlight .nx { color: #000000 } /* Name.Other */
-.highlight .py { color: #000000 } /* Name.Property */
-.highlight .nt { color: #204a87; font-weight: bold } /* Name.Tag */
-.highlight .nv { color: #000000 } /* Name.Variable */
-.highlight .ow { color: #000000; font-weight: bold } /* Operator.Word */
-.highlight .w { color: #f8f8f8; text-decoration: underline } /* Text.Whitespace */
-.highlight .mf { color: #0000cf; font-weight: bold } /* Literal.Number.Float */
-.highlight .mh { color: #0000cf; font-weight: bold } /* Literal.Number.Hex */
-.highlight .mi { color: #0000cf; font-weight: bold } /* Literal.Number.Integer */
-.highlight .mo { color: #0000cf; font-weight: bold } /* Literal.Number.Oct */
-.highlight .sb { color: #4e9a06 } /* Literal.String.Backtick */
-.highlight .sc { color: #4e9a06 } /* Literal.String.Char */
-.highlight .sd { color: #4e9a06 } /* Literal.String.Doc */
-.highlight .s2 { color: #4e9a06 } /* Literal.String.Double */
-.highlight .se { color: #4e9a06 } /* Literal.String.Escape */
-.highlight .sh { color: #4e9a06 } /* Literal.String.Heredoc */
-.highlight .si { color: #4e9a06 } /* Literal.String.Interpol */
-.highlight .sx { color: #4e9a06 } /* Literal.String.Other */
-.highlight .sr { color: #4e9a06 } /* Literal.String.Regex */
-.highlight .s1 { color: #4e9a06 } /* Literal.String.Single */
-.highlight .ss { color: #4e9a06 } /* Literal.String.Symbol */
-.highlight .bp { color: #3465a4 } /* Name.Builtin.Pseudo */
-.highlight .vc { color: #000000 } /* Name.Variable.Class */
-.highlight .vg { color: #000000 } /* Name.Variable.Global */
-.highlight .vi { color: #000000 } /* Name.Variable.Instance */
-.highlight .il { color: #0000cf; font-weight: bold } /* Literal.Number.Integer.Long */
+.highlight .c { color: #8f5902; font-style: italic }
+.highlight .err { color: #a40000; border: 1px solid #ef2929 }
+.highlight .g { color: #000000 }
+.highlight .k { color: #204a87; font-weight: bold }
+.highlight .l { color: #000000 }
+.highlight .n { color: #000000 }
+.highlight .o { color: #980088 }
+.highlight .x { color: #000000 }
+.highlight .p { color: #000000; font-weight: bold }
+.highlight .cm { color: #8f5902; font-style: italic }
+.highlight .cp { color: #008f8f }
+.highlight .c1 { color: #8f5902; font-style: italic }
+.highlight .cs { color: #8f5902; font-style: italic }
+.highlight .gd { color: #a40000 }
+.highlight .ge { color: #000000; font-style: italic }
+.highlight .gr { color: #a40000 }
+.highlight .gh { color: #000080; font-weight: bold }
+.highlight .gi { color: #008f00 }
+.highlight .go { color: #000000; font-style: italic }
+.highlight .gp { color: #8f5902; font-weight: bold }
+.highlight .gs { color: #000000; font-weight: bold }
+.highlight .gu { color: #000080; font-weight: bold }
+.highlight .gt { color: #a40000 }
+.highlight .kc { color: #204a87; font-weight: bold }
+.highlight .kd { color: #204a87; font-weight: bold }
+.highlight .kn { color: #204a87; font-weight: bold }
+.highlight .kp { color: #204a87; font-weight: bold }
+.highlight .kr { color: #204a87; font-weight: bold }
+.highlight .kt { color: #4040a0; font-weight: bold }
+.highlight .ld { color: #000000 }
+.highlight .m { color: #0000cf; font-weight: bold }
+.highlight .s { color: #4e9a06 }
+.highlight .na { color: #c4a000 }
+.highlight .nb { color: #000000 }
+.highlight .nc { color: #000000; font-weight: bold }
+.highlight .no { color: #8f5902 }
+.highlight .nd { color: #8f5902 }
+.highlight .ni { color: #204a87 }
+.highlight .ne { color: #cc0000; font-weight: bold }
+.highlight .nf { color: #000000 }
+.highlight .nl { color: #000000 }
+.highlight .nn { color: #000000; font-weight: bold }
+.highlight .nx { color: #000000 }
+.highlight .py { color: #000000 }
+.highlight .nt { color: #204a87; font-weight: bold }
+.highlight .nv { color: #000000 }
+.highlight .ow { color: #000000; font-weight: bold }
+.highlight .w { color: #f8f8f8; text-decoration: underline }
+.highlight .mf { color: #0000cf; font-weight: bold }
+.highlight .mh { color: #0000cf; font-weight: bold }
+.highlight .mi { color: #0000cf; font-weight: bold }
+.highlight .mo { color: #0000cf; font-weight: bold }
+.highlight .sb { color: #4e9a06 }
+.highlight .sc { color: #4e9a06 }
+.highlight .sd { color: #4e9a06 }
+.highlight .s2 { color: #4e9a06 }
+.highlight .se { color: #4e9a06 }
+.highlight .sh { color: #4e9a06 }
+.highlight .si { color: #4e9a06 }
+.highlight .sx { color: #4e9a06 }
+.highlight .sr { color: #4e9a06 }
+.highlight .s1 { color: #4e9a06 }
+.highlight .ss { color: #4e9a06 }
+.highlight .bp { color: #3465a4 }
+.highlight .vc { color: #000000 }
+.highlight .vg { color: #000000 }
+.highlight .vi { color: #000000 }
+.highlight .il { color: #0000cf; font-weight: bold }
 
-
-/* --- 深色模式覆盖样式 (Monokai Theme) --- */
 @media (prefers-color-scheme: dark) {
-    /* 统一设置主要颜色为 Monokai 的亮白色 */
-    .highlight { 
-        color: #f8f8f2 !important; 
-        background: transparent !important;
-    }
-    .highlight pre {
-        background: transparent !important;
+    .highlight { color: #f8f8f2 !important; background: transparent !important; }
+    .highlight pre { background: transparent !important; }
+    .highlight .hll { background-color: #49483a }
+    .highlight .c { color: #75715e }
+    .highlight .err { color: #960050; background-color: #1e0010 }
+    .highlight .k { color: #66d9ef }
+    .highlight .l { color: #ae81ff }
+    .highlight .n { color: #f8f8f2 }
+    .highlight .o { color: #f92672 }
+    .highlight .p { color: #f8f8f2 }
+    .highlight .cm { color: #75715e }
+    .highlight .cp { color: #75715e }
+    .highlight .c1 { color: #75715e }
+    .highlight .cs { color: #75715e }
+    .highlight .ge { font-style: italic }
+    .highlight .gs { font-weight: bold }
+    .highlight .kc { color: #66d9ef }
+    .highlight .kd { color: #66d9ef }
+    .highlight .kn { color: #f92672 }
+    .highlight .kp { color: #66d9ef }
+    .highlight .kr { color: #66d9ef }
+    .highlight .kt { color: #66d9ef }
+    .highlight .ld { color: #ae81ff }
+    .highlight .m { color: #ae81ff }
+    .highlight .s { color: #e6db74 }
+    .highlight .na { color: #a6e22e }
+    .highlight .nb { color: #f8f8f2 }
+    .highlight .nc { color: #a6e22e }
+    .highlight .no { color: #66d9ef }
+    .highlight .nd { color: #a6e22e }
+    .highlight .ni { color: #f8f8f2 }
+    .highlight .ne { color: #a6e22e }
+    .highlight .nf { color: #a6e22e }
+    .highlight .nl { color: #f8f8f2 }
+    .highlight .nn { color: #f8f8f2 }
+    .highlight .nx { color: #f8f8f2 }
+    .highlight .py { color: #f8f8f2 }
+    .highlight .nt { color: #f92672 }
+    .highlight .nv { color: #f8f8f2 }
+    .highlight .ow { color: #f92672 }
+    .highlight .w { color: #f8f8f2 }
+    .highlight .mf { color: #ae81ff }
+    .highlight .mh { color: #ae81ff }
+    .highlight .mi { color: #ae81ff }
+    .highlight .mo { color: #ae81ff }
+    .highlight .sb { color: #e6db74 }
+    .highlight .sc { color: #e6db74 }
+    .highlight .sd { color: #e6db74 }
+    .highlight .s2 { color: #e6db74 }
+    .highlight .se { color: #ae81ff }
+    .highlight .sh { color: #e6db74 }
+    .highlight .si { color: #e6db74 }
+    .highlight .sx { color: #e6db74 }
+    .highlight .sr { color: #e6db74 }
+    .highlight .s1 { color: #e6db74 }
+    .highlight .ss { color: #e6db74 }
+    .highlight .bp { color: #f8f8f2 }
+    .highlight .vc { color: #f8f8f2 }
+    .highlight .vg { color: #f8f8f2 }
+    .highlight .vi { color: #f8f8f2 }
+    .highlight .il { color: #ae81ff }
+    .highlight .gu { color: #75715e }
+    .highlight .gd { color: #f92672 }
+    .highlight .gi { color: #a6e22e }
+}
+
+/* =========================================
+   Z2. 打印样式 (Print Styles) [新增优化]
+   ========================================= */
+@media print {
+    /* 隐藏无关元素 */
+    header, footer, .toc-area, .skip-link, .post-navigation, .mobile-toc {
+        display: none !important;
     }
 
-    /* Monokai Style Content (Dark Mode) */
-    .highlight .hll { background-color: #49483a }
-    .highlight .c { color: #75715e } /* Comment */
-    .highlight .err { color: #960050; background-color: #1e0010 } /* Error */
-    .highlight .k { color: #66d9ef } /* Keyword */
-    .highlight .l { color: #ae81ff } /* Literal */
-    .highlight .n { color: #f8f8f2 } /* Name */
-    .highlight .o { color: #f92672 } /* Operator */
-    .highlight .p { color: #f8f8f2 } /* Punctuation */
-    .highlight .cm { color: #75715e } /* Comment.Multiline */
-    .highlight .cp { color: #75715e } /* Comment.Preproc */
-    .highlight .c1 { color: #75715e } /* Comment.Single */
-    .highlight .cs { color: #75715e } /* Comment.Special */
-    .highlight .ge { font-style: italic } /* Generic.Emph */
-    .highlight .gs { font-weight: bold } /* Generic.Strong */
-    .highlight .kc { color: #66d9ef } /* Keyword.Constant */
-    .highlight .kd { color: #66d9ef } /* Keyword.Declaration */
-    .highlight .kn { color: #f92672 } /* Keyword.Namespace */
-    .highlight .kp { color: #66d9ef } /* Keyword.Pseudo */
-    .highlight .kr { color: #66d9ef } /* Keyword.Reserved */
-    .highlight .kt { color: #66d9ef } /* Keyword.Type */
-    .highlight .ld { color: #ae81ff } /* Literal.Date */
-    .highlight .m { color: #ae81ff } /* Literal.Number */
-    .highlight .s { color: #e6db74 } /* Literal.String */
-    .highlight .na { color: #a6e22e } /* Name.Attribute */
-    .highlight .nb { color: #f8f8f2 } /* Name.Builtin */
-    .highlight .nc { color: #a6e22e } /* Name.Class */
-    .highlight .no { color: #66d9ef } /* Name.Constant */
-    .highlight .nd { color: #a6e22e } /* Name.Decorator */
-    .highlight .ni { color: #f8f8f2 } /* Name.Entity */
-    .highlight .ne { color: #a6e22e } /* Name.Exception */
-    .highlight .nf { color: #a6e22e } /* Name.Function */
-    .highlight .nl { color: #f8f8f2 } /* Name.Label */
-    .highlight .nn { color: #f8f8f2 } /* Name.Namespace */
-    .highlight .nx { color: #f8f8f2 } /* Name.Other */
-    .highlight .py { color: #f8f8f2 } /* Name.Property */
-    .highlight .nt { color: #f92672 } /* Name.Tag */
-    .highlight .nv { color: #f8f8f2 } /* Name.Variable */
-    .highlight .ow { color: #f92672 } /* Operator.Word */
-    .highlight .w { color: #f8f8f2 } /* Text.Whitespace */
-    .highlight .mf { color: #ae81ff } /* Literal.Number.Float */
-    .highlight .mh { color: #ae81ff } /* Literal.Number.Hex */
-    .highlight .mi { color: #ae81ff } /* Literal.Number.Integer */
-    .highlight .mo { color: #ae81ff } /* Literal.Number.Oct */
-    .highlight .sb { color: #e6db74 } /* Literal.String.Backtick */
-    .highlight .sc { color: #e6db74 } /* Literal.String.Char */
-    .highlight .sd { color: #e6db74 } /* Literal.String.Doc */
-    .highlight .s2 { color: #e6db74 } /* Literal.String.Double */
-    .highlight .se { color: #ae81ff } /* Literal.String.Escape */
-    .highlight .sh { color: #e6db74 } /* Literal.String.Heredoc */
-    .highlight .si { color: #e6db74 } /* Literal.String.Interpol */
-    .highlight .sx { color: #e6db74 } /* Literal.String.Other */
-    .highlight .sr { color: #e6db74 } /* Literal.String.Regex */
-    .highlight .s1 { color: #e6db74 } /* Literal.String.Single */
-    .highlight .ss { color: #e6db74 } /* Literal.String.Symbol */
-    .highlight .bp { color: #f8f8f2 } /* Name.Builtin.Pseudo */
-    .highlight .vc { color: #f8f8f2 } /* Name.Variable.Class */
-    .highlight .vg { color: #f8f8f2 } /* Name.Variable.Global */
-    .highlight .vi { color: #f8f8f2 } /* Name.Variable.Instance */
-    .highlight .il { color: #ae81ff } /* Literal.Number.Integer.Long */
-    .highlight .gu { color: #75715e } /* Generic.Subheading */
-    .highlight .gd { color: #f92672 } /* Generic.Deleted */
-    .highlight .gi { color: #a6e22e } /* Generic.Inserted */
+    /* 重置容器宽度 */
+    .container, .main-layout, .content-area {
+        width: 100% !important;
+        max-width: 100% !important;
+        margin: 0 !important;
+        padding: 0 !important;
+        display: block !important;
+    }
+
+    /* 优化文字颜色为纯黑，节省墨水 */
+    body, h1, h2, h3, p, li {
+        color: #000 !important;
+        background: #fff !important;
+    }
+
+    /* 代码块优化 */
+    .post-content pre {
+        border: 1px solid #ccc;
+        white-space: pre-wrap; 
+        page-break-inside: avoid;
+        padding-top: 15px; /* 打印时移除 MacOS 红绿灯上方的额外空间 */
+    }
+    .post-content pre::before {
+        display: none; /* 打印时不显示红绿灯 */
+    }
+
+    /* 链接显示 URL */
+    .post-content a::after {
+        content: " (" attr(href) ")";
+        font-size: 0.8em;
+        text-decoration: none;
+        color: #555;
+    }
+    
+    a::after { transform: none !important; }
 }
