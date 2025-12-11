@@ -605,7 +605,10 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s; 
     outline: none; 
     background-color: var(--color-main-card); 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+    
+    /* 修复：iOS 惯性滚动支持，解决移动端表格滚动卡顿 */
+    -webkit-overflow-scrolling: touch; 
 }
 .table-wrapper:hover { 
     border-color: var(--color-primary); 
@@ -652,6 +655,9 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     text-transform: uppercase; 
     font-size: 0.9rem;
     border-bottom: 2px solid var(--color-primary);
+    
+    /* 修复：强制表头不换行，这是触发移动端水平滚动的关键 */
+    white-space: nowrap;
     
     /* 表头吸顶 (Sticky Header) */
     position: sticky;
