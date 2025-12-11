@@ -1,4 +1,4 @@
-# parser.py (增强版：修复语言识别)
+# parser.py - 调试增强版
 
 import os
 import re
@@ -10,7 +10,6 @@ import config
 import unicodedata 
 from bs4 import BeautifulSoup 
 
-# 辅助函数 - 将日期时间对象标准化为日期对象
 def standardize_date(dt_obj: Any) -> date:
     if isinstance(dt_obj, datetime):
         return dt_obj.date()
@@ -18,9 +17,6 @@ def standardize_date(dt_obj: Any) -> date:
         return dt_obj
     return date.today() 
 
-# -------------------------------------------------------------------------
-# 【TOC/目录专用 Slugify】
-# -------------------------------------------------------------------------
 def my_custom_slugify(s: str, separator: str) -> str:
     s = str(s).lower().strip()
     s = unicodedata.normalize('NFKD', s)
@@ -28,9 +24,6 @@ def my_custom_slugify(s: str, separator: str) -> str:
     s = re.sub(r'[\s-]+', separator, s).strip(separator)
     return s
 
-# -------------------------------------------------------------------------
-# 【标签/Tag 专用 Slugify】
-# -------------------------------------------------------------------------
 def tag_to_slug(tag_name: str) -> str:
     slug = tag_name.lower()
     slug = unicodedata.normalize('NFKD', slug)
@@ -39,15 +32,9 @@ def tag_to_slug(tag_name: str) -> str:
     return slug
 
 # -------------------------------------------------------------------------
-# 【核心逻辑：代码块后处理】(增强版)
+# 【核心逻辑：代码块后处理】(带调试打印)
 # -------------------------------------------------------------------------
-def post_process_html(html_content: str) -> str:
-    """
-    使用 BeautifulSoup 对 HTML 进行后处理：
-    1. 图片懒加载
-    2. 表格包裹
-    3. [关键] 代码块语言标签注入 (同时检查 div 和 code)
-    """
+def post_process_html(html_content: str, filename: str = "unknown") -> str:
     if not html_content:
         return ""
         
@@ -67,54 +54,56 @@ def post_process_html(html_content: str) -> str:
             wrapper_div.append(table)
 
     # 3. [关键修复] 代码块语言识别
-    # 语言映射表
     lang_map = {
         'py': 'PYTHON', 'python': 'PYTHON',
-        'js': 'JS', 'javascript': 'JS',
-        'ts': 'TS', 'typescript': 'TS',
+        'js': 'JS', 'javascript': 'JS', 'typescript': 'TS', 'ts': 'TS',
         'sh': 'SHELL', 'bash': 'SHELL', 'shell': 'SHELL', 'zsh': 'SHELL',
         'html': 'HTML', 'css': 'CSS', 'scss': 'CSS',
         'json': 'JSON', 'sql': 'SQL', 'yaml': 'YAML', 'yml': 'YAML',
         'md': 'MARKDOWN', 'markdown': 'MARKDOWN',
-        'c': 'C', 'cpp': 'C++', 'c++': 'C++',
-        'go': 'GO', 'java': 'JAVA', 'rust': 'RUST',
-        'txt': 'TEXT', 'text': 'TEXT'
+        'c': 'C', 'cpp': 'C++', 'go': 'GO', 'java': 'JAVA', 'rust': 'RUST'
     }
 
     # 查找所有高亮容器
-    for div in soup.find_all('div', class_='highlight'):
+    # 注意：pymdownx 生成的可能是 div.highlight 或 pre.highlight
+    code_blocks = soup.find_all(class_='highlight')
+    
+    for block in code_blocks:
         lang = None
+        found_class = ""
         
-        # 策略 A: 检查 div 的 class (例如 highlight language-python)
-        div_classes = div.get('class', [])
-        for cls in div_classes:
-            if cls.startswith('language-'):
-                lang_key = cls.replace('language-', '')
-                lang = lang_map.get(lang_key, lang_key.upper())
-                break
-            elif cls != 'highlight' and cls in lang_map: # 兼容旧格式
-                lang = lang_map.get(cls, cls.upper())
+        # 策略 A: 检查容器本身的 class
+        classes = block.get('class', [])
+        for cls in classes:
+            clean_cls = cls.replace('language-', '')
+            if clean_cls in lang_map:
+                lang = lang_map[clean_cls]
+                found_class = cls
                 break
         
-        # 策略 B: 如果 div 上没找到，检查内部的 code 标签
+        # 策略 B: 如果容器没找到，检查内部 code 标签
         if not lang:
-            code_tag = div.find('code')
+            code_tag = block.find('code')
             if code_tag:
                 code_classes = code_tag.get('class', [])
                 for cls in code_classes:
-                    if cls.startswith('language-'):
-                        lang_key = cls.replace('language-', '')
-                        lang = lang_map.get(lang_key, lang_key.upper())
+                    clean_cls = cls.replace('language-', '')
+                    if clean_cls in lang_map:
+                        lang = lang_map[clean_cls]
+                        found_class = cls
                         break
         
-        # 默认值
-        if not lang:
-            lang = 'CODE'
-
-        # 找到 div 内部的 pre 标签并写入属性
-        pre = div.find('pre')
-        if pre:
-            pre['data-lang'] = lang
+        # 写入属性
+        target_pre = block if block.name == 'pre' else block.find('pre')
+        
+        if target_pre:
+            if lang:
+                target_pre['data-lang'] = lang
+                # --- 调试打印 (如果在终端看到这个，说明 HTML 生成成功了) ---
+                print(f"      [DEBUG] Injected data-lang='{lang}' (found class: {found_class})")
+            else:
+                # 默认设为 CODE，方便 CSS 统一处理
+                target_pre['data-lang'] = 'CODE'
 
     return str(soup)
 
@@ -141,7 +130,6 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
         metadata = {}
         content_markdown = content
 
-    # 元数据处理
     raw_date = metadata.get('date')
     if raw_date:
         metadata['date'] = standardize_date(raw_date)
@@ -154,26 +142,17 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     if isinstance(tags_list, str):
         tags_list = [t.strip() for t in tags_list.split(',')]
     
-    metadata['tags'] = [
-        {'name': t, 'slug': tag_to_slug(t)} 
-        for t in tags_list if t
-    ]
+    metadata['tags'] = [{'name': t, 'slug': tag_to_slug(t)} for t in tags_list if t]
 
     if 'slug' not in metadata:
-        file_name = os.path.basename(md_file_path)
-        base_name = os.path.splitext(file_name)[0]
-        slug_match = re.match(r'^(\d{4}-\d{2}-\d{2}-)?(.*)$', base_name)
-        if slug_match and slug_match.group(2):
-            metadata['slug'] = slug_match.group(2).lower()
-        else:
-            metadata['slug'] = base_name.lower()
+        base_name = os.path.splitext(os.path.basename(md_file_path))[0]
+        # 简单的 slug 生成逻辑
+        metadata['slug'] = base_name.lower()
     
     if 'title' not in metadata:
-        metadata['title'] = metadata['slug'].replace('-', ' ').title()
-        if not metadata['title'] and content_markdown:
-             metadata['title'] = content_markdown.split('\n', 1)[0].strip()
+        metadata['title'] = metadata['slug']
     
-    metadata['excerpt'] = metadata.get('summary') or metadata.get('excerpt') or metadata.get('description') or ''
+    metadata['excerpt'] = metadata.get('summary') or ''
     
     # Markdown 渲染
     extension_configs = config.MARKDOWN_EXTENSION_CONFIGS.copy()
@@ -188,8 +167,8 @@ def get_metadata_and_content(md_file_path: str) -> Tuple[Dict[str, Any], str, st
     
     raw_html = md.convert(content_markdown)
     
-    # --- 调用后处理函数 ---
-    content_html = post_process_html(raw_html)
+    # 传递文件名用于调试
+    content_html = post_process_html(raw_html, filename=os.path.basename(md_file_path))
     
     toc_html = md.toc if hasattr(md, 'toc') else ""
 
