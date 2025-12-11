@@ -95,6 +95,10 @@ html {
     background-color: var(--color-main-background);
     font-size: 16px;
     scroll-behavior: smooth; 
+    
+    /* 修复：防止页面整体横向溢出 */
+    overflow-x: hidden;
+    width: 100%;
 }
 
 body {
@@ -103,6 +107,11 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
+    
+    /* 修复：双重保险，防止 Body 被宽内容撑开 */
+    overflow-x: hidden;
+    width: 100%;
+    position: relative;
 }
 
 a {
@@ -234,15 +243,11 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0 auto;
     padding: 0 20px;
 }
-/* 
-   ⭐⭐⭐ 核心修复：添加 min-width: 0 ⭐⭐⭐
-   这是解决表格撑破布局的关键。它允许 Flex 项目在必要时收缩，
-   而不是被内部宽大的表格强制撑开。
-*/
+
 .content-area { 
     flex-grow: 1; 
     max-width: 100%; 
-    min-width: 0; 
+    min-width: 0; /* 允许 Flex 子项收缩，防止表格撑破 */
 }
 
 /* =========================================
@@ -620,6 +625,9 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     
     /* 修复：iOS 惯性滚动支持 */
     -webkit-overflow-scrolling: touch; 
+    
+    /* ⭐ 核心修复：防止表格滑动触发页面返回/滚动链 ⭐ */
+    overscroll-behavior-x: contain;
 }
 .table-wrapper:hover { 
     border-color: var(--color-primary); 
@@ -1109,6 +1117,12 @@ a:focus, button:focus, .tag-cloud-item:focus {
     h1, h2, h3, h4, h5, h6 { scroll-margin-top: 130px; }
     
     .post-list-item { padding: 20px 15px; } 
+
+    /* 移动端特殊修正：确保表格包裹器宽度正常 */
+    .table-wrapper {
+        width: 100% !important;
+        max-width: calc(100vw - 40px) !important; /* 强制减去容器内边距 */
+    }
 }
 
 /* =========================================
