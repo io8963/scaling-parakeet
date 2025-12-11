@@ -597,7 +597,9 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 /* --- 表格 UI/UX (表头冻结) --- */
 .table-wrapper { 
+    display: block; /* 修复：强制块级显示，确保 width 生效 */
     width: 100%; 
+    max-width: 100%; /* 修复：防止撑破父容器 */
     overflow-x: auto; 
     margin: 30px 0; 
     border: 1px solid var(--color-main-border); 
@@ -646,7 +648,15 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border-bottom: 1px solid var(--color-main-border); 
     text-align: left; 
     line-height: 1.5;
+    
+    /* 修复：不仅表头，单元格内容也不许过度换行，强制撑开表格宽度 */
+    /* keep-all 针对 CJK 文本，nowrap 针对西文 */
+    word-break: keep-all; 
+    white-space: nowrap; 
 }
+
+/* 针对特别长的单元格，可以考虑允许换行，但为了保证表格结构，通常数据表推荐 nowrap */
+/* 如果您觉得内容过长，可以移除 white-space: nowrap; 保留 word-break: keep-all */
 
 .post-content th { 
     background-color: var(--color-primary-light); 
@@ -655,9 +665,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     text-transform: uppercase; 
     font-size: 0.9rem;
     border-bottom: 2px solid var(--color-primary);
-    
-    /* 修复：强制表头不换行，这是触发移动端水平滚动的关键 */
-    white-space: nowrap;
     
     /* 表头吸顶 (Sticky Header) */
     position: sticky;
