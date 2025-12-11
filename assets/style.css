@@ -566,29 +566,27 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     letter-spacing: 0.05em;
 }
 
-/* 使用 :has() 根据 code class 显示具体语言 */
-.post-content pre:has(code[class*="python"])::after,
-.post-content pre:has(code[class*="language-python"])::after { content: "PYTHON"; color: #3572A5; }
+/* 
+   [核心修复] 使用父级类名来显示具体语言
+   pymdownx.highlight 会将 .language-xxx 添加到外层容器
+*/
+.post-content .language-python pre::after,
+.post-content .language-py pre::after { content: "PYTHON"; color: #3572A5; }
 
-.post-content pre:has(code[class*="js"])::after,
-.post-content pre:has(code[class*="javascript"])::after,
-.post-content pre:has(code[class*="language-javascript"])::after { content: "JS"; color: #f1e05a; }
+.post-content .language-js pre::after,
+.post-content .language-javascript pre::after { content: "JS"; color: #f1e05a; }
 
-.post-content pre:has(code[class*="css"])::after,
-.post-content pre:has(code[class*="language-css"])::after { content: "CSS"; color: #563d7c; }
+.post-content .language-css pre::after { content: "CSS"; color: #563d7c; }
 
-.post-content pre:has(code[class*="html"])::after,
-.post-content pre:has(code[class*="language-html"])::after { content: "HTML"; color: #e34c26; }
+.post-content .language-html pre::after { content: "HTML"; color: #e34c26; }
 
-.post-content pre:has(code[class*="bash"])::after,
-.post-content pre:has(code[class*="shell"])::after,
-.post-content pre:has(code[class*="language-bash"])::after { content: "SHELL"; color: #89e051; }
+.post-content .language-bash pre::after,
+.post-content .language-sh pre::after,
+.post-content .language-shell pre::after { content: "SHELL"; color: #89e051; }
 
-.post-content pre:has(code[class*="json"])::after,
-.post-content pre:has(code[class*="language-json"])::after { content: "JSON"; }
+.post-content .language-json pre::after { content: "JSON"; }
 
-.post-content pre:has(code[class*="sql"])::after,
-.post-content pre:has(code[class*="language-sql"])::after { content: "SQL"; }
+.post-content .language-sql pre::after { content: "SQL"; }
 
 .post-content pre:hover { box-shadow: 0 6px 12px -2px rgba(0, 0, 0, 0.1); }
 @media (prefers-color-scheme: dark) {
