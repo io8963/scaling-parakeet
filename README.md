@@ -89,9 +89,6 @@ status: published    # 设置为 draft 可标记为草稿
 
 这里支持 **Markdown** 语法。
 
-```python
-print("Hello World")
-```
 ```
 
 ## ⚙️ 配置与自定义
