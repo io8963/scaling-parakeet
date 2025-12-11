@@ -1,4 +1,4 @@
-# parser.py
+# parser.py (增强版：修复语言识别)
 
 import os
 import re
@@ -39,14 +39,14 @@ def tag_to_slug(tag_name: str) -> str:
     return slug
 
 # -------------------------------------------------------------------------
-# 【核心逻辑：代码块后处理】(修复语言显示问题的关键)
+# 【核心逻辑：代码块后处理】(增强版)
 # -------------------------------------------------------------------------
 def post_process_html(html_content: str) -> str:
     """
     使用 BeautifulSoup 对 HTML 进行后处理：
     1. 图片懒加载
     2. 表格包裹
-    3. [关键] 代码块语言标签注入
+    3. [关键] 代码块语言标签注入 (同时检查 div 和 code)
     """
     if not html_content:
         return ""
@@ -67,36 +67,53 @@ def post_process_html(html_content: str) -> str:
             wrapper_div.append(table)
 
     # 3. [关键修复] 代码块语言识别
-    # 查找所有由 pymdownx 生成的高亮容器 div.highlight
+    # 语言映射表
+    lang_map = {
+        'py': 'PYTHON', 'python': 'PYTHON',
+        'js': 'JS', 'javascript': 'JS',
+        'ts': 'TS', 'typescript': 'TS',
+        'sh': 'SHELL', 'bash': 'SHELL', 'shell': 'SHELL', 'zsh': 'SHELL',
+        'html': 'HTML', 'css': 'CSS', 'scss': 'CSS',
+        'json': 'JSON', 'sql': 'SQL', 'yaml': 'YAML', 'yml': 'YAML',
+        'md': 'MARKDOWN', 'markdown': 'MARKDOWN',
+        'c': 'C', 'cpp': 'C++', 'c++': 'C++',
+        'go': 'GO', 'java': 'JAVA', 'rust': 'RUST',
+        'txt': 'TEXT', 'text': 'TEXT'
+    }
+
+    # 查找所有高亮容器
     for div in soup.find_all('div', class_='highlight'):
-        # 获取 div 的类列表 (例如 ['highlight', 'python'])
-        classes = div.get('class', [])
-        lang = 'CODE' # 默认值
+        lang = None
         
-        # 寻找语言类名 (忽略 'highlight')
-        for cls in classes:
-            if cls != 'highlight':
-                # 找到语言了！(例如 python, js, html)
-                # 进行简单的标准化映射
-                lang_map = {
-                    'py': 'PYTHON', 'python': 'PYTHON',
-                    'js': 'JS', 'javascript': 'JS',
-                    'ts': 'TS', 'typescript': 'TS',
-                    'sh': 'SHELL', 'bash': 'SHELL', 'shell': 'SHELL', 'zsh': 'SHELL',
-                    'html': 'HTML', 'css': 'CSS', 'scss': 'CSS',
-                    'json': 'JSON', 'sql': 'SQL', 'yaml': 'YAML', 'yml': 'YAML',
-                    'md': 'MARKDOWN', 'markdown': 'MARKDOWN',
-                    'c': 'C', 'cpp': 'C++', 'c++': 'C++',
-                    'go': 'GO', 'java': 'JAVA', 'rust': 'RUST'
-                }
-                lang = lang_map.get(cls.lower(), cls.upper())
+        # 策略 A: 检查 div 的 class (例如 highlight language-python)
+        div_classes = div.get('class', [])
+        for cls in div_classes:
+            if cls.startswith('language-'):
+                lang_key = cls.replace('language-', '')
+                lang = lang_map.get(lang_key, lang_key.upper())
+                break
+            elif cls != 'highlight' and cls in lang_map: # 兼容旧格式
+                lang = lang_map.get(cls, cls.upper())
                 break
         
-        # 找到 div 内部的 pre 标签
+        # 策略 B: 如果 div 上没找到，检查内部的 code 标签
+        if not lang:
+            code_tag = div.find('code')
+            if code_tag:
+                code_classes = code_tag.get('class', [])
+                for cls in code_classes:
+                    if cls.startswith('language-'):
+                        lang_key = cls.replace('language-', '')
+                        lang = lang_map.get(lang_key, lang_key.upper())
+                        break
+        
+        # 默认值
+        if not lang:
+            lang = 'CODE'
+
+        # 找到 div 内部的 pre 标签并写入属性
         pre = div.find('pre')
         if pre:
-            # 将识别到的语言写入 pre 的 data-lang 属性
-            # CSS 将使用 attr(data-lang) 直接读取这个值
             pre['data-lang'] = lang
 
     return str(soup)
