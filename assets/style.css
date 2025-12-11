@@ -95,10 +95,6 @@ html {
     background-color: var(--color-main-background);
     font-size: 16px;
     scroll-behavior: smooth; 
-    
-    /* 修复：防止页面整体横向溢出 */
-    overflow-x: hidden;
-    width: 100%;
 }
 
 body {
@@ -107,11 +103,6 @@ body {
     min-height: 100vh;
     display: flex;
     flex-direction: column;
-    
-    /* 修复：双重保险，防止 Body 被宽内容撑开 */
-    overflow-x: hidden;
-    width: 100%;
-    position: relative;
 }
 
 a {
@@ -243,12 +234,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0 auto;
     padding: 0 20px;
 }
-
-.content-area { 
-    flex-grow: 1; 
-    max-width: 100%; 
-    min-width: 0; /* 允许 Flex 子项收缩，防止表格撑破 */
-}
+.content-area { flex-grow: 1; max-width: 100%; }
 
 /* =========================================
    I. 目录 (TOC)
@@ -611,9 +597,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 /* --- 表格 UI/UX (表头冻结) --- */
 .table-wrapper { 
-    display: block; 
     width: 100%; 
-    max-width: 100%; /* 防止撑破 */
     overflow-x: auto; 
     margin: 30px 0; 
     border: 1px solid var(--color-main-border); 
@@ -621,13 +605,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     transition: border-color 0.2s, box-shadow 0.2s, background-color 0.2s; 
     outline: none; 
     background-color: var(--color-main-card); 
-    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
-    
-    /* 修复：iOS 惯性滚动支持 */
-    -webkit-overflow-scrolling: touch; 
-    
-    /* ⭐ 核心修复：防止表格滑动触发页面返回/滚动链 ⭐ */
-    overscroll-behavior-x: contain;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05); 
 }
 .table-wrapper:hover { 
     border-color: var(--color-primary); 
@@ -658,8 +636,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     color: var(--color-main-text); 
     border-radius: 4px; 
     overflow: hidden; 
-    /* 自动布局，允许表格根据内容宽度自然撑开 */
-    table-layout: auto; 
 }
 
 .post-content th, .post-content td { 
@@ -667,11 +643,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     border-bottom: 1px solid var(--color-main-border); 
     text-align: left; 
     line-height: 1.5;
-    
-    /* 恢复默认换行行为，只在表头强制不换行，防止普通单元格内容过多导致单行过长 */
-    /* 配合 .table-wrapper 的滚动条，如果表头宽，整个表格依然会触发滚动 */
-    word-break: normal;
-    white-space: normal;
 }
 
 .post-content th { 
@@ -681,9 +652,6 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     text-transform: uppercase; 
     font-size: 0.9rem;
     border-bottom: 2px solid var(--color-primary);
-    
-    /* 仅强制表头不换行，保证列宽足够 */
-    white-space: nowrap;
     
     /* 表头吸顶 (Sticky Header) */
     position: sticky;
@@ -808,25 +776,19 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1), background-color 0.2s, border-left-color 0.2s;
     border-radius: 0; 
     box-shadow: none;
-
-    /* 修复：开启硬件加速以消除 transform 动画导致的文字毛边 */
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    transform: translateZ(0); 
-    will-change: transform;
 }
 
 .post-list-item:hover,
 .post-list-item:focus { 
     background-color: rgba(0, 0, 0, 0.02); 
     border-left-color: var(--color-primary);
-    transform: translateX(5px) translateZ(0); /* 保持 Z 轴加速 */
+    transform: translateX(5px); /* 悬停右移反馈 */
     outline: none;
 }
 
 /* 文章列表卡片按压效果 */
 .post-list-item:active {
-    transform: translateX(5px) scale(0.99) translateZ(0); /* 保持 Z 轴加速 */
+    transform: translateX(5px) scale(0.99); 
     background-color: rgba(0,0,0,0.05);
     transition: transform 0.05s;
 }
@@ -1117,12 +1079,6 @@ a:focus, button:focus, .tag-cloud-item:focus {
     h1, h2, h3, h4, h5, h6 { scroll-margin-top: 130px; }
     
     .post-list-item { padding: 20px 15px; } 
-
-    /* 移动端特殊修正：确保表格包裹器宽度正常 */
-    .table-wrapper {
-        width: 100% !important;
-        max-width: calc(100vw - 40px) !important; /* 强制减去容器内边距 */
-    }
 }
 
 /* =========================================
