@@ -234,7 +234,16 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     margin: 0 auto;
     padding: 0 20px;
 }
-.content-area { flex-grow: 1; max-width: 100%; }
+/* 
+   ⭐⭐⭐ 核心修复：添加 min-width: 0 ⭐⭐⭐
+   这是解决表格撑破布局的关键。它允许 Flex 项目在必要时收缩，
+   而不是被内部宽大的表格强制撑开。
+*/
+.content-area { 
+    flex-grow: 1; 
+    max-width: 100%; 
+    min-width: 0; 
+}
 
 /* =========================================
    I. 目录 (TOC)
@@ -597,9 +606,9 @@ main { flex-grow: 1; padding: 40px 0 80px; }
 
 /* --- 表格 UI/UX (表头冻结) --- */
 .table-wrapper { 
-    display: block; /* 修复：强制块级显示，确保 width 生效 */
+    display: block; 
     width: 100%; 
-    max-width: 100%; /* 修复：防止撑破父容器 */
+    max-width: 100%; /* 防止撑破 */
     overflow-x: auto; 
     margin: 30px 0; 
     border: 1px solid var(--color-main-border); 
@@ -609,7 +618,7 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     background-color: var(--color-main-card); 
     box-shadow: 0 1px 3px rgba(0,0,0,0.05);
     
-    /* 修复：iOS 惯性滚动支持，解决移动端表格滚动卡顿 */
+    /* 修复：iOS 惯性滚动支持 */
     -webkit-overflow-scrolling: touch; 
 }
 .table-wrapper:hover { 
@@ -641,6 +650,8 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     color: var(--color-main-text); 
     border-radius: 4px; 
     overflow: hidden; 
+    /* 自动布局，允许表格根据内容宽度自然撑开 */
+    table-layout: auto; 
 }
 
 .post-content th, .post-content td { 
@@ -649,14 +660,11 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     text-align: left; 
     line-height: 1.5;
     
-    /* 修复：不仅表头，单元格内容也不许过度换行，强制撑开表格宽度 */
-    /* keep-all 针对 CJK 文本，nowrap 针对西文 */
-    word-break: keep-all; 
-    white-space: nowrap; 
+    /* 恢复默认换行行为，只在表头强制不换行，防止普通单元格内容过多导致单行过长 */
+    /* 配合 .table-wrapper 的滚动条，如果表头宽，整个表格依然会触发滚动 */
+    word-break: normal;
+    white-space: normal;
 }
-
-/* 针对特别长的单元格，可以考虑允许换行，但为了保证表格结构，通常数据表推荐 nowrap */
-/* 如果您觉得内容过长，可以移除 white-space: nowrap; 保留 word-break: keep-all */
 
 .post-content th { 
     background-color: var(--color-primary-light); 
@@ -665,6 +673,9 @@ main { flex-grow: 1; padding: 40px 0 80px; }
     text-transform: uppercase; 
     font-size: 0.9rem;
     border-bottom: 2px solid var(--color-primary);
+    
+    /* 仅强制表头不换行，保证列宽足够 */
+    white-space: nowrap;
     
     /* 表头吸顶 (Sticky Header) */
     position: sticky;
